@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Messages – HuffazWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F0D98A;
+    --emerald: #1A6B4A; --emerald-light: #E6F5EE; --emerald-dark: #0D3D29;
+    --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+  nav { background: var(--emerald-dark); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .nav-logo { font-family: 'Amiri', serif; font-size: 1.5rem; font-weight: 700; color: white; text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-link { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.88rem; font-weight: 500; }
+  .nav-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; text-decoration: none; }
+  .logout-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 0.4rem 0.9rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+  .container { max-width: 680px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .page-title { font-family: 'Amiri', serif; font-size: 2rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 1.5rem; }
+
+  .search-box { position: relative; margin-bottom: 1.5rem; }
+  .search-input { width: 100%; padding: 0.85rem 1rem 0.85rem 2.8rem; border: 1.5px solid rgba(201,168,76,0.25); border-radius: 14px; font-size: 0.92rem; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--white); outline: none; }
+  .search-input:focus { border-color: var(--emerald); }
+  .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); }
+
+  .conv-item { background: var(--white); border: 1px solid rgba(201,168,76,0.15); border-radius: 16px; padding: 1rem 1.25rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+  .conv-item:hover { transform: translateX(4px); box-shadow: 0 4px 16px rgba(15,26,20,0.08); }
+  .conv-item.unread { border-left: 4px solid var(--emerald); }
+  .conv-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .conv-info { flex: 1; min-width: 0; }
+  .conv-name { font-size: 0.95rem; font-weight: 700; color: var(--emerald-dark); }
+  .conv-preview { font-size: 0.8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.15rem; }
+  .conv-item.unread .conv-preview { color: var(--text); font-weight: 600; }
+  .conv-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; flex-shrink: 0; }
+  .conv-time { font-size: 0.72rem; color: var(--muted); }
+  .unread-badge { background: var(--emerald); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 700; }
+
+  .new-msg-btn { display: flex; align-items: center; gap: 0.6rem; background: var(--emerald); color: white; border: none; border-radius: 14px; padding: 0.85rem 1.25rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; margin-bottom: 1.5rem; text-decoration: none; transition: background 0.2s; }
+  .new-msg-btn:hover { background: var(--emerald-dark); }
+
+  .empty-state { text-align: center; padding: 4rem 1rem; color: var(--muted); }
+  .empty-state .icon { font-size: 3.5rem; margin-bottom: 1rem; }
+  .empty-state h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 0.5rem; }
+
+  .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--emerald-dark); border-top: 1px solid rgba(201,168,76,0.2); padding: 0.5rem 0 0.75rem; z-index: 200; }
+  .mobile-nav-inner { display: flex; justify-content: space-around; align-items: center; }
+  .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; text-decoration: none; flex: 1; padding: 0.3rem 0; border: none; background: none; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .mobile-nav-item .m-icon { font-size: 1.3rem; }
+  .mobile-nav-item .m-label { font-size: 0.62rem; font-weight: 600; color: rgba(255,255,255,0.55); }
+  .mobile-nav-item.active .m-label { color: var(--gold); }
+  .mobile-nav-post { background: var(--gold); border-radius: 50%; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-top: -1.2rem; border: 3px solid var(--emerald-dark); text-decoration: none; flex-shrink: 0; }
+  @media (max-width: 768px) {
+    .mobile-nav { display: block; }
+    body { padding-bottom: 70px; }
+    nav { padding: 0.85rem 1.25rem; }
+    .container { padding: 1rem; }
+    .page-title { font-size: 1.6rem; }
+    .new-msg-btn { width: 100%; justify-content: center; }
+    .conv-item { padding: 0.85rem 1rem; }
+    .conv-avatar { width: 42px; height: 42px; font-size: 0.88rem; }
+    .conv-name { font-size: 0.88rem; }
+    .conv-preview { font-size: 0.75rem; }
+  }
+
+  #loading { position: fixed; inset: 0; background: var(--cream); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
+  #loading .logo { font-family: 'Amiri', serif; font-size: 2.5rem; font-weight: 700; color: var(--emerald-dark); }
+  #loading .logo span { color: var(--gold); }
+  .loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); display: inline-block; animation: bounce 1.2s infinite; margin: 0 3px; }
+  .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100%{transform:scale(0.6)} 40%{transform:scale(1)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  /* HIDE TOP NAV LINKS ON MOBILE */
+  @media (max-width: 768px) {
+    .nav-right .nav-link,
+    .nav-right .logout-btn,
+    .nav-right .nav-avatar {
+      display: none !important;
+    }
+    .nav-right .nav-avatar { display: none !important; }
+    .nav-right .msg-nav-link { display: inline-flex !important; }
+    .nav-right .group-nav-link { display: inline-flex !important; }
+    nav { justify-content: space-between; }
+  }
+
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="logo">Huffaz<span>World</span></div>
+  <div style="margin-top:1rem;"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>
+</div>
+
+<div id="app" style="display:none;">
+  <nav>
+    <a href="dashboard.html" class="nav-logo">Huffaz<span>World</span></a>
+    <div class="nav-right">
+      <a href="messages.html" class="nav-link msg-nav-link" style="font-size:1.2rem;">💬</a>
+      <a href="dashboard.html" class="nav-link">🏠 Feed</a>
+      <a href="search.html" class="nav-link">🔍 Search</a>
+      <a href="profile.html" class="nav-avatar" id="nav-avatar">?</a>
+      <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="page-title">💬 Messages</div>
+
+    <a href="search.html" class="new-msg-btn">✏️ New Message — Find Someone</a>
+
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="search-conv" placeholder="Search conversations..." oninput="filterConvs()" />
+    </div>
+
+    <div id="conv-list">
+      <div style="text-align:center;padding:2rem;color:var(--muted);">Loading messages...</div>
+    </div>
+  </div>
+
+  <div class="mobile-nav">
+    <div class="mobile-nav-inner">
+      <a href="dashboard.html" class="mobile-nav-item"><span class="m-icon">🏠</span><span class="m-label">Feed</span></a>
+      <a href="search.html" class="mobile-nav-item"><span class="m-icon">🔍</span><span class="m-label">Search</span></a>
+      <a href="dashboard.html" class="mobile-nav-post">✏️</a>
+      <a href="profile.html" class="mobile-nav-item"><span class="m-icon">👤</span><span class="m-label">Profile</span></a>
+      <a href="notifications.html" class="mobile-nav-item"><span class="m-icon">🔔</span><span class="m-label">Alerts</span></a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "69769070061",
+    appId: "1:69769070061:web:469c095c061654b4d013e4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  let currentUser = null;
+  let allConvs = [];
+
+  const colors = [['#C9A84C','#0D3D29'],['#5DCAA5','#04342C'],['#AFA9EC','#26215C'],['#1A6B4A','#fff'],['#F4A261','#3D1A00']];
+  function getColor(uid) { let h=0; for(let c of(uid||''))h=c.charCodeAt(0)+((h<<5)-h); return colors[Math.abs(h)%colors.length]; }
+
+  function timeAgo(ts) {
+    if (!ts) return '';
+    const diff = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+    if (diff < 60) return 'now';
+    if (diff < 3600) return Math.floor(diff/60) + 'm';
+    if (diff < 86400) return Math.floor(diff/3600) + 'h';
+    return Math.floor(diff/86400) + 'd';
+  }
+
+  function renderConvs(convs) {
+    const list = document.getElementById('conv-list');
+    if (convs.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">💬</div><h3>No messages yet</h3><p>Go to <a href="search.html" style="color:var(--emerald);font-weight:600;">Search</a> and click ✉️ to start a conversation!</p></div>`;
+      return;
+    }
+    list.innerHTML = convs.map((c,i) => {
+      const [bg,fg] = getColor(c.otherUid);
+      const initials = (c.otherName||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+      return `<a href="chat.html?uid=${c.otherUid}&name=${encodeURIComponent(c.otherName)}" class="conv-item ${c.unread?'unread':''}" style="animation:fadeUp 0.3s ease ${i*0.05}s both;">
+        <div class="conv-avatar" style="background:${bg};color:${fg};">${initials}</div>
+        <div class="conv-info">
+          <div class="conv-name">${c.otherName}</div>
+          <div class="conv-preview">${c.lastMessage||'Start a conversation...'}</div>
+        </div>
+        <div class="conv-meta">
+          <div class="conv-time">${timeAgo(c.lastTime)}</div>
+          ${c.unread?'<div class="unread-badge">1</div>':''}
+        </div>
+      </a>`;
+    }).join('');
+  }
+
+  window.filterConvs = function() {
+    const q = document.getElementById('search-conv').value.toLowerCase();
+    const filtered = q ? allConvs.filter(c => c.otherName.toLowerCase().includes(q)) : allConvs;
+    renderConvs(filtered);
+  }
+
+  window.handleLogout = async function() { await signOut(auth); window.location.href = 'login.html'; }
+
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+      try {
+        const userDoc = await getDoc(doc(db,'users',user.uid));
+        const userData = userDoc.exists() ? userDoc.data() : {};
+        const name = userData.fullname || user.displayName || 'Friend';
+        document.getElementById('nav-avatar').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+
+        // Load conversations
+        const q = query(collection(db,'conversations'), where('members','array-contains',user.uid));
+        onSnapshot(q, async snap => {
+          allConvs = [];
+          for (const d of snap.docs) {
+            const data = d.data();
+            const otherUid = data.members.find(m => m !== user.uid);
+            let otherName = 'Unknown';
+            try {
+              const otherDoc = await getDoc(doc(db,'users',otherUid));
+              if (otherDoc.exists()) otherName = otherDoc.data().fullname || 'Unknown';
+            } catch(e) {}
+            allConvs.push({ id:d.id, otherUid, otherName, lastMessage: data.lastMessage, lastTime: data.lastTime, unread: data.unreadBy?.includes(user.uid) });
+          }
+          allConvs.sort((a,b) => new Date(b.lastTime||0) - new Date(a.lastTime||0));
+          renderConvs(allConvs);
+        });
+      } catch(e) { console.error(e); }
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else { window.location.href = 'login.html'; }
+  });
+</script>
+</body>
+</html>

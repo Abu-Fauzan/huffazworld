@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard – HuffazWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F0D98A;
+    --emerald: #1A6B4A; --emerald-light: #E6F5EE; --emerald-dark: #0D3D29;
+    --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+  nav { background: var(--emerald-dark); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .nav-logo { font-family: 'Amiri', serif; font-size: 1.5rem; font-weight: 700; color: white; }
+  .nav-logo span { color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-name { font-size: 0.88rem; color: rgba(255,255,255,0.7); }
+  .nav-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .logout-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 0.4rem 0.9rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .logout-btn:hover { background: rgba(255,255,255,0.2); }
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .welcome-banner { background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 100%); border-radius: 20px; padding: 2rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+  .welcome-text h1 { font-family: 'Amiri', serif; font-size: 1.8rem; color: white; margin-bottom: 0.3rem; }
+  .welcome-text p { font-size: 0.88rem; color: rgba(255,255,255,0.65); }
+  .welcome-arabic { font-family: 'Amiri', serif; font-size: 1.4rem; color: var(--gold-light); direction: rtl; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.25rem; transition: transform 0.2s; }
+  .stat-card:hover { transform: translateY(-2px); }
+  .stat-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .stat-value { font-family: 'Amiri', serif; font-size: 1.8rem; font-weight: 700; color: var(--emerald-dark); }
+  .stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+  .main-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; }
+  .post-box { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .post-box textarea { width: 100%; border: 1.5px solid rgba(201,168,76,0.2); border-radius: 12px; padding: 0.85rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem; color: var(--text); background: var(--cream); resize: none; outline: none; min-height: 90px; }
+  .post-box textarea:focus { border-color: var(--emerald); background: white; }
+  .post-actions-row { display: flex; align-items: center; justify-content: space-between; margin-top: 0.75rem; }
+  .post-type-btns { display: flex; gap: 0.5rem; }
+  .post-type-btn { background: var(--emerald-light); color: var(--emerald-dark); border: 1.5px solid transparent; border-radius: 8px; padding: 0.4rem 0.8rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: all 0.2s; }
+  .post-type-btn.active-tag { background: var(--emerald); color: white; border-color: var(--emerald-dark); }
+  .post-type-btn.media-btn { background: var(--cream); color: var(--muted); border: 1.5px solid rgba(201,168,76,0.2); }
+  .post-type-btn.media-btn:hover { background: #FFF3CD; color: #856404; border-color: #ffc107; }
+  .post-type-btn.media-btn.photo-active { background: #FFF3CD; color: #856404; border-color: #ffc107; }
+  .post-image { width: 100%; max-height: 400px; object-fit: cover; border-radius: 12px; margin: 0.75rem 0 0.25rem; border: 1px solid rgba(201,168,76,0.2); cursor: pointer; }
+  .post-image:hover { opacity: 0.95; }
+  .post-submit { background: var(--emerald); color: white; border: none; border-radius: 10px; padding: 0.5rem 1.2rem; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .post-submit:hover { background: var(--emerald-dark); }
+  .post-submit:disabled { background: #aab8af; cursor: not-allowed; }
+  .feed-post { background: var(--white); border: 1px solid rgba(201,168,76,0.15); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; animation: fadeUp 0.4s ease both; }
+  @keyframes fadeOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(-10px)} }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .post-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; background: var(--emerald); color: white; }
+  .post-meta { flex: 1; }
+  .post-author { font-size: 0.9rem; font-weight: 700; color: var(--emerald-dark); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+  .role-badge { font-size: 0.7rem; background: var(--emerald-light); color: var(--emerald); padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 600; }
+  .post-info { font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; }
+  .post-body { font-size: 0.9rem; color: var(--text); line-height: 1.75; }
+  .post-footer { display: flex; gap: 0.75rem; margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid rgba(201,168,76,0.12); flex-wrap: wrap; }
+  .post-btn { background: none; border: 1px solid rgba(201,168,76,0.2); border-radius: 8px; font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500; padding: 0.3rem 0.75rem; transition: all 0.2s; }
+  .post-btn:hover { color: var(--emerald); border-color: var(--emerald); background: var(--emerald-light); }
+  .post-btn.liked { color: #e53935; border-color: #e53935; background: #fdecea; }
+  .comments-section { margin-top: 0.75rem; border-top: 1px solid rgba(201,168,76,0.1); padding-top: 0.75rem; display: none; }
+  .comments-section.open { display: block; }
+  .comment-item { display: flex; gap: 0.5rem; margin-bottom: 0.6rem; }
+  .comment-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; }
+  .comment-bubble { background: var(--cream); border-radius: 10px; padding: 0.45rem 0.7rem; flex: 1; }
+  .comment-name { font-size: 0.75rem; font-weight: 700; color: var(--emerald-dark); }
+  .comment-text { font-size: 0.8rem; color: var(--text); line-height: 1.5; }
+  .comment-input-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+  .comment-input { flex: 1; border: 1.5px solid rgba(201,168,76,0.2); border-radius: 10px; padding: 0.5rem 0.75rem; font-size: 0.82rem; font-family: 'Plus Jakarta Sans', sans-serif; outline: none; background: var(--cream); }
+  .comment-input:focus { border-color: var(--emerald); background: white; }
+  .comment-send { background: var(--emerald); color: white; border: none; border-radius: 10px; padding: 0.5rem 0.9rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .empty-feed { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+  .empty-feed .icon { font-size: 3rem; margin-bottom: 0.75rem; }
+  .feed-loading { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(26,107,74,0.2); border-top-color: var(--emerald); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 0.4rem; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .sidebar-card { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .sidebar-title { font-size: 0.85rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 1rem; }
+  .progress-item { margin-bottom: 0.85rem; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 0.3rem; }
+  .progress-bar { height: 6px; background: var(--emerald-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--emerald); border-radius: 99px; }
+  .suggest-item { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem; }
+  .suggest-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; background: var(--gold); color: var(--emerald-dark); }
+  .suggest-name { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+  .suggest-role { font-size: 0.72rem; color: var(--muted); }
+  .follow-btn { margin-left: auto; background: var(--emerald-light); color: var(--emerald); border: none; border-radius: 8px; padding: 0.3rem 0.7rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  #loading { position: fixed; inset: 0; background: var(--cream); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
+  #loading .logo { font-family: 'Amiri', serif; font-size: 2.5rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.5rem; }
+  #loading .logo span { color: var(--gold); }
+  .loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); display: inline-block; animation: bounce 1.2s infinite; margin: 0 3px; }
+  .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100%{transform:scale(0.6)} 40%{transform:scale(1)} }
+  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--emerald-dark); color: white; padding: 0.75rem 1.5rem; border-radius: 12px; font-size: 0.88rem; font-weight: 600; z-index: 9999; transition: transform 0.3s ease; pointer-events: none; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } .welcome-banner { padding: 1.25rem; } }
+
+  /* MOBILE BOTTOM NAV */
+  .mobile-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--emerald-dark);
+    border-top: 1px solid rgba(201,168,76,0.2);
+    padding: 0.5rem 0 0.75rem;
+    z-index: 200;
+  }
+  .mobile-nav-inner {
+    display: flex; justify-content: space-around; align-items: center;
+  }
+  .mobile-nav-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.2rem; text-decoration: none; cursor: pointer;
+    flex: 1; padding: 0.3rem 0;
+    border: none; background: none; font-family: "Plus Jakarta Sans", sans-serif;
+  }
+  .mobile-nav-item .m-icon { font-size: 1.3rem; }
+  .mobile-nav-item .m-label { font-size: 0.62rem; font-weight: 600; color: rgba(255,255,255,0.55); }
+  .mobile-nav-item.active .m-label { color: var(--gold); }
+  .mobile-nav-item.active .m-icon { filter: drop-shadow(0 0 4px rgba(201,168,76,0.6)); }
+  .mobile-nav-post {
+    background: var(--gold); border-radius: 50%;
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; margin-top: -1.2rem;
+    border: 3px solid var(--emerald-dark);
+    box-shadow: 0 4px 16px rgba(201,168,76,0.4);
+    cursor: pointer; text-decoration: none;
+    flex-shrink: 0;
+  }
+  @media (max-width: 768px) {
+    .mobile-nav { display: block; }
+    body { padding-bottom: 70px; }
+    .nav-links-desktop { display: none !important; }
+    nav { padding: 0.85rem 1.25rem; }
+  }
+
+
+  /* MESSAGE BADGE */
+  .msg-bell-wrap { position: relative; display: inline-flex; align-items: center; }
+  .msg-badge { position: absolute; top: -6px; right: -8px; background: #e53935; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; font-weight: 700; display: none; align-items: center; justify-content: center; border: 2px solid var(--emerald-dark); animation: popIn 0.3s ease; }
+  .msg-badge.show { display: flex; }
+
+  /* NOTIFICATION BADGE */
+  .notif-bell-wrap { position: relative; display: inline-flex; align-items: center; }
+  .notif-badge {
+    position: absolute; top: -6px; right: -8px;
+    background: #e53935; color: white;
+    border-radius: 50%; width: 18px; height: 18px;
+    font-size: 0.65rem; font-weight: 700;
+    display: none; align-items: center; justify-content: center;
+    border: 2px solid var(--emerald-dark);
+    animation: popIn 0.3s ease;
+  }
+  .notif-badge.show { display: flex; }
+  @keyframes popIn { 0%{transform:scale(0)} 70%{transform:scale(1.2)} 100%{transform:scale(1)} }
+
+  /* MOBILE NAV BADGE */
+  .m-icon-wrap { position: relative; display: inline-block; }
+  .m-badge {
+    position: absolute; top: -4px; right: -6px;
+    background: #e53935; color: white;
+    border-radius: 50%; width: 16px; height: 16px;
+    font-size: 0.6rem; font-weight: 700;
+    display: none; align-items: center; justify-content: center;
+    border: 2px solid var(--emerald-dark);
+  }
+  .m-badge.show { display: flex; }
+  @media (max-width: 768px) {
+    .mobile-nav { display: block; }
+    body { padding-bottom: 70px; }
+    .nav-links-desktop { display: none !important; }
+    nav { padding: 0.85rem 1.25rem; }
+    .container { padding: 1rem; }
+    .welcome-banner { padding: 1.25rem; border-radius: 16px; }
+    .welcome-text h1 { font-size: 1.4rem; }
+    .welcome-arabic { font-size: 1.1rem; }
+    .stats-grid { grid-template-columns: repeat(2,1fr); gap: 0.75rem; }
+    .main-grid { grid-template-columns: 1fr; }
+    .post-box textarea { min-height: 70px; font-size: 0.88rem; }
+    .post-type-btns { flex-wrap: wrap; gap: 0.4rem; }
+    .post-type-btn { font-size: 0.72rem; padding: 0.35rem 0.6rem; }
+    .feed-post { padding: 1rem; border-radius: 12px; }
+    .sidebar-card { display: none; }
+  }
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: repeat(2,1fr); }
+    .stat-value { font-size: 1.4rem; }
+    .welcome-banner { flex-direction: column; }
+  }
+
+  /* HIDE TOP NAV LINKS ON MOBILE */
+  @media (max-width: 768px) {
+    .nav-right .nav-link,
+    .nav-right .logout-btn,
+    .nav-right .nav-avatar {
+      display: none !important;
+    }
+    .nav-right .nav-avatar { display: none !important; }
+    .nav-right .msg-nav-link { display: inline-flex !important; }
+    .nav-right .group-nav-link { display: inline-flex !important; }
+    nav { justify-content: space-between; }
+  }
+
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="logo">Huffaz<span>World</span></div>
+  <div style="margin-top:1rem;">
+    <span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="app" style="display:none;">
+  <nav>
+    <div class="nav-logo">Huffaz<span>World</span></div>
+    <div class="nav-right">
+      <span class="nav-name" id="nav-name"></span>
+      <a href="search.html" class="nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">🔍 Search</a>
+      <a href="groups.html" class="nav-link group-nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">🕌</a>
+      <a href="messages.html" class="nav-link msg-bell-wrap msg-nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">
+        💬 <span class="msg-badge" id="msg-badge"></span>
+      </a>
+      <a href="notifications.html" class="nav-link notif-bell-wrap" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;" id="notif-bell">
+        🔔 <span class="notif-badge" id="notif-badge"></span>
+      </a>
+      <a href="profile.html" style="text-decoration:none;"><div class="nav-avatar" id="nav-avatar" title="My Profile">?</div></a>
+      <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="welcome-banner">
+      <div class="welcome-text">
+        <h1 id="welcome-name">Welcome back! 🤲</h1>
+        <p id="welcome-role">Continue your blessed journey today.</p>
+      </div>
+      <div class="welcome-arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon">📝</div><div class="stat-value" id="stat-posts">0</div><div class="stat-label">Your Posts</div></div>
+      <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-value">7</div><div class="stat-label">Day Streak</div></div>
+      <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="stat-members">0</div><div class="stat-label">Community Members</div></div>
+      <div class="stat-card"><div class="stat-icon">🏅</div><div class="stat-value">3</div><div class="stat-label">Badges Earned</div></div>
+    </div>
+
+    <div class="main-grid">
+      <div>
+        <div class="post-box">
+          <textarea id="post-input" placeholder="Share your Hifz journey, a beautiful ayah, or inspire the community... 🤲"></textarea>
+          <div style="margin-top:0.75rem;">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.05em;">Post Type</div>
+            <div class="post-type-btns" style="margin-bottom:0.6rem;">
+              <button class="post-type-btn active-tag" id="tag-ayah" onclick="setTag(this)">📖 Ayah</button>
+              <button class="post-type-btn" id="tag-milestone" onclick="setTag(this)">🎯 Milestone</button>
+              <button class="post-type-btn" id="tag-dua" onclick="setTag(this)">🤲 Dua</button>
+              <button class="post-type-btn" id="tag-general" onclick="setTag(this)">💬 General</button>
+            </div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.05em;">Add Media</div>
+            <div class="post-type-btns" style="margin-bottom:0.75rem;">
+              <button class="post-type-btn media-btn" onclick="showComingSoon(this)">📹 Video</button>
+              <button class="post-type-btn media-btn" onclick="showComingSoon(this)">🎙️ Audio</button>
+              <button class="post-type-btn media-btn photo-upload-btn" onclick="document.getElementById('photo-file-input').click()">🖼️ Photo</button>
+              <button class="post-type-btn media-btn" onclick="showComingSoon(this)">📡 Go Live</button>
+            </div>
+            <input type="file" id="photo-file-input" accept="image/*" style="display:none;" onchange="handlePhotoSelected(this)" />
+            <div id="photo-preview-wrap" style="display:none;margin-bottom:0.75rem;position:relative;">
+              <img id="photo-preview-img" src="" alt="Preview" style="width:100%;max-height:280px;object-fit:cover;border-radius:12px;border:2px solid rgba(201,168,76,0.3);" />
+              <button onclick="clearPhoto()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:28px;height:28px;font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+              <div id="photo-upload-status" style="margin-top:0.4rem;font-size:0.75rem;color:var(--muted);"></div>
+            </div>
+          </div>
+          <div class="post-actions-row">
+            <div style="font-size:0.78rem;color:var(--muted);">Selected: <span id="selected-tag" style="color:var(--emerald);font-weight:700;">📖 Ayah</span></div>
+            <button class="post-submit" id="post-btn" onclick="submitPost()">Share Post</button>
+          </div>
+        </div>
+        <div id="feed"><div class="feed-loading"><span class="spinner"></span> Loading posts...</div></div>
+      </div>
+
+      <div>
+        <div class="sidebar-card">
+          <div class="sidebar-title">📊 Your Hifz Progress</div>
+          <div class="progress-item">
+            <div class="progress-label"><span>Juz Amma (30)</span><span>100%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label"><span>Juz Tabarak (29)</span><span>65%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:65%"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label"><span>Surah Al-Baqarah</span><span>30%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:30%"></div></div>
+          </div>
+          <div style="text-align:center;margin-top:1rem;"><span style="font-size:0.78rem;color:var(--muted);">Overall: <strong style="color:var(--emerald-dark);">8% Complete</strong></span></div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">👥 People to Follow</div>
+          <div class="suggest-item">
+            <div class="suggest-avatar" style="background:#C9A84C;color:#0D3D29;">UK</div>
+            <div><div class="suggest-name">Umar Khan 🏅</div><div class="suggest-role">Hafiz · UK</div></div>
+            <button class="follow-btn">Follow</button>
+          </div>
+          <div class="suggest-item">
+            <div class="suggest-avatar" style="background:#AFA9EC;color:#26215C;">MS</div>
+            <div><div class="suggest-name">Maryam Siddiqui</div><div class="suggest-role">Teacher · Pakistan</div></div>
+            <button class="follow-btn">Follow</button>
+          </div>
+          <div class="suggest-item">
+            <div class="suggest-avatar" style="background:#5DCAA5;color:#04342C;">YA</div>
+            <div><div class="suggest-name">Yusuf Abdullah</div><div class="suggest-role">Student · Egypt</div></div>
+            <button class="follow-btn">Follow</button>
+          </div>
+        </div>
+
+        <div class="sidebar-card" style="background:var(--emerald-dark);border-color:var(--gold);">
+          <div class="sidebar-title" style="color:var(--gold-light);">✨ Ayah of the Day</div>
+          <div style="font-family:'Amiri',serif;font-size:1.2rem;color:var(--gold-light);direction:rtl;text-align:right;line-height:1.8;margin-bottom:0.75rem;">إِنَّ مَعَ الْعُسْرِ يُسْرًا</div>
+          <div style="font-size:0.82rem;color:rgba(255,255,255,0.6);line-height:1.6;">"Indeed, with hardship will be ease." — Surah Ash-Sharh 94:6</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- MOBILE BOTTOM NAV -->
+  <div class="mobile-nav">
+    <div class="mobile-nav-inner">
+      <a href="dashboard.html" class="mobile-nav-item active">
+        <span class="m-icon">🏠</span>
+        <span class="m-label">Feed</span>
+      </a>
+      <a href="search.html" class="mobile-nav-item">
+        <span class="m-icon">🔍</span>
+        <span class="m-label">Search</span>
+      </a>
+      <a href="dashboard.html" class="mobile-nav-post" onclick="document.getElementById('post-input').focus(); return false;">
+        ✏️
+      </a>
+      <a href="profile.html" class="mobile-nav-item">
+        <span class="m-icon">👤</span>
+        <span class="m-label">Profile</span>
+      </a>
+      <a href="notifications.html" class="mobile-nav-item">
+        <span class="m-icon-wrap"><span class="m-icon">🔔</span><span class="m-badge" id="m-notif-badge"></span></span>
+        <span class="m-label">Alerts</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, orderBy, query, onSnapshot, where } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "69769070061",
+    appId: "1:69769070061:web:469c095c061654b4d013e4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  let currentUser = null;
+  let currentUserData = null;
+
+  async function saveNotification(toUid, type, message) {
+    if (!toUid || toUid === currentUser?.uid) return;
+    try {
+      await addDoc(collection(db,'notifications'), {
+        toUid, type, message,
+        fromUid: currentUser?.uid || '',
+        fromName: currentUserData?.fullname || 'Someone',
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+    } catch(e) { console.error('Notif error:', e); }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function timeAgo(timestamp) {
+    if (!timestamp) return 'Just now';
+    const time = timestamp.toMillis ? timestamp.toMillis() : new Date(timestamp).getTime();
+    const diff = Math.floor((Date.now() - time) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff/60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff/3600) + ' hr ago';
+    return Math.floor(diff/86400) + ' days ago';
+  }
+
+  const colors = [['#C9A84C','#0D3D29'],['#5DCAA5','#04342C'],['#AFA9EC','#26215C'],['#1A6B4A','#fff'],['#F4A261','#3D1A00']];
+  function avatarColor(uid) {
+    let h = 0; for (let c of (uid||'')) h = c.charCodeAt(0) + ((h<<5)-h);
+    return colors[Math.abs(h) % colors.length];
+  }
+
+  function renderPost(postId, data) {
+    const [bg, fg] = avatarColor(data.uid);
+    const initials = (data.authorName||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const liked = currentUser && (data.likes||[]).includes(currentUser.uid);
+    const likeCount = (data.likes||[]).length;
+    const commentCount = (data.comments||[]).length;
+    const div = document.createElement('div');
+    div.className = 'feed-post';
+    div.id = 'post-' + postId;
+    div.dataset.author = (data.authorName||'').replace(/'/g,'');
+    div.dataset.text = (data.text||'').replace(/'/g,'').slice(0,100);
+    div.innerHTML = `
+      <div class="post-header">
+        <a href="user.html?uid=${data.uid}" style="text-decoration:none;"><div class="avatar" style="background:${bg};color:${fg};">${initials}</div></a>
+        <div class="post-meta">
+          <div class="post-author"><a href="user.html?uid=${data.uid}" style="color:var(--emerald-dark);text-decoration:none;font-weight:700;">${data.authorName||'Anonymous'}</a> <span class="role-badge">${data.authorRole||'Member'}</span></div>
+          <div class="post-info">${timeAgo(data.createdAt)} · ${data.authorCountry||''}</div>
+        </div>
+      </div>
+      ${data.tag ? '<div style="margin-bottom:0.5rem;"><span style="font-size:0.72rem;background:var(--emerald-light);color:var(--emerald);padding:0.2rem 0.6rem;border-radius:50px;font-weight:700;">' + (data.tag==='Ayah'?'📖':data.tag==='Milestone'?'🎯':data.tag==='Dua'?'🤲':'💬') + ' ' + data.tag + '</span></div>' : ''}
+      <div class="post-body" style="white-space:pre-wrap;">${data.text}</div>
+      ${data.imageUrl ? `<img src="${data.imageUrl}" class="post-image" alt="Post image" onclick="window.open('${data.imageUrl}','_blank')" loading="lazy" />` : ''}
+      <div class="post-footer">
+        <button class="post-btn ${liked?'liked':''}" onclick="toggleLike('${postId}',this)">${liked?'❤️':'🤍'} ${likeCount} ${likeCount===1?'Like':'Likes'}</button>
+        <button class="post-btn" onclick="toggleComments('${postId}')">💬 ${commentCount} ${commentCount===1?'Comment':'Comments'}</button>
+            <button class="post-btn" onclick="openShareModal('${postId}', this.closest('.feed-post').dataset.author, this.closest('.feed-post').dataset.text)">↗ Share</button>
+            ${data.uid === (currentUser ? currentUser.uid : '') ? '<button class="post-btn edit-btn" onclick="editPost(\''+postId+'\', this)" style="color:var(--emerald);">✏️ Edit</button><button class="post-btn" onclick="deletePost(\''+postId+'\', this)" style="color:#e53935;">🗑️ Delete</button>' : ''}
+      </div>
+      <div class="comments-section" id="comments-${postId}">
+        <div id="comments-list-${postId}">
+          ${(data.comments||[]).map(c=>`
+            <div class="comment-item">
+              <div class="comment-avatar">${(c.name||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)}</div>
+              <div class="comment-bubble"><div class="comment-name">${c.name||'Anonymous'}</div><div class="comment-text">${c.text}</div></div>
+            </div>`).join('')}
+        </div>
+        <div class="comment-input-row">
+          <input class="comment-input" id="comment-input-${postId}" placeholder="Write a comment... (Ctrl+Enter to send)" />
+          <button class="comment-send" onclick="submitComment('${postId}')">Send</button>
+        </div>
+      </div>`;
+    return div;
+  }
+
+  function loadFeed() {
+    const feed = document.getElementById('feed');
+    const q = query(collection(db,'posts'), orderBy("createdAt","desc"));
+    onSnapshot(q, snap => {
+      feed.innerHTML = '';
+      if (snap.empty) { feed.innerHTML = '<div class="empty-feed"><div class="icon">📖</div><p>No posts yet.<br/>Be the first to share your Hifz journey!</p></div>'; return; }
+      let myCount = 0;
+      snap.forEach(d => { if (currentUser && d.data().uid===currentUser.uid) myCount++; feed.appendChild(renderPost(d.id, d.data())); });
+      document.getElementById('stat-posts').textContent = myCount;
+    });
+  }
+
+  // ── CLOUDINARY PHOTO UPLOAD ──────────────────────────────────────
+  const CLOUDINARY_CLOUD = 'dl1rabt4f';
+  const CLOUDINARY_PRESET = 'huffazworld';
+  let selectedPhotoFile = null;
+  let uploadedPhotoUrl = null;
+
+  window.handlePhotoSelected = function(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { showToast('⚠️ Image must be under 10MB'); input.value = ''; return; }
+    selectedPhotoFile = file;
+    uploadedPhotoUrl = null;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('photo-preview-img').src = e.target.result;
+      document.getElementById('photo-preview-wrap').style.display = 'block';
+      document.getElementById('photo-upload-status').textContent = '📎 ' + file.name + ' ready to upload';
+      document.querySelector('.photo-upload-btn').classList.add('photo-active');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  window.clearPhoto = function() {
+    selectedPhotoFile = null;
+    uploadedPhotoUrl = null;
+    document.getElementById('photo-file-input').value = '';
+    document.getElementById('photo-preview-wrap').style.display = 'none';
+    document.getElementById('photo-preview-img').src = '';
+    document.querySelector('.photo-upload-btn').classList.remove('photo-active');
+  }
+
+  async function uploadToCloudinary(file) {
+    const status = document.getElementById('photo-upload-status');
+    status.textContent = '☁️ Uploading photo...';
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    try {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.secure_url) {
+        status.textContent = '✅ Photo uploaded!';
+        return data.secure_url;
+      } else {
+        status.textContent = '❌ Upload failed';
+        showToast('Photo upload failed. Please try again.');
+        return null;
+      }
+    } catch(e) {
+      status.textContent = '❌ Upload error';
+      showToast('Could not upload photo. Check your connection.');
+      return null;
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────
+
+  let currentTag = 'Ayah';
+
+  window.setTag = function(btn) {
+    document.querySelectorAll('.post-type-btn:not(.media-btn)').forEach(b => b.classList.remove('active-tag'));
+    btn.classList.add('active-tag');
+    currentTag = btn.textContent.trim().replace(/[^a-zA-Z ]/g,'').trim();
+    document.getElementById('selected-tag').textContent = btn.textContent.trim();
+  }
+
+  window.showComingSoon = function(btn) {
+    showToast('📱 ' + btn.textContent.trim() + ' uploads coming in Phase 4!');
+  }
+
+  window.submitPost = async function() {
+    const input = document.getElementById('post-input');
+    const btn = document.getElementById('post-btn');
+    const text = input.value.trim();
+    if ((!text && !selectedPhotoFile) || !currentUser) return;
+    btn.disabled = true; btn.textContent = 'Sharing...';
+    try {
+      // Upload photo first if selected
+      let imageUrl = null;
+      if (selectedPhotoFile) {
+        imageUrl = await uploadToCloudinary(selectedPhotoFile);
+        if (!imageUrl) { btn.disabled = false; btn.textContent = 'Share Post'; return; }
+      }
+      const postData = {
+        text: text || '',
+        uid: currentUser.uid,
+        authorName: currentUserData ? currentUserData.fullname : (currentUser.displayName || 'Anonymous'),
+        authorRole: currentUserData ? currentUserData.role : 'Member',
+        authorCountry: currentUserData ? currentUserData.country : '',
+        tag: currentTag,
+        likes: [],
+        comments: [],
+        createdAt: new Date().toISOString()
+      };
+      if (imageUrl) postData.imageUrl = imageUrl;
+      await addDoc(collection(db, 'posts'), postData);
+      input.value = '';
+      clearPhoto();
+      showToast('Post shared! Alhamdulillah 🤲');
+    } catch(e) {
+      showToast('Error: ' + e.message);
+    }
+    btn.disabled = false; btn.textContent = 'Share Post';
+  }
+  window.toggleLike = async function(postId, btn) {
+    if (!currentUser) return;
+    const ref = doc(db,'posts',postId);
+    const snap = await getDoc(ref);
+    const likes = snap.data()?.likes || [];
+    const liked = likes.includes(currentUser.uid);
+    await updateDoc(ref, { likes: liked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
+    if (!liked) {
+      const postOwner = snap.data()?.uid;
+      const postPreview = (snap.data()?.text||'').slice(0,40);
+      await saveNotification(postOwner, 'like', '<strong>' + (currentUserData?.fullname||'Someone') + '</strong> liked your post: "' + postPreview + '..."');
+    }
+    const newCount = liked ? likes.length-1 : likes.length+1;
+    btn.className = 'post-btn ' + (!liked?'liked':'');
+    btn.textContent = (!liked?'❤️':'🤍') + ' ' + newCount + ' ' + (newCount===1?'Like':'Likes');
+  }
+
+  window.toggleComments = function(postId) {
+    const s = document.getElementById('comments-'+postId);
+    s.classList.toggle('open');
+    if (s.classList.contains('open')) document.getElementById('comment-input-'+postId)?.focus();
+  }
+
+  window.submitComment = async function(postId) {
+    if (!currentUser) return;
+    const input = document.getElementById('comment-input-'+postId);
+    const text = input.value.trim();
+    if (!text) return;
+    const comment = { uid: currentUser.uid, name: currentUserData?.fullname || currentUser.displayName || 'Anonymous', text, createdAt: new Date().toISOString() };
+    const postSnap = await getDoc(doc(db,'posts',postId));
+    await updateDoc(doc(db,'posts',postId), { comments: arrayUnion(comment) });
+    const postOwner = postSnap.data()?.uid;
+    const postPreview = (postSnap.data()?.text||'').slice(0,40);
+    await saveNotification(postOwner, 'comment', '<strong>' + comment.name + '</strong> commented on your post: "' + postPreview + '..."');
+    const list = document.getElementById('comments-list-'+postId);
+    const initials = comment.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const div = document.createElement('div');
+    div.className = 'comment-item';
+    div.innerHTML = `
+      <div class="comment-avatar">${initials}</div>
+      <div class="comment-bubble">
+        <div class="comment-name">${comment.name}</div>
+        <div class="comment-text">${comment.text}</div>
+        <div style="display:flex;gap:0.75rem;margin-top:0.3rem;">
+          <button onclick="reactToComment(this)" style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;">❤️ Like</button>
+          <button onclick="replyToComment('${postId}','${comment.name}')" style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;">↩ Reply</button>
+        </div>
+      </div>`;
+    list.appendChild(div);
+    input.value = '';
+    showToast('💬 Comment added!');
+  }
+
+  window.openShareModal = function(postId, authorName, postText) {
+    // Show share options modal
+    const existing = document.getElementById('share-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'share-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    modal.innerHTML = `
+      <div style="background:white;border-radius:20px;padding:1.5rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div style="font-family:'Amiri',serif;font-size:1.3rem;font-weight:700;color:var(--emerald-dark);margin-bottom:1rem;">↗ Share Post</div>
+        <div style="background:var(--cream);border-radius:12px;padding:0.85rem;font-size:0.82rem;color:var(--muted);margin-bottom:1rem;line-height:1.5;">
+          <strong style="color:var(--emerald-dark);">${authorName}</strong>: ${postText.slice(0,80)}${postText.length>80?'...':''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.6rem;">
+          <button onclick="doRepost('${postId}','${authorName.replace(/'/g,"\'")}','${postText.slice(0,100).replace(/'/g,"\'")}');document.getElementById('share-modal').remove();" style="background:var(--emerald);color:white;border:none;border-radius:12px;padding:0.85rem;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-align:left;">
+            🔁 Repost to your feed
+          </button>
+          <button onclick="copyPostLink('${postId}');document.getElementById('share-modal').remove();" style="background:var(--emerald-light);color:var(--emerald-dark);border:none;border-radius:12px;padding:0.85rem;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-align:left;">
+            🔗 Copy link
+          </button>
+          <button onclick="shareToWhatsApp('${authorName.replace(/'/g,"\'")}','${postText.slice(0,80).replace(/'/g,"\'")}');document.getElementById('share-modal').remove();" style="background:#25D366;color:white;border:none;border-radius:12px;padding:0.85rem;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-align:left;">
+            📱 Share on WhatsApp
+          </button>
+          <button onclick="document.getElementById('share-modal').remove();" style="background:var(--cream);color:var(--muted);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:0.75rem;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+            Cancel
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  }
+
+  window.doRepost = async function(postId, authorName, postText) {
+    if (!currentUser) return;
+    try {
+      await addDoc(collection(db,'posts'), {
+        text: '🔁 Reposted from ' + authorName + ':\n\n"' + postText + '"',
+        uid: currentUser.uid,
+        authorName: currentUserData?.fullname || 'Anonymous',
+        authorRole: currentUserData?.role || 'Member',
+        authorCountry: currentUserData?.country || '',
+        tag: 'Repost',
+        likes: [], comments: [],
+        createdAt: new Date().toISOString()
+      });
+      showToast('✅ Reposted to your feed! Alhamdulillah 🤲');
+    } catch(e) { showToast('Could not repost. Try again.'); }
+  }
+
+  window.copyPostLink = function(postId) {
+    const url = window.location.origin + '/dashboard.html#post-' + postId;
+    navigator.clipboard?.writeText(url).then(() => showToast('🔗 Link copied to clipboard!'));
+  }
+
+  window.shareToWhatsApp = function(authorName, postText) {
+    const text = encodeURIComponent('Check this post on HuffazWorld by ' + authorName + ':\n"' + postText + '"\n\nhttps://huffazworld.netlify.app');
+    window.open('https://wa.me/?text=' + text, '_blank');
+  }
+
+  window.reactToComment = function(btn) {
+    const reactions = ['❤️','😂','😮','😢','🤲','🥰'];
+    const existing = btn.parentElement.querySelector('.reaction-picker');
+    if (existing) { existing.remove(); return; }
+    const picker = document.createElement('div');
+    picker.className = 'reaction-picker';
+    picker.style.cssText = 'display:inline-flex;gap:0.3rem;background:white;border:1px solid rgba(201,168,76,0.2);border-radius:50px;padding:0.3rem 0.5rem;box-shadow:0 4px 12px rgba(0,0,0,0.1);margin-left:0.5rem;';
+    reactions.forEach(r => {
+      const span = document.createElement('span');
+      span.textContent = r;
+      span.style.cssText = 'cursor:pointer;font-size:1rem;transition:transform 0.15s;';
+      span.onmouseover = () => span.style.transform = 'scale(1.3)';
+      span.onmouseout = () => span.style.transform = 'scale(1)';
+      span.onclick = () => { btn.textContent = r + ' 1'; btn.style.color = 'var(--emerald)'; picker.remove(); showToast('Reacted with ' + r); };
+      picker.appendChild(span);
+    });
+    btn.parentElement.appendChild(picker);
+  }
+
+  window.replyToComment = function(postId, name) {
+    const section = document.getElementById('comments-' + postId);
+    if (section && !section.classList.contains('open')) section.classList.add('open');
+    const input = document.getElementById('comment-input-' + postId);
+    if (!input) return;
+    input.value = '@' + name + ' ';
+    input.focus();
+    showToast('Replying to ' + name);
+  }
+
+  window.editPost = async function(postId, btn) {
+    const postDiv = btn.closest('.feed-post');
+    const bodyEl = postDiv.querySelector('.post-body');
+    const currentText = bodyEl.textContent;
+
+    // Replace body with textarea
+    bodyEl.innerHTML = `
+      <textarea id="edit-ta-${postId}" style="width:100%;border:1.5px solid var(--emerald);border-radius:10px;padding:0.65rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.9rem;resize:none;outline:none;min-height:80px;">${currentText}</textarea>
+      <div style="display:flex;gap:0.5rem;margin-top:0.5rem;justify-content:flex-end;">
+        <button onclick="saveEdit('${postId}', this)" style="background:var(--emerald);color:white;border:none;border-radius:8px;padding:0.4rem 0.9rem;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✅ Save</button>
+        <button onclick="cancelEdit('${postId}', '${currentText.replace(/'/g, "\'")}', this)" style="background:var(--cream);color:var(--muted);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:0.4rem 0.9rem;font-size:0.82rem;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Cancel</button>
+      </div>`;
+    document.getElementById('edit-ta-' + postId)?.focus();
+  }
+
+  window.saveEdit = async function(postId, btn) {
+    const ta = document.getElementById('edit-ta-' + postId);
+    const newText = ta?.value.trim();
+    if (!newText) return;
+    try {
+      await updateDoc(doc(db,'posts',postId), { text: newText, edited: true });
+      const postDiv = btn.closest('.feed-post');
+      const bodyEl = postDiv.querySelector('.post-body');
+      bodyEl.innerHTML = newText + ' <span style="font-size:0.7rem;color:var(--muted);">(edited)</span>';
+      showToast('✅ Post updated!');
+    } catch(e) { showToast('Could not update. Try again.'); }
+  }
+
+  window.cancelEdit = function(postId, originalText, btn) {
+    const postDiv = btn.closest('.feed-post');
+    const bodyEl = postDiv.querySelector('.post-body');
+    bodyEl.textContent = originalText;
+  }
+
+  window.deletePost = async function(postId, btn) {
+    if (!confirm('Delete this post? This cannot be undone.')) return;
+    try {
+      await deleteDoc(doc(db,'posts',postId));
+      const postDiv = btn.closest('.feed-post');
+      postDiv.style.animation = 'fadeOut 0.3s ease forwards';
+      setTimeout(() => postDiv.remove(), 300);
+      showToast('🗑️ Post deleted.');
+    } catch(e) { showToast('Could not delete. Try again.'); }
+  }
+
+  window.handleLogout = async function() { await signOut(auth); window.location.href = 'login.html'; }
+
+  async function loadUnreadMessages(uid) {
+    try {
+      const { getDocs: gd, query: q2, where: w2 } = await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
+      const convSnap = await getDocs(query(collection(db,'conversations'), where('members','array-contains',uid)));
+      let unread = 0;
+      convSnap.forEach(d => { if ((d.data().unreadBy||[]).includes(uid)) unread++; });
+      if (unread > 0) {
+        const badge = document.getElementById('msg-badge');
+        const mbadge = document.getElementById('m-msg-badge');
+        const label = unread > 9 ? '9+' : unread;
+        if (badge) { badge.textContent = label; badge.classList.add('show'); }
+        if (mbadge) { mbadge.textContent = label; mbadge.classList.add('show'); }
+      }
+    } catch(e) { console.error('Msg badge:', e); }
+  }
+
+  async function loadUnreadCount(uid) {
+    try {
+      const q = query(collection(db,'notifications'), where('toUid','==',uid), where('read','==',false));
+      const snap = await getDocs(q);
+      const count = snap.size;
+      const badge = document.getElementById('notif-badge');
+      const mbadge = document.getElementById('m-notif-badge');
+      if (count > 0) {
+        const label = count > 9 ? '9+' : count;
+        if (badge) { badge.textContent = label; badge.classList.add('show'); }
+        if (mbadge) { mbadge.textContent = label; mbadge.classList.add('show'); }
+      }
+    } catch(e) { console.error('Badge error:', e); }
+  }
+
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+      try {
+        const userDoc = await getDoc(doc(db,'users',user.uid));
+        currentUserData = userDoc.exists() ? userDoc.data() : {};
+        const name = currentUserData.fullname || user.displayName || 'Friend';
+        const role = currentUserData.role || 'Member';
+        const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        document.getElementById('nav-name').textContent = name;
+        document.getElementById('nav-avatar').textContent = initials;
+        document.getElementById('welcome-name').textContent = 'Welcome back, ' + name.split(' ')[0] + '! 🤲';
+        document.getElementById('welcome-role').textContent = role + ' · Continue your blessed journey today.';
+        const usersSnap = await getDocs(collection(db,'users'));
+        document.getElementById('stat-members').textContent = usersSnap.size;
+      } catch(e) { console.error(e); }
+      loadFeed();
+      loadUnreadCount(user.uid);
+      loadUnreadMessages(user.uid);
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else { window.location.href = 'login.html'; }
+  });
+</script>
+</body>
+</html>

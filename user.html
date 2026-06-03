@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Profile – HuffazWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F0D98A;
+    --emerald: #1A6B4A; --emerald-light: #E6F5EE; --emerald-dark: #0D3D29;
+    --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+  nav { background: var(--emerald-dark); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .nav-logo { font-family: 'Amiri', serif; font-size: 1.5rem; font-weight: 700; color: white; text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-link { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.88rem; font-weight: 500; }
+  .nav-link:hover { color: white; }
+  .nav-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; text-decoration: none; }
+  .logout-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 0.4rem 0.9rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* PROFILE HEADER */
+  .profile-header { background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 100%); border-radius: 24px; padding: 2.5rem 2rem; display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap; position: relative; overflow: hidden; }
+  .profile-header::before { content: 'بِسْمِ اللَّهِ'; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); font-family: 'Amiri', serif; font-size: 3rem; color: rgba(255,255,255,0.05); pointer-events: none; }
+  .profile-avatar-big { width: 90px; height: 90px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-family: 'Amiri', serif; font-size: 2rem; font-weight: 700; flex-shrink: 0; border: 4px solid rgba(255,255,255,0.2); }
+  .profile-info { flex: 1; }
+  .profile-name { font-family: 'Amiri', serif; font-size: 2rem; font-weight: 700; color: white; margin-bottom: 0.25rem; }
+  .profile-role { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(201,168,76,0.2); color: var(--gold-light); padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.82rem; font-weight: 600; margin-bottom: 0.75rem; }
+  .profile-meta { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .profile-meta-item { font-size: 0.82rem; color: rgba(255,255,255,0.65); display: flex; align-items: center; gap: 0.3rem; }
+  .profile-stats { display: flex; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap; }
+  .profile-stat { text-align: center; }
+  .profile-stat-num { font-family: 'Amiri', serif; font-size: 1.5rem; font-weight: 700; color: var(--gold-light); }
+  .profile-stat-label { font-size: 0.72rem; color: rgba(255,255,255,0.55); }
+  .profile-bio { margin-top: 0.75rem; font-size: 0.85rem; color: rgba(255,255,255,0.65); max-width: 400px; line-height: 1.6; }
+
+  /* ACTION BUTTONS */
+  .profile-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-self: flex-start; margin-top: 0.5rem; }
+  .btn-follow-profile { background: var(--gold); color: var(--emerald-dark); border: none; border-radius: 10px; padding: 0.6rem 1.4rem; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s; white-space: nowrap; }
+  .btn-follow-profile:hover { background: var(--gold-light); }
+  .btn-follow-profile.following { background: rgba(255,255,255,0.15); color: white; border: 1.5px solid rgba(255,255,255,0.3); }
+  .btn-follow-profile.pending { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); border: 1.5px solid rgba(255,255,255,0.2); }
+  .btn-message-profile { background: rgba(255,255,255,0.15); color: white; border: 1.5px solid rgba(255,255,255,0.3); border-radius: 10px; padding: 0.6rem 1.4rem; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s; white-space: nowrap; }
+  .btn-message-profile:hover { background: rgba(255,255,255,0.25); }
+
+  /* GRID */
+  .profile-grid { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+
+  /* POSTS */
+  .feed-post { background: var(--white); border: 1px solid rgba(201,168,76,0.15); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; animation: fadeUp 0.4s ease both; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .post-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.88rem; flex-shrink: 0; background: var(--emerald); color: white; }
+  .post-author { font-size: 0.9rem; font-weight: 700; color: var(--emerald-dark); }
+  .post-time { font-size: 0.75rem; color: var(--muted); }
+  .post-body { font-size: 0.9rem; color: var(--text); line-height: 1.75; }
+  .post-footer { display: flex; gap: 0.75rem; margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid rgba(201,168,76,0.1); }
+  .post-btn { background: none; border: 1px solid rgba(201,168,76,0.2); border-radius: 8px; font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; padding: 0.3rem 0.75rem; transition: all 0.2s; }
+  .post-btn:hover { color: var(--emerald); border-color: var(--emerald); background: var(--emerald-light); }
+  .post-btn.liked { color: #e53935; border-color: #e53935; background: #fdecea; }
+
+  /* SIDEBAR */
+  .sidebar-card { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .sidebar-title { font-size: 0.85rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 1rem; }
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid rgba(201,168,76,0.1); font-size: 0.85rem; }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: var(--muted); font-size: 0.8rem; }
+  .info-value { font-weight: 600; color: var(--text); }
+  .badge-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.6rem; }
+  .badge-item { background: var(--emerald-light); border-radius: 10px; padding: 0.75rem 0.5rem; text-align: center; }
+  .badge-icon { font-size: 1.4rem; display: block; margin-bottom: 0.3rem; }
+  .badge-name { font-size: 0.7rem; color: var(--emerald-dark); font-weight: 600; }
+
+  .empty-posts { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+
+  /* MOBILE NAV */
+  .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--emerald-dark); border-top: 1px solid rgba(201,168,76,0.2); padding: 0.5rem 0 0.75rem; z-index: 200; }
+  .mobile-nav-inner { display: flex; justify-content: space-around; align-items: center; }
+  .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; text-decoration: none; flex: 1; padding: 0.3rem 0; }
+  .mobile-nav-item .m-icon { font-size: 1.3rem; }
+  .mobile-nav-item .m-label { font-size: 0.62rem; font-weight: 600; color: rgba(255,255,255,0.55); }
+  .mobile-nav-post { background: var(--gold); border-radius: 50%; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-top: -1.2rem; border: 3px solid var(--emerald-dark); text-decoration: none; flex-shrink: 0; }
+  @media (max-width: 768px) { .mobile-nav { display: block; } body { padding-bottom: 70px; } .profile-grid { grid-template-columns: 1fr; } .profile-header { flex-direction: column; text-align: center; } nav { padding: 0.85rem 1.25rem; } }
+
+  #loading { position: fixed; inset: 0; background: var(--cream); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
+  #loading .logo { font-family: 'Amiri', serif; font-size: 2.5rem; font-weight: 700; color: var(--emerald-dark); }
+  #loading .logo span { color: var(--gold); }
+  .loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); display: inline-block; animation: bounce 1.2s infinite; margin: 0 3px; }
+  .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100%{transform:scale(0.6)} 40%{transform:scale(1)} }
+  .toast { position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--emerald-dark); color: white; padding: 0.75rem 1.5rem; border-radius: 12px; font-size: 0.88rem; font-weight: 600; z-index: 9999; transition: transform 0.3s; pointer-events: none; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* HIDE TOP NAV LINKS ON MOBILE */
+  @media (max-width: 768px) {
+    .nav-right .nav-link,
+    .nav-right .logout-btn,
+    .nav-right .nav-avatar {
+      display: none !important;
+    }
+    .nav-right .nav-avatar { display: none !important; }
+    .nav-right .msg-nav-link { display: inline-flex !important; }
+    .nav-right .group-nav-link { display: inline-flex !important; }
+    nav { justify-content: space-between; }
+  }
+
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="logo">Huffaz<span>World</span></div>
+  <div style="margin-top:1rem;"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<div id="app" style="display:none;">
+  <nav>
+    <a href="dashboard.html" class="nav-logo">Huffaz<span>World</span></a>
+    <div class="nav-right">
+      <a href="messages.html" class="nav-link msg-nav-link" style="font-size:1.2rem;">💬</a>
+      <a href="dashboard.html" class="nav-link">🏠 Feed</a>
+      <a href="search.html" class="nav-link">🔍 Search</a>
+      <a href="profile.html" class="nav-avatar" id="nav-avatar">?</a>
+      <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- PROFILE HEADER -->
+    <div class="profile-header">
+      <div class="profile-avatar-big" id="user-avatar">?</div>
+      <div class="profile-info">
+        <div class="profile-name" id="user-name">Loading...</div>
+        <div class="profile-role" id="user-role">🏅 Member</div>
+        <div class="profile-meta">
+          <div class="profile-meta-item">🌍 <span id="user-country">—</span></div>
+          <div class="profile-meta-item">📅 Joined <span id="user-joined">—</span></div>
+        </div>
+        <div class="profile-stats">
+          <div class="profile-stat"><div class="profile-stat-num" id="stat-posts">0</div><div class="profile-stat-label">Posts</div></div>
+          <div class="profile-stat"><div class="profile-stat-num" id="stat-followers">0</div><div class="profile-stat-label">Followers</div></div>
+          <div class="profile-stat"><div class="profile-stat-num" id="stat-following">0</div><div class="profile-stat-label">Following</div></div>
+        </div>
+        <div class="profile-bio" id="user-bio"></div>
+      </div>
+      <div class="profile-actions">
+        <button class="btn-follow-profile" id="follow-btn" onclick="handleFollow()">+ Follow</button>
+        <a class="btn-message-profile" id="msg-btn" href="#">💬 Message</a>
+      </div>
+    </div>
+
+    <div class="profile-grid">
+      <div>
+        <div style="font-family:'Amiri',serif;font-size:1.3rem;color:var(--emerald-dark);margin-bottom:1rem;">📝 Posts</div>
+        <div id="posts-container">
+          <div style="text-align:center;padding:2rem;color:var(--muted);">Loading posts...</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sidebar-card">
+          <div class="sidebar-title">👤 About</div>
+          <div class="info-row"><span class="info-label">Role</span><span class="info-value" id="info-role">—</span></div>
+          <div class="info-row"><span class="info-label">Country</span><span class="info-value" id="info-country">—</span></div>
+          <div class="info-row"><span class="info-label">Member Since</span><span class="info-value" id="info-joined">—</span></div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">🏅 Badges</div>
+          <div class="badge-grid">
+            <div class="badge-item"><span class="badge-icon">🌟</span><div class="badge-name">First Post</div></div>
+            <div class="badge-item"><span class="badge-icon">🔥</span><div class="badge-name">7 Day Streak</div></div>
+            <div class="badge-item"><span class="badge-icon">📖</span><div class="badge-name">Juz Amma</div></div>
+          </div>
+        </div>
+
+        <div class="sidebar-card" style="background:var(--emerald-dark);border-color:var(--gold);">
+          <div class="sidebar-title" style="color:var(--gold-light);">✨ Daily Reminder</div>
+          <div style="font-family:'Amiri',serif;font-size:1.1rem;color:var(--gold-light);direction:rtl;text-align:right;line-height:1.8;margin-bottom:0.6rem;">خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ</div>
+          <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);line-height:1.6;">"The best among you are those who learn the Qur'an and teach it."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mobile-nav">
+    <div class="mobile-nav-inner">
+      <a href="dashboard.html" class="mobile-nav-item"><span class="m-icon">🏠</span><span class="m-label">Feed</span></a>
+      <a href="search.html" class="mobile-nav-item"><span class="m-icon">🔍</span><span class="m-label">Search</span></a>
+      <a href="dashboard.html" class="mobile-nav-post">✏️</a>
+      <a href="profile.html" class="mobile-nav-item"><span class="m-icon">👤</span><span class="m-label">Profile</span></a>
+      <a href="notifications.html" class="mobile-nav-item"><span class="m-icon">🔔</span><span class="m-label">Alerts</span></a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, query, where, orderBy } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "69769070061",
+    appId: "1:69769070061:web:469c095c061654b4d013e4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let currentUserData = null;
+  let viewedUid = null;
+  let viewedUserData = null;
+  let followState = 'none'; // none | pending | following
+
+  const params = new URLSearchParams(window.location.search);
+  viewedUid = params.get('uid');
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function timeAgo(ts) {
+    if (!ts) return 'Just now';
+    const diff = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff/60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff/3600) + ' hr ago';
+    return Math.floor(diff/86400) + ' days ago';
+  }
+
+  function formatDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-US', { year:'numeric', month:'long' });
+  }
+
+  const colors = [['#C9A84C','#0D3D29'],['#5DCAA5','#04342C'],['#AFA9EC','#26215C'],['#1A6B4A','#fff'],['#F4A261','#3D1A00']];
+  function getColor(uid) { let h=0; for(let c of(uid||''))h=c.charCodeAt(0)+((h<<5)-h); return colors[Math.abs(h)%colors.length]; }
+
+  function loadUserProfile(data) {
+    viewedUserData = data;
+    const name = data.fullname || 'HuffazWorld Member';
+    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const [bg, fg] = getColor(viewedUid);
+
+    document.title = name + ' – HuffazWorld';
+    document.getElementById('user-avatar').textContent = initials;
+    document.getElementById('user-avatar').style.background = bg;
+    document.getElementById('user-avatar').style.color = fg;
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('user-role').textContent = (data.role==='Hafiz'?'🏅 ':data.role==='Teacher'?'🎓 ':'📖 ') + (data.role||'Member');
+    document.getElementById('user-country').textContent = data.country || '—';
+    document.getElementById('user-joined').textContent = formatDate(data.createdAt);
+    document.getElementById('stat-followers').textContent = (data.followers||[]).length;
+    document.getElementById('stat-following').textContent = (data.following||[]).length;
+    document.getElementById('info-role').textContent = data.role || '—';
+    document.getElementById('info-country').textContent = data.country || '—';
+    document.getElementById('info-joined').textContent = formatDate(data.createdAt);
+    if (data.bio) document.getElementById('user-bio').textContent = data.bio;
+
+    // Set message button
+    document.getElementById('msg-btn').href = `chat.html?uid=${viewedUid}&name=${encodeURIComponent(name)}`;
+  }
+
+  async function checkFollowState() {
+    if (!currentUser || !viewedUid) return;
+    try {
+      // Check if already following
+      const myDoc = await getDoc(doc(db,'users',currentUser.uid));
+      const following = myDoc.data()?.following || [];
+      if (following.includes(viewedUid)) {
+        followState = 'following';
+        updateFollowBtn();
+        return;
+      }
+      // Check if request pending
+      const reqDoc = await getDoc(doc(db,'followRequests', currentUser.uid + '_' + viewedUid));
+      if (reqDoc.exists()) {
+        followState = 'pending';
+        updateFollowBtn();
+        return;
+      }
+      followState = 'none';
+      updateFollowBtn();
+    } catch(e) { console.error(e); }
+  }
+
+  function updateFollowBtn() {
+    const btn = document.getElementById('follow-btn');
+    if (followState === 'following') {
+      btn.textContent = '✓ Following'; btn.classList.add('following'); btn.classList.remove('pending');
+    } else if (followState === 'pending') {
+      btn.textContent = '⏳ Pending'; btn.classList.add('pending'); btn.classList.remove('following');
+    } else {
+      btn.textContent = '+ Follow'; btn.classList.remove('following','pending');
+    }
+  }
+
+  window.handleFollow = async function() {
+    if (!currentUser || !viewedUid) return;
+    const btn = document.getElementById('follow-btn');
+    btn.disabled = true;
+
+    if (followState === 'following') {
+      // Unfollow
+      try {
+        const myDoc = await getDoc(doc(db,'users',currentUser.uid));
+        const following = (myDoc.data()?.following||[]).filter(f=>f!==viewedUid);
+        await updateDoc(doc(db,'users',currentUser.uid), { following });
+        followState = 'none'; updateFollowBtn();
+        showToast('Unfollowed.');
+      } catch(e) { showToast('Could not unfollow.'); }
+
+    } else if (followState === 'pending') {
+      // Cancel
+      try {
+        await deleteDoc(doc(db,'followRequests', currentUser.uid + '_' + viewedUid));
+        followState = 'none'; updateFollowBtn();
+        showToast('Follow request cancelled.');
+      } catch(e) { showToast('Could not cancel.'); }
+
+    } else {
+      // Send request
+      try {
+        const myDoc = await getDoc(doc(db,'users',currentUser.uid));
+        const myName = myDoc.data()?.fullname || 'Someone';
+        await setDoc(doc(db,'followRequests', currentUser.uid + '_' + viewedUid), {
+          fromUid: currentUser.uid, fromName: myName,
+          toUid: viewedUid, toName: viewedUserData?.fullname||'',
+          status: 'pending', createdAt: new Date().toISOString()
+        });
+        await setDoc(doc(db,'notifications','follow_'+currentUser.uid+'_'+viewedUid), {
+          toUid: viewedUid, type: 'follow_request',
+          message: '<strong>'+myName+'</strong> wants to follow you.',
+          fromUid: currentUser.uid, fromName: myName,
+          read: false, createdAt: new Date().toISOString()
+        });
+        followState = 'pending'; updateFollowBtn();
+        showToast('✅ Follow request sent! 🤲');
+      } catch(e) { console.error(e); showToast('Could not send request.'); }
+    }
+    btn.disabled = false;
+  }
+
+  async function loadUserPosts() {
+    const container = document.getElementById('posts-container');
+    try {
+      const q = query(collection(db,'posts'), where('uid','==',viewedUid));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        container.innerHTML = '<div class="empty-posts">No posts yet.</div>';
+        document.getElementById('stat-posts').textContent = 0;
+        return;
+      }
+      const posts = [];
+      snap.forEach(d => posts.push({ id:d.id, ...d.data() }));
+      posts.sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt));
+      document.getElementById('stat-posts').textContent = posts.length;
+      container.innerHTML = '';
+      const [bg,fg] = getColor(viewedUid);
+      const initials = (viewedUserData?.fullname||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+      posts.forEach((p,i) => {
+        const liked = (p.likes||[]).includes(currentUser?.uid);
+        const div = document.createElement('div');
+        div.className = 'feed-post';
+        div.style.animationDelay = (i*0.05)+'s';
+        div.innerHTML = `
+          <div class="post-header">
+            <div class="avatar" style="background:${bg};color:${fg};">${initials}</div>
+            <div><div class="post-author">${p.authorName||viewedUserData?.fullname||'Member'}</div><div class="post-time">${timeAgo(p.createdAt)}</div></div>
+          </div>
+          ${p.tag ? '<div style="margin-bottom:0.5rem;"><span style="font-size:0.72rem;background:var(--emerald-light);color:var(--emerald);padding:0.2rem 0.6rem;border-radius:50px;font-weight:700;">'+(p.tag==='Ayah'?'📖':p.tag==='Milestone'?'🎯':p.tag==='Dua'?'🤲':'💬')+' '+p.tag+'</span></div>' : ''}
+          <div class="post-body">${p.text}</div>
+          <div class="post-footer">
+            <button class="post-btn ${liked?'liked':''}" onclick="likePost('${p.id}',this)">${liked?'❤️':'🤍'} ${(p.likes||[]).length} ${(p.likes||[]).length===1?'Like':'Likes'}</button>
+            <button class="post-btn">💬 ${(p.comments||[]).length} ${(p.comments||[]).length===1?'Comment':'Comments'}</button>
+          </div>`;
+        container.appendChild(div);
+      });
+    } catch(e) {
+      console.error(e);
+      container.innerHTML = '<div class="empty-posts">Could not load posts.</div>';
+    }
+  }
+
+  window.likePost = async function(postId, btn) {
+    if (!currentUser) return;
+    const ref = doc(db,'posts',postId);
+    const snap = await getDoc(ref);
+    const likes = snap.data()?.likes||[];
+    const liked = likes.includes(currentUser.uid);
+    await updateDoc(ref, { likes: liked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
+    const newCount = liked ? likes.length-1 : likes.length+1;
+    btn.className = 'post-btn '+(liked?'':'liked');
+    btn.textContent = (liked?'🤍':'❤️')+' '+newCount+' '+(newCount===1?'Like':'Likes');
+  }
+
+  window.handleLogout = async function() { await signOut(auth); window.location.href = 'login.html'; }
+
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+
+      // If viewing own profile redirect to profile.html
+      if (viewedUid === user.uid) { window.location.href = 'profile.html'; return; }
+      if (!viewedUid) { window.location.href = 'dashboard.html'; return; }
+
+      try {
+        // Load current user nav
+        const myDoc = await getDoc(doc(db,'users',user.uid));
+        currentUserData = myDoc.exists() ? myDoc.data() : {};
+        const myName = currentUserData.fullname || user.displayName || 'Me';
+        document.getElementById('nav-avatar').textContent = myName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+
+        // Load viewed user
+        const viewedDoc = await getDoc(doc(db,'users',viewedUid));
+        if (viewedDoc.exists()) {
+          loadUserProfile(viewedDoc.data());
+          await checkFollowState();
+          await loadUserPosts();
+        } else {
+          document.getElementById('user-name').textContent = 'User not found';
+        }
+      } catch(e) { console.error(e); }
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else { window.location.href = 'login.html'; }
+  });
+</script>
+</body>
+</html>

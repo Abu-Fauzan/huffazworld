@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Notifications – HuffazWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F0D98A;
+    --emerald: #1A6B4A; --emerald-light: #E6F5EE; --emerald-dark: #0D3D29;
+    --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+  nav { background: var(--emerald-dark); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .nav-logo { font-family: 'Amiri', serif; font-size: 1.5rem; font-weight: 700; color: white; text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-link { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.88rem; font-weight: 500; }
+  .nav-link:hover { color: white; }
+  .nav-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-decoration: none; }
+  .logout-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 0.4rem 0.9rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+  .container { max-width: 680px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .page-title { font-family: 'Amiri', serif; font-size: 2rem; font-weight: 700; color: var(--emerald-dark); }
+  .mark-all-btn { background: var(--emerald-light); color: var(--emerald); border: none; border-radius: 10px; padding: 0.5rem 1rem; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .mark-all-btn:hover { background: #c5e8d8; }
+
+  .notif-group-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 1.5rem 0 0.75rem; }
+
+  .notif-item { background: var(--white); border: 1px solid rgba(201,168,76,0.15); border-radius: 14px; padding: 1rem 1.25rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 1rem; transition: transform 0.15s; cursor: pointer; position: relative; animation: fadeUp 0.3s ease both; }
+  .notif-item:hover { transform: translateX(4px); }
+  .notif-item.unread { background: var(--emerald-light); border-color: rgba(26,107,74,0.2); }
+  .notif-item.unread::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:4px; height:60%; background:var(--emerald); border-radius:0 4px 4px 0; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  .notif-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+  .notif-icon.like { background: #fdecea; }
+  .notif-icon.comment { background: var(--emerald-light); }
+  .notif-icon.follow { background: #e8f4fd; }
+  .notif-icon.milestone { background: #fff8e1; }
+
+  .notif-content { flex: 1; }
+  .notif-text { font-size: 0.88rem; color: var(--text); line-height: 1.5; }
+  .notif-text strong { color: var(--emerald-dark); font-weight: 700; }
+  .notif-time { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
+  .notif-unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); flex-shrink: 0; }
+
+  .empty-state { text-align: center; padding: 4rem 1rem; color: var(--muted); }
+  .empty-state .icon { font-size: 3.5rem; margin-bottom: 1rem; }
+  .empty-state h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 0.5rem; }
+
+  .notif-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; background: var(--white); padding: 0.4rem; border-radius: 14px; border: 1px solid rgba(201,168,76,0.18); width: fit-content; }
+  .tab-btn { padding: 0.5rem 1.1rem; border-radius: 10px; border: none; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--muted); background: transparent; transition: all 0.2s; }
+  .tab-btn.active { background: var(--emerald); color: white; }
+
+  /* MOBILE NAV */
+  .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--emerald-dark); border-top: 1px solid rgba(201,168,76,0.2); padding: 0.5rem 0 0.75rem; z-index: 200; }
+  .mobile-nav-inner { display: flex; justify-content: space-around; align-items: center; }
+  .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; text-decoration: none; cursor: pointer; flex: 1; padding: 0.3rem 0; border: none; background: none; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .mobile-nav-item .m-icon { font-size: 1.3rem; }
+  .mobile-nav-item .m-label { font-size: 0.62rem; font-weight: 600; color: rgba(255,255,255,0.55); }
+  .mobile-nav-item.active .m-label { color: var(--gold); }
+  .mobile-nav-post { background: var(--gold); border-radius: 50%; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-top: -1.2rem; border: 3px solid var(--emerald-dark); box-shadow: 0 4px 16px rgba(201,168,76,0.4); cursor: pointer; text-decoration: none; flex-shrink: 0; }
+  @media (max-width: 768px) {
+    .mobile-nav { display: block; }
+    body { padding-bottom: 70px; }
+    nav { padding: 0.85rem 1.25rem; }
+    .container { padding: 1rem; }
+    .page-title { font-size: 1.6rem; }
+    .notif-item { padding: 0.85rem 1rem; }
+    .notif-icon { width: 38px; height: 38px; font-size: 1rem; }
+  }
+
+  #loading { position: fixed; inset: 0; background: var(--cream); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
+  #loading .logo { font-family: 'Amiri', serif; font-size: 2.5rem; font-weight: 700; color: var(--emerald-dark); }
+  #loading .logo span { color: var(--gold); }
+  .loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); display: inline-block; animation: bounce 1.2s infinite; margin: 0 3px; }
+  .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100%{transform:scale(0.6)} 40%{transform:scale(1)} }
+  .toast { position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--emerald-dark); color: white; padding: 0.75rem 1.5rem; border-radius: 12px; font-size: 0.88rem; font-weight: 600; z-index: 9999; transition: transform 0.3s; pointer-events: none; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .notif-bell-wrap { position: relative; display: inline-flex; align-items: center; }
+  .notif-badge { position: absolute; top: -6px; right: -8px; background: #e53935; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; font-weight: 700; display: none; align-items: center; justify-content: center; border: 2px solid var(--emerald-dark); }
+  .notif-badge.show { display: flex; }
+
+  /* HIDE TOP NAV LINKS ON MOBILE */
+  @media (max-width: 768px) {
+    .nav-right .nav-link,
+    .nav-right .logout-btn,
+    .nav-right .nav-avatar {
+      display: none !important;
+    }
+    .nav-right .nav-avatar { display: none !important; }
+    .nav-right .msg-nav-link { display: inline-flex !important; }
+    .nav-right .group-nav-link { display: inline-flex !important; }
+    nav { justify-content: space-between; }
+  }
+
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="logo">Huffaz<span>World</span></div>
+  <div style="margin-top:1rem;"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="app" style="display:none;">
+  <nav>
+    <a href="dashboard.html" class="nav-logo">Huffaz<span>World</span></a>
+    <div class="nav-right">
+      <a href="messages.html" class="nav-link msg-nav-link" style="font-size:1.2rem;">💬</a>
+      <a href="dashboard.html" class="nav-link">🏠 Feed</a>
+      <a href="search.html" class="nav-link">🔍 Search</a>
+      <a href="profile.html" class="nav-avatar" id="nav-avatar">?</a>
+      <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <div class="page-title">🔔 Notifications</div>
+      <button class="mark-all-btn" onclick="markAllRead()">✓ Mark all read</button>
+    </div>
+
+    <div class="notif-tabs">
+      <button class="tab-btn active" onclick="filterNotifs('all', this)">All</button>
+      <button class="tab-btn" onclick="filterNotifs('like', this)">❤️ Likes</button>
+      <button class="tab-btn" onclick="filterNotifs('comment', this)">💬 Comments</button>
+      <button class="tab-btn" onclick="filterNotifs('follow', this)">➕ Follows</button>
+    </div>
+
+    <div id="notif-container">
+      <div style="text-align:center;padding:2rem;color:var(--muted);">Loading notifications...</div>
+    </div>
+  </div>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <div class="mobile-nav">
+    <div class="mobile-nav-inner">
+      <a href="dashboard.html" class="mobile-nav-item">
+        <span class="m-icon">🏠</span><span class="m-label">Feed</span>
+      </a>
+      <a href="search.html" class="mobile-nav-item">
+        <span class="m-icon">🔍</span><span class="m-label">Search</span>
+      </a>
+      <a href="dashboard.html" class="mobile-nav-post">✏️</a>
+      <a href="profile.html" class="mobile-nav-item">
+        <span class="m-icon">👤</span><span class="m-label">Profile</span>
+      </a>
+      <a href="notifications.html" class="mobile-nav-item active">
+        <span class="m-icon">🔔</span><span class="m-label">Alerts</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, arrayUnion, query, where, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "69769070061",
+    appId: "1:69769070061:web:469c095c061654b4d013e4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  let currentUser = null;
+  let allNotifs = [];
+  let activeFilter = 'all';
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function timeAgo(ts) {
+    if (!ts) return 'Just now';
+    const diff = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff/60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff/3600) + ' hr ago';
+    if (diff < 604800) return Math.floor(diff/86400) + ' days ago';
+    return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  }
+
+  function getNotifIcon(type) {
+    if (type === 'like') return { icon: '❤️', cls: 'like' };
+    if (type === 'comment') return { icon: '💬', cls: 'comment' };
+    if (type === 'follow' || type === 'follow_request') return { icon: '👤', cls: 'follow' };
+    if (type === 'follow_accepted') return { icon: '✅', cls: 'follow' };
+    if (type === 'milestone') return { icon: '🎯', cls: 'milestone' };
+    if (type === 'group_post') return { icon: '🕌', cls: 'comment' };
+    return { icon: '🔔', cls: 'like' };
+  }
+
+  function renderNotifs(notifs) {
+    const container = document.getElementById('notif-container');
+    if (notifs.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="icon">🔔</div><h3>No notifications yet</h3><p>When someone likes or comments on your posts, you will see it here!</p></div>`;
+      return;
+    }
+
+    // Group by today / this week / earlier
+    const now = Date.now();
+    const todayNotifs = notifs.filter(n => now - new Date(n.createdAt).getTime() < 86400000);
+    const weekNotifs = notifs.filter(n => { const d = now - new Date(n.createdAt).getTime(); return d >= 86400000 && d < 604800000; });
+    const olderNotifs = notifs.filter(n => now - new Date(n.createdAt).getTime() >= 604800000);
+
+    let html = '';
+    if (todayNotifs.length > 0) {
+      html += '<div class="notif-group-title">Today</div>';
+      html += todayNotifs.map((n,i) => renderNotifItem(n,i)).join('');
+    }
+    if (weekNotifs.length > 0) {
+      html += '<div class="notif-group-title">This Week</div>';
+      html += weekNotifs.map((n,i) => renderNotifItem(n,i)).join('');
+    }
+    if (olderNotifs.length > 0) {
+      html += '<div class="notif-group-title">Earlier</div>';
+      html += olderNotifs.map((n,i) => renderNotifItem(n,i)).join('');
+    }
+    container.innerHTML = html;
+  }
+
+  function renderNotifItem(n, i) {
+    const { icon, cls } = getNotifIcon(n.type);
+    const isFollowReq = n.type === 'follow_request' && n.status !== 'accepted' && n.status !== 'declined';
+    const isAccepted = n.type === 'follow_request' && n.status === 'accepted';
+    const isDeclined = n.type === 'follow_request' && n.status === 'declined';
+    return `
+      <div class="notif-item ${n.read ? '' : 'unread'}" id="notif-${n.id}" style="animation-delay:${i*0.05}s;cursor:${n.groupId ? 'pointer' : 'default'}" onclick="handleNotifClick('${n.id}', '${n.groupId||''}', '${n.type}')">
+        <div class="notif-icon ${cls}">${icon}</div>
+        <div class="notif-content">
+          <div class="notif-text">${n.message}</div>
+          <div class="notif-time">${timeAgo(n.createdAt)}</div>
+          ${isFollowReq ? `
+            <div style="display:flex;gap:0.5rem;margin-top:0.6rem;">
+              <button onclick="acceptFollow('${n.id}','${n.fromUid}','${n.fromName}')" style="background:var(--emerald);color:white;border:none;border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✅ Accept</button>
+              <button onclick="declineFollow('${n.id}','${n.fromUid}')" style="background:#fdecea;color:#e53935;border:1px solid #e53935;border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">❌ Decline</button>
+            </div>` : ''}
+          ${isAccepted ? '<div style="margin-top:0.4rem;font-size:0.78rem;color:var(--emerald);font-weight:600;">✅ You accepted this request</div>' : ''}
+          ${isDeclined ? '<div style="margin-top:0.4rem;font-size:0.78rem;color:var(--muted);font-weight:600;">❌ Declined</div>' : ''}
+        </div>
+        ${!n.read ? '<div class="notif-unread-dot"></div>' : ''}
+      </div>`;
+  }
+
+  window.filterNotifs = function(filter, btn) {
+    activeFilter = filter;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filtered = filter === 'all' ? allNotifs : allNotifs.filter(n => n.type === filter);
+    renderNotifs(filtered);
+  }
+
+  window.markRead = async function(id, el) {
+    el.classList.remove('unread');
+    const dot = el.querySelector('.notif-unread-dot');
+    if (dot) dot.remove();
+    try { await updateDoc(doc(db,'notifications',id), { read: true }); } catch(e) {}
+  }
+
+  window.markAllRead = async function() {
+    document.querySelectorAll('.notif-item.unread').forEach(el => {
+      el.classList.remove('unread');
+      const dot = el.querySelector('.notif-unread-dot');
+      if (dot) dot.remove();
+    });
+    try {
+      const q = query(collection(db,'notifications'), where('toUid','==',currentUser.uid), where('read','==',false));
+      const snap = await getDocs(q);
+      const batch = writeBatch(db);
+      snap.forEach(d => batch.update(d.ref, { read: true }));
+      await batch.commit();
+      showToast('✅ All notifications marked as read!');
+    } catch(e) { console.error(e); }
+  }
+
+  async function loadNotifications(uid) {
+    try {
+      const q = query(collection(db,'notifications'), where('toUid','==',uid));
+      const snap = await getDocs(q);
+      allNotifs = [];
+      snap.forEach(d => allNotifs.push({ id: d.id, ...d.data() }));
+      allNotifs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      // If no real notifications yet — show sample ones
+      if (allNotifs.length === 0) {
+        allNotifs = [
+          { id:'s1', type:'milestone', message:'🎉 Welcome to HuffazWorld! Share your first post and inspire the community.', createdAt: new Date().toISOString(), read: false },
+          { id:'s2', type:'follow', message:'✅ Your account is verified and active. Start connecting with Huffaz worldwide!', createdAt: new Date(Date.now()-3600000).toISOString(), read: false },
+        ];
+      }
+      renderNotifs(allNotifs);
+    } catch(e) {
+      console.error(e);
+      document.getElementById('notif-container').innerHTML = '<div class="empty-state"><div class="icon">🔔</div><h3>Could not load notifications</h3><p>Please refresh the page.</p></div>';
+    }
+  }
+
+  window.acceptFollow = async function(notifId, fromUid, fromName) {
+    if (!currentUser) return;
+    try {
+      // Add to followers/following
+      await updateDoc(doc(db,'users',currentUser.uid), { followers: arrayUnion(fromUid) });
+      await updateDoc(doc(db,'users',fromUid), { following: arrayUnion(currentUser.uid) });
+
+      // Delete follow request
+      await deleteDoc(doc(db,'followRequests', fromUid + '_' + currentUser.uid));
+
+      // Update notification status
+      await updateDoc(doc(db,'notifications','follow_' + fromUid + '_' + currentUser.uid), { read: true, status: 'accepted' });
+
+      // Notify the requester
+      await setDoc(doc(db,'notifications','accepted_' + currentUser.uid + '_' + fromUid), {
+        toUid: fromUid,
+        type: 'follow_accepted',
+        message: '<strong>' + (currentUserData?.fullname||'Someone') + '</strong> accepted your follow request! 🎉',
+        fromUid: currentUser.uid,
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+
+      // Update UI
+      const el = document.getElementById('notif-' + notifId);
+      if (el) {
+        const btns = el.querySelector('div[style*="display:flex"]');
+        if (btns) btns.innerHTML = '<div style="margin-top:0.4rem;font-size:0.78rem;color:var(--emerald);font-weight:600;">✅ You accepted this request</div>';
+      }
+      showToast('✅ You are now connected! May Allah bless this connection 🤲');
+    } catch(e) { console.error(e); showToast('Could not accept. Try again.'); }
+  }
+
+  window.declineFollow = async function(notifId, fromUid) {
+    if (!currentUser) return;
+    try {
+      await deleteDoc(doc(db,'followRequests', fromUid + '_' + currentUser.uid));
+      await updateDoc(doc(db,'notifications','follow_' + fromUid + '_' + currentUser.uid), { read: true, status: 'declined' });
+      const el = document.getElementById('notif-' + notifId);
+      if (el) {
+        const btns = el.querySelector('div[style*="display:flex"]');
+        if (btns) btns.innerHTML = '<div style="margin-top:0.4rem;font-size:0.78rem;color:var(--muted);font-weight:600;">❌ Declined</div>';
+      }
+      showToast('Request declined.');
+    } catch(e) { showToast('Could not decline. Try again.'); }
+  }
+
+  window.handleNotifClick = async function(notifId, groupId, type) {
+    // Mark as read
+    try {
+      await updateDoc(doc(db,'notifications',notifId), { read: true });
+    } catch(e) {}
+    // Navigate to group if group_post
+    if (groupId && type === 'group_post') {
+      window.location.href = 'group.html?id=' + groupId;
+    }
+  }
+
+  window.handleLogout = async function() { await signOut(auth); window.location.href = 'login.html'; }
+
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+      try {
+        const userDoc = await getDoc(doc(db,'users',user.uid));
+        const userData = userDoc.exists() ? userDoc.data() : {};
+        const name = userData.fullname || user.displayName || 'Friend';
+        const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        document.getElementById('nav-avatar').textContent = initials;
+      } catch(e) {}
+      await loadNotifications(user.uid);
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else { window.location.href = 'login.html'; }
+  });
+</script>
+</body>
+</html>

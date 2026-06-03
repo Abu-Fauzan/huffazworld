@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sign In – HuffazWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C;
+    --emerald: #1A6B4A;
+    --emerald-light: #E6F5EE;
+    --emerald-dark: #0D3D29;
+    --cream: #FAF7F0;
+    --text: #1C2B22;
+    --muted: #5A7060;
+    --white: #ffffff;
+    --error: #e53935;
+    --success: #2e7d32;
+  }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem 1rem;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(26,107,74,0.08) 0%, transparent 70%),
+      var(--cream);
+  }
+  .card {
+    background: var(--white);
+    border-radius: 24px;
+    border: 1px solid rgba(201,168,76,0.2);
+    padding: 2.5rem 2rem;
+    width: 100%; max-width: 420px;
+    box-shadow: 0 20px 60px rgba(15,26,20,0.08);
+    animation: fadeUp 0.6s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .logo {
+    text-align: center;
+    font-family: 'Amiri', serif;
+    font-size: 2rem; font-weight: 700;
+    color: var(--emerald-dark); margin-bottom: 0.25rem;
+  }
+  .logo span { color: var(--gold); }
+  .logo-arabic {
+    text-align: center;
+    font-family: 'Amiri', serif;
+    font-size: 0.95rem; color: var(--gold);
+    margin-bottom: 1.5rem; direction: rtl;
+  }
+  h2 { font-size: 1.3rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.75rem; line-height: 1.6; }
+  .form-group { margin-bottom: 1rem; }
+  label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--emerald-dark); margin-bottom: 0.4rem; }
+  input {
+    width: 100%; padding: 0.75rem 1rem;
+    border: 1.5px solid rgba(201,168,76,0.25);
+    border-radius: 12px; font-size: 0.92rem;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--text); background: var(--cream);
+    transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+  }
+  input:focus {
+    border-color: var(--emerald);
+    box-shadow: 0 0 0 3px rgba(26,107,74,0.1);
+    background: white;
+  }
+  input::placeholder { color: #aab8af; }
+  .forgot { text-align: right; margin-top: 0.3rem; }
+  .forgot a { font-size: 0.8rem; color: var(--emerald); text-decoration: none; font-weight: 500; }
+  .forgot a:hover { text-decoration: underline; }
+  .btn {
+    width: 100%; padding: 0.9rem;
+    background: var(--emerald); color: white;
+    border: none; border-radius: 12px;
+    font-size: 1rem; font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;
+  }
+  .btn:hover { background: var(--emerald-dark); transform: translateY(-1px); }
+  .btn:disabled { background: #aab8af; cursor: not-allowed; transform: none; }
+  .message {
+    padding: 0.75rem 1rem; border-radius: 10px;
+    font-size: 0.85rem; font-weight: 500;
+    margin-top: 1rem; display: none;
+  }
+  .message.error { background: #fdecea; color: var(--error); display: block; }
+  .message.success { background: #e8f5e9; color: var(--success); display: block; }
+  .divider { height: 1px; background: rgba(201,168,76,0.15); margin: 1.5rem 0; }
+  .signup-link { text-align: center; font-size: 0.85rem; color: var(--muted); }
+  .signup-link a { color: var(--emerald); font-weight: 600; text-decoration: none; }
+  .signup-link a:hover { text-decoration: underline; }
+  .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white; border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 0.4rem; vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .welcome-back {
+    background: var(--emerald-light);
+    border-radius: 12px; padding: 0.9rem 1rem;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .welcome-back .icon { font-size: 1.5rem; }
+  .welcome-back p { font-size: 0.82rem; color: var(--emerald-dark); line-height: 1.5; }
+  .welcome-back strong { font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Huffaz<span>World</span></div>
+  <div class="logo-arabic">مجتمع الحفّاظ العالمي</div>
+
+  <div class="welcome-back">
+    <span class="icon">🤲</span>
+    <p><strong>Welcome back!</strong><br/>Sign in to continue your Qur'an journey.</p>
+  </div>
+
+  <h2>Sign In</h2>
+  <p class="subtitle">Enter your email and password below.</p>
+
+  <div class="form-group">
+    <label>Email Address</label>
+    <input type="email" id="email" placeholder="your@email.com" />
+  </div>
+
+  <div class="form-group">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Your password" />
+    <div class="forgot"><a href="#">Forgot password?</a></div>
+  </div>
+
+  <button class="btn" id="loginBtn" onclick="handleLogin()">Sign In</button>
+
+  <div class="message" id="message"></div>
+
+  <div class="divider"></div>
+  <div class="signup-link">
+    Don't have an account? <a href="signup.html">Join Free</a>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "69769070061",
+    appId: "1:69769070061:web:469c095c061654b4d013e4",
+    measurementId: "G-FZWBCHPGRE"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  window.handleLogin = async function() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const btn = document.getElementById('loginBtn');
+    const msg = document.getElementById('message');
+
+    msg.className = 'message';
+    msg.textContent = '';
+
+    if (!email || !password) {
+      msg.className = 'message error';
+      msg.textContent = '⚠️ Please enter your email and password.';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Signing in...';
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      msg.className = 'message success';
+      msg.textContent = '✅ Welcome back! Redirecting to your dashboard...';
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+    } catch (error) {
+      btn.disabled = false;
+      btn.innerHTML = 'Sign In';
+      let errorMsg = '⚠️ Something went wrong. Please try again.';
+      if (error.code === 'auth/user-not-found') errorMsg = '⚠️ No account found with this email. Please sign up first.';
+      if (error.code === 'auth/wrong-password') errorMsg = '⚠️ Incorrect password. Please try again.';
+      if (error.code === 'auth/invalid-email') errorMsg = '⚠️ Please enter a valid email address.';
+      if (error.code === 'auth/too-many-requests') errorMsg = '⚠️ Too many attempts. Please wait a moment and try again.';
+      msg.className = 'message error';
+      msg.textContent = errorMsg;
+    }
+  }
+</script>
+</body>
+</html>
