@@ -45,6 +45,10 @@
   .post-type-btn.media-btn.photo-active { background: #FFF3CD; color: #856404; border-color: #ffc107; }
   .post-image { width: 100%; max-height: 400px; object-fit: cover; border-radius: 12px; margin: 0.75rem 0 0.25rem; border: 1px solid rgba(201,168,76,0.2); cursor: pointer; }
   .post-image:hover { opacity: 0.95; }
+  .post-video { width: 100%; max-height: 400px; border-radius: 12px; margin: 0.75rem 0 0.25rem; border: 1px solid rgba(201,168,76,0.2); background: #000; display: block; }
+  .video-upload-btn.video-active { background: #FFF3CD; color: #856404; border-color: #ffc107; }
+  .upload-progress-bar-wrap { width:100%; background: rgba(201,168,76,0.15); border-radius:99px; height:6px; margin-top:0.4rem; display:none; }
+  .upload-progress-bar { height:6px; border-radius:99px; background: var(--emerald); width:0%; transition: width 0.3s; }
   .post-submit { background: var(--emerald); color: white; border: none; border-radius: 10px; padding: 0.5rem 1.2rem; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
   .post-submit:hover { background: var(--emerald-dark); }
   .post-submit:disabled { background: #aab8af; cursor: not-allowed; }
@@ -267,16 +271,25 @@
             </div>
             <div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.05em;">Add Media</div>
             <div class="post-type-btns" style="margin-bottom:0.75rem;">
-              <button class="post-type-btn media-btn" onclick="showComingSoon(this)">📹 Video</button>
+              <button class="post-type-btn media-btn video-upload-btn" onclick="document.getElementById('video-file-input').click()">📹 Video</button>
               <button class="post-type-btn media-btn" onclick="showComingSoon(this)">🎙️ Audio</button>
               <button class="post-type-btn media-btn photo-upload-btn" onclick="document.getElementById('photo-file-input').click()">🖼️ Photo</button>
               <button class="post-type-btn media-btn" onclick="showComingSoon(this)">📡 Go Live</button>
             </div>
             <input type="file" id="photo-file-input" accept="image/*" style="display:none;" onchange="handlePhotoSelected(this)" />
+            <input type="file" id="video-file-input" accept="video/*" style="display:none;" onchange="handleVideoSelected(this)" />
             <div id="photo-preview-wrap" style="display:none;margin-bottom:0.75rem;position:relative;">
               <img id="photo-preview-img" src="" alt="Preview" style="width:100%;max-height:280px;object-fit:cover;border-radius:12px;border:2px solid rgba(201,168,76,0.3);" />
               <button onclick="clearPhoto()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:28px;height:28px;font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
               <div id="photo-upload-status" style="margin-top:0.4rem;font-size:0.75rem;color:var(--muted);"></div>
+            </div>
+            <div id="video-preview-wrap" style="display:none;margin-bottom:0.75rem;position:relative;">
+              <video id="video-preview-el" class="post-video" controls style="max-height:220px;"></video>
+              <button onclick="clearVideo()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:28px;height:28px;font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+              <div id="video-upload-status" style="margin-top:0.4rem;font-size:0.75rem;color:var(--muted);"></div>
+              <div class="upload-progress-bar-wrap" id="video-progress-wrap">
+                <div class="upload-progress-bar" id="video-progress-bar"></div>
+              </div>
             </div>
           </div>
           <div class="post-actions-row">
@@ -436,6 +449,7 @@
       ${data.tag ? '<div style="margin-bottom:0.5rem;"><span style="font-size:0.72rem;background:var(--emerald-light);color:var(--emerald);padding:0.2rem 0.6rem;border-radius:50px;font-weight:700;">' + (data.tag==='Ayah'?'📖':data.tag==='Milestone'?'🎯':data.tag==='Dua'?'🤲':'💬') + ' ' + data.tag + '</span></div>' : ''}
       <div class="post-body" style="white-space:pre-wrap;">${data.text}</div>
       ${data.imageUrl ? `<img src="${data.imageUrl}" class="post-image" alt="Post image" onclick="window.open('${data.imageUrl}','_blank')" loading="lazy" />` : ''}
+      ${data.videoUrl ? `<video src="${data.videoUrl}" class="post-video" controls preload="metadata" playsinline></video>` : ''}
       <div class="post-footer">
         <button class="post-btn ${liked?'liked':''}" onclick="toggleLike('${postId}',this)">${liked?'❤️':'🤍'} ${likeCount} ${likeCount===1?'Like':'Likes'}</button>
         <button class="post-btn" onclick="toggleComments('${postId}')">💬 ${commentCount} ${commentCount===1?'Comment':'Comments'}</button>
@@ -501,6 +515,75 @@
     document.querySelector('.photo-upload-btn').classList.remove('photo-active');
   }
 
+  // ── VIDEO UPLOAD ──────────────────────────────────────────────────
+  let selectedVideoFile = null;
+
+  window.handleVideoSelected = function(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 100 * 1024 * 1024) { showToast('⚠️ Video must be under 100MB'); input.value = ''; return; }
+    selectedVideoFile = file;
+    const url = URL.createObjectURL(file);
+    document.getElementById('video-preview-el').src = url;
+    document.getElementById('video-preview-wrap').style.display = 'block';
+    document.getElementById('video-upload-status').textContent = '📎 ' + file.name;
+    document.querySelector('.video-upload-btn').classList.add('video-active');
+    // Clear photo if any
+    clearPhoto();
+  }
+
+  window.clearVideo = function() {
+    selectedVideoFile = null;
+    document.getElementById('video-file-input').value = '';
+    document.getElementById('video-preview-wrap').style.display = 'none';
+    document.getElementById('video-preview-el').src = '';
+    document.getElementById('video-progress-bar').style.width = '0%';
+    document.getElementById('video-progress-wrap').style.display = 'none';
+    document.querySelector('.video-upload-btn').classList.remove('video-active');
+  }
+
+  async function uploadVideoToCloudinary(file) {
+    const status = document.getElementById('video-upload-status');
+    const progressWrap = document.getElementById('video-progress-wrap');
+    const progressBar = document.getElementById('video-progress-bar');
+    status.textContent = '☁️ Uploading video... please wait';
+    progressWrap.style.display = 'block';
+
+    return new Promise((resolve) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', CLOUDINARY_PRESET);
+      formData.append('resource_type', 'video');
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/video/upload`);
+
+      xhr.upload.onprogress = e => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          progressBar.style.width = pct + '%';
+          status.textContent = `☁️ Uploading... ${pct}%`;
+        }
+      };
+
+      xhr.onload = () => {
+        const data = JSON.parse(xhr.responseText);
+        if (data.secure_url) {
+          status.textContent = '✅ Video ready!';
+          resolve(data.secure_url);
+        } else {
+          status.textContent = '❌ Upload failed';
+          showToast('Video upload failed. Try a smaller file.');
+          resolve(null);
+        }
+      };
+
+      xhr.onerror = () => { status.textContent = '❌ Upload error'; showToast('Could not upload video.'); resolve(null); };
+      xhr.send(formData);
+    });
+  }
+  // ─────────────────────────────────────────────────────────────────
+
   async function uploadToCloudinary(file) {
     const status = document.getElementById('photo-upload-status');
     status.textContent = '☁️ Uploading photo...';
@@ -543,14 +626,18 @@
     const input = document.getElementById('post-input');
     const btn = document.getElementById('post-btn');
     const text = input.value.trim();
-    if ((!text && !selectedPhotoFile) || !currentUser) return;
+    if ((!text && !selectedPhotoFile && !selectedVideoFile) || !currentUser) return;
     btn.disabled = true; btn.textContent = 'Sharing...';
     try {
-      // Upload photo first if selected
       let imageUrl = null;
+      let videoUrl = null;
       if (selectedPhotoFile) {
         imageUrl = await uploadToCloudinary(selectedPhotoFile);
         if (!imageUrl) { btn.disabled = false; btn.textContent = 'Share Post'; return; }
+      }
+      if (selectedVideoFile) {
+        videoUrl = await uploadVideoToCloudinary(selectedVideoFile);
+        if (!videoUrl) { btn.disabled = false; btn.textContent = 'Share Post'; return; }
       }
       const postData = {
         text: text || '',
@@ -564,9 +651,11 @@
         createdAt: new Date().toISOString()
       };
       if (imageUrl) postData.imageUrl = imageUrl;
+      if (videoUrl) postData.videoUrl = videoUrl;
       await addDoc(collection(db, 'posts'), postData);
       input.value = '';
       clearPhoto();
+      clearVideo();
       showToast('Post shared! Alhamdulillah 🤲');
     } catch(e) {
       showToast('Error: ' + e.message);
