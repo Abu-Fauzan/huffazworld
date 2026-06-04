@@ -368,6 +368,10 @@
         <span class="m-icon">📊</span>
         <span class="m-label">Tracker</span>
       </a>
+      <a href="badges.html" class="mobile-nav-item">
+        <span class="m-icon">🏅</span>
+        <span class="m-label">Badges</span>
+      </a>
       <a href="notifications.html" class="mobile-nav-item">
         <span class="m-icon-wrap"><span class="m-icon">🔔</span><span class="m-badge" id="m-notif-badge"></span></span>
         <span class="m-label">Alerts</span>
@@ -447,7 +451,7 @@
       <div class="post-header">
         <a href="user.html?uid=${data.uid}" style="text-decoration:none;"><div class="avatar" style="background:${bg};color:${fg};">${initials}</div></a>
         <div class="post-meta">
-          <div class="post-author"><a href="user.html?uid=${data.uid}" style="color:var(--emerald-dark);text-decoration:none;font-weight:700;">${data.authorName||'Anonymous'}</a> <span class="role-badge">${data.authorRole||'Member'}</span></div>
+          <div class="post-author"><a href="user.html?uid=${data.uid}" style="color:var(--emerald-dark);text-decoration:none;font-weight:700;">${data.authorName||'Anonymous'}</a> <span class="role-badge">${data.authorRole||'Member'}</span>${data.topBadge ? ` <span title="${data.topBadge.name}" style="font-size:0.95rem;">${data.topBadge.emoji}</span>` : ''}</div>
           <div class="post-info">${timeAgo(data.createdAt)} · ${data.authorCountry||''}</div>
         </div>
       </div>
@@ -655,6 +659,25 @@
         comments: [],
         createdAt: new Date().toISOString()
       };
+      // Attach top badge if user has one
+      try {
+        const badgeSnap = await getDoc(doc(db, 'badges', currentUser.uid));
+        if (badgeSnap.exists() && badgeSnap.data().earned) {
+          const earned = badgeSnap.data().earned;
+          const topBadges = [
+            { id:'full_hafiz', emoji:'👑', name:'Full Hafiz' },
+            { id:'half_quran', emoji:'⭐', name:'Half Hafiz' },
+            { id:'quarter_quran', emoji:'🌙', name:'Quarter Hafiz' },
+            { id:'streak_365', emoji:'🤲', name:'Year of Quran' },
+            { id:'streak_100', emoji:'💎', name:'Diamond Hafiz' },
+            { id:'streak_30', emoji:'🌙', name:'Month of Hifz' },
+            { id:'juz_amma', emoji:'📖', name:"Juz 'Amma" },
+            { id:'joined', emoji:'🤝', name:'Welcome' }
+          ];
+          const top = topBadges.find(b => earned[b.id]);
+          if (top) postData.topBadge = { emoji: top.emoji, name: top.name };
+        }
+      } catch(e) {}
       if (imageUrl) postData.imageUrl = imageUrl;
       if (videoUrl) postData.videoUrl = videoUrl;
       await addDoc(collection(db, 'posts'), postData);

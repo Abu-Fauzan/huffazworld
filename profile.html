@@ -304,15 +304,10 @@
         <div class="tab-content" id="tab-badges">
           <div class="sidebar-card">
             <div class="sidebar-title">🏅 Your Badges</div>
-            <div class="badge-grid">
-              <div class="badge-item"><span class="badge-icon">🌟</span><div class="badge-name">First Post</div></div>
-              <div class="badge-item"><span class="badge-icon">🔥</span><div class="badge-name">7 Day Streak</div></div>
-              <div class="badge-item"><span class="badge-icon">📖</span><div class="badge-name">Juz Amma</div></div>
-              <div class="badge-item" style="opacity:0.35;"><span class="badge-icon">🏅</span><div class="badge-name">Verified Hafiz</div></div>
-              <div class="badge-item" style="opacity:0.35;"><span class="badge-icon">👥</span><div class="badge-name">100 Followers</div></div>
-              <div class="badge-item" style="opacity:0.35;"><span class="badge-icon">🎓</span><div class="badge-name">Ijazah</div></div>
+            <div class="badge-grid" id="profile-badge-grid">
+              <div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--muted);font-size:0.82rem;">Loading badges...</div>
             </div>
-            <div style="font-size:0.78rem; color:var(--muted); margin-top:1rem; text-align:center;">Faded badges are locked — keep going to unlock them!</div>
+            <a href="badges.html" style="display:block;margin-top:1rem;text-align:center;background:var(--emerald);color:white;padding:0.6rem;border-radius:10px;text-decoration:none;font-size:0.82rem;font-weight:700;">View All Badges 🏅</a>
           </div>
         </div>
       </div>
@@ -516,11 +511,52 @@
         currentUserData = userDoc.exists() ? userDoc.data() : {};
         loadProfile(currentUserData, user);
         await loadMyPosts(user.uid);
+        await loadProfileBadges(user.uid);
       } catch(e) { console.error(e); }
       document.getElementById('loading').style.display = 'none';
       document.getElementById('app').style.display = 'block';
     } else { window.location.href = 'login.html'; }
   });
+
+  async function loadProfileBadges(uid) {
+    const grid = document.getElementById('profile-badge-grid');
+    if (!grid) return;
+    try {
+      const snap = await getDoc(doc(db, 'badges', uid));
+      const earned = snap.exists() && snap.data().earned ? snap.data().earned : {};
+      const ALL = [
+        { id:'full_hafiz', emoji:'👑', name:'Full Hafiz' },
+        { id:'half_quran', emoji:'⭐', name:'Half Hafiz' },
+        { id:'quarter_quran', emoji:'🌙', name:'Quarter Hafiz' },
+        { id:'streak_365', emoji:'🤲', name:'Year of Quran' },
+        { id:'streak_100', emoji:'💎', name:'Diamond Hafiz' },
+        { id:'streak_30', emoji:'🌙', name:'Month of Hifz' },
+        { id:'streak_7', emoji:'🔥🔥', name:'Week Warrior' },
+        { id:'streak_3', emoji:'🔥', name:'On Fire' },
+        { id:'juz_amma', emoji:'📖', name:"Juz 'Amma" },
+        { id:'ten_surahs', emoji:'🌿', name:'Growing Strong' },
+        { id:'first_surah', emoji:'🌱', name:'First Step' },
+        { id:'session_100', emoji:'🎯', name:'Centurion' },
+        { id:'session_50', emoji:'📚', name:'Dedicated' },
+        { id:'session_10', emoji:'📝', name:'Committed' },
+        { id:'session_1', emoji:'🌱', name:'First Session' },
+        { id:'first_post', emoji:'✍️', name:'First Post' },
+        { id:'joined', emoji:'🤝', name:'Welcome' },
+      ];
+      const earnedList = ALL.filter(b => earned[b.id]);
+      const lockedList = ALL.filter(b => !earned[b.id]).slice(0, 3);
+      if (!earnedList.length && !lockedList.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--muted);font-size:0.82rem;">No badges yet — start tracking your Hifz! 📖</div>';
+        return;
+      }
+      grid.innerHTML = [
+        ...earnedList.map(b => `<div class="badge-item"><span class="badge-icon">${b.emoji}</span><div class="badge-name">${b.name}</div></div>`),
+        ...lockedList.map(b => `<div class="badge-item" style="opacity:0.35;"><span class="badge-icon">${b.emoji}</span><div class="badge-name">${b.name}</div></div>`)
+      ].join('');
+    } catch(e) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--muted);font-size:0.82rem;">Could not load badges.</div>';
+    }
+  }
 </script>
 </body>
 </html>

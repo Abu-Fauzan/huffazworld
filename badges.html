@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Badges – HuffazWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F0D98A;
+    --emerald: #1A6B4A; --emerald-light: #E6F5EE; --emerald-dark: #0D3D29;
+    --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; padding-bottom: 90px; }
+
+  /* NAV */
+  nav { background: var(--emerald-dark); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .nav-logo { font-family: 'Amiri', serif; font-size: 1.4rem; font-weight: 700; color: white; text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; text-decoration: none; }
+
+  /* CONTAINER */
+  .container { max-width: 750px; margin: 0 auto; padding: 1.25rem 1rem; }
+
+  /* BANNER */
+  .banner { background: linear-gradient(135deg, var(--emerald-dark), var(--emerald)); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .banner h1 { font-family: 'Amiri', serif; font-size: 1.6rem; color: white; margin-bottom: 0.2rem; }
+  .banner p { font-size: 0.82rem; color: rgba(255,255,255,0.65); }
+  .banner-arabic { font-family: 'Amiri', serif; font-size: 1.3rem; color: var(--gold-light); direction: rtl; }
+
+  /* SUMMARY */
+  .summary-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+  .summary-card { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 14px; padding: 1rem; text-align: center; }
+  .summary-icon { font-size: 1.4rem; margin-bottom: 0.3rem; }
+  .summary-val { font-family: 'Amiri', serif; font-size: 1.8rem; font-weight: 700; color: var(--emerald-dark); }
+  .summary-label { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; }
+
+  /* NEXT BADGE */
+  .next-badge-card { background: var(--white); border: 1.5px solid rgba(201,168,76,0.3); border-radius: 16px; padding: 1.1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+  .next-badge-icon { font-size: 2.2rem; filter: grayscale(1) opacity(0.5); }
+  .next-badge-info { flex: 1; }
+  .next-badge-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.2rem; }
+  .next-badge-name { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.4rem; }
+  .next-badge-bar { height: 6px; background: var(--emerald-light); border-radius: 99px; overflow: hidden; }
+  .next-badge-fill { height: 100%; background: linear-gradient(90deg, var(--emerald), var(--gold)); border-radius: 99px; transition: width 0.6s; }
+  .next-badge-pct { font-size: 0.75rem; font-weight: 700; color: var(--emerald); margin-top: 0.3rem; }
+
+  /* CATEGORY */
+  .category-title { font-size: 0.82rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; margin-top: 0.25rem; }
+  .badges-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+  @media (max-width: 400px) { .badges-grid { grid-template-columns: repeat(2,1fr); } }
+
+  /* BADGE CARD */
+  .badge-card { background: var(--white); border: 1.5px solid rgba(201,168,76,0.15); border-radius: 16px; padding: 1rem 0.75rem; text-align: center; position: relative; transition: transform 0.2s; cursor: pointer; }
+  .badge-card:hover { transform: translateY(-2px); }
+  .badge-card.earned { border-color: rgba(201,168,76,0.4); background: linear-gradient(135deg, #fffef8, #fff9ed); }
+  .badge-card.locked { opacity: 0.45; filter: grayscale(0.7); }
+  .badge-emoji { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+  .badge-name { font-size: 0.78rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
+  .badge-desc { font-size: 0.68rem; color: var(--muted); line-height: 1.3; }
+  .badge-earned-tag { position: absolute; top: -6px; right: -6px; background: var(--gold); color: white; font-size: 0.6rem; font-weight: 700; padding: 0.15rem 0.35rem; border-radius: 99px; }
+  .badge-progress { font-size: 0.65rem; color: var(--emerald); font-weight: 700; margin-top: 0.3rem; }
+  .badge-date { font-size: 0.62rem; color: var(--muted); margin-top: 0.2rem; }
+
+  /* NEW BADGE POPUP */
+  .popup-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; padding: 1rem; }
+  .popup-overlay.show { display: flex; }
+  .popup { background: white; border-radius: 24px; padding: 2rem; max-width: 320px; width: 100%; text-align: center; animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .popup-emoji { font-size: 4rem; display: block; margin-bottom: 1rem; animation: spin 0.6s ease; }
+  @keyframes spin { from { transform: rotate(-20deg) scale(0.8); } to { transform: rotate(0) scale(1); } }
+  .popup-title { font-family: 'Amiri', serif; font-size: 1.4rem; color: var(--gold); margin-bottom: 0.3rem; }
+  .popup-name { font-size: 1.1rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.5rem; }
+  .popup-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.25rem; }
+  .popup-btn { background: var(--emerald); color: white; border: none; border-radius: 12px; padding: 0.75rem 2rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+  /* TOAST */
+  #toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--emerald-dark); color: white; padding: 0.65rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 9999; pointer-events: none; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* MOBILE NAV */
+  .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid rgba(201,168,76,0.18); padding: 0.5rem 0; z-index: 200; }
+  .mobile-nav-inner { display: flex; justify-content: space-around; align-items: center; }
+  .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; text-decoration: none; color: var(--muted); font-size: 0.6rem; font-weight: 600; padding: 0.3rem 0.5rem; }
+  .mobile-nav-item span:first-child { font-size: 1.2rem; }
+  .mobile-nav-item.active, .mobile-nav-item:hover { color: var(--emerald); }
+  @media (max-width: 768px) { .mobile-nav { display: block; } .summary-row { grid-template-columns: repeat(3,1fr); } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="dashboard.html" class="nav-logo">Huffaz<span>World</span></a>
+  <a href="profile.html" class="nav-avatar" id="nav-avatar">?</a>
+</nav>
+
+<div id="toast"></div>
+
+<!-- NEW BADGE POPUP -->
+<div class="popup-overlay" id="badge-popup">
+  <div class="popup">
+    <span class="popup-emoji" id="popup-emoji">🏅</span>
+    <div class="popup-title">Badge Unlocked!</div>
+    <div class="popup-name" id="popup-name">Badge Name</div>
+    <div class="popup-desc" id="popup-desc">Badge description</div>
+    <button class="popup-btn" onclick="closePopup()">Alhamdulillah! 🤲</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- BANNER -->
+  <div class="banner">
+    <div>
+      <h1>🏅 My Badges</h1>
+      <p>Earn badges by memorizing and tracking your Hifz</p>
+    </div>
+    <div class="banner-arabic">فَاسْتَبِقُوا الْخَيْرَاتِ</div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-row">
+    <div class="summary-card">
+      <div class="summary-icon">🏅</div>
+      <div class="summary-val" id="earned-count">0</div>
+      <div class="summary-label">Earned</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon">🔒</div>
+      <div class="summary-val" id="locked-count">0</div>
+      <div class="summary-label">Locked</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon">⭐</div>
+      <div class="summary-val" id="pct-count">0%</div>
+      <div class="summary-label">Complete</div>
+    </div>
+  </div>
+
+  <!-- NEXT BADGE -->
+  <div class="next-badge-card" id="next-badge-card" style="display:none;">
+    <div class="next-badge-icon" id="next-badge-emoji">🏅</div>
+    <div class="next-badge-info">
+      <div class="next-badge-label">🎯 Next Badge</div>
+      <div class="next-badge-name" id="next-badge-name">Loading...</div>
+      <div class="next-badge-bar"><div class="next-badge-fill" id="next-badge-fill" style="width:0%"></div></div>
+      <div class="next-badge-pct" id="next-badge-pct">0% there</div>
+    </div>
+  </div>
+
+  <!-- QURAN MEMORIZATION BADGES -->
+  <div class="category-title">📖 Quran Memorization</div>
+  <div class="badges-grid" id="grid-quran"></div>
+
+  <!-- CONSISTENCY BADGES -->
+  <div class="category-title">🔥 Consistency & Streaks</div>
+  <div class="badges-grid" id="grid-streak"></div>
+
+  <!-- SESSION BADGES -->
+  <div class="category-title">📝 Sessions & Study</div>
+  <div class="badges-grid" id="grid-sessions"></div>
+
+  <!-- COMMUNITY BADGES -->
+  <div class="category-title">🌍 Community</div>
+  <div class="badges-grid" id="grid-community"></div>
+
+</div>
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <a href="dashboard.html" class="mobile-nav-item"><span>🏠</span><span>Home</span></a>
+    <a href="search.html" class="mobile-nav-item"><span>🔍</span><span>Search</span></a>
+    <a href="tracker.html" class="mobile-nav-item"><span>📊</span><span>Tracker</span></a>
+    <a href="badges.html" class="mobile-nav-item active"><span>🏅</span><span>Badges</span></a>
+    <a href="notifications.html" class="mobile-nav-item"><span>🔔</span><span>Alerts</span></a>
+  </div>
+</nav>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "1071311461394",
+    appId: "1:1071311461394:web:2218e814e9a3a40f5b9c74"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let earnedBadges = {};
+
+  // ── TOAST ──
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── POPUP ──
+  function showBadgePopup(badge) {
+    document.getElementById('popup-emoji').textContent = badge.emoji;
+    document.getElementById('popup-name').textContent = badge.name;
+    document.getElementById('popup-desc').textContent = badge.desc;
+    document.getElementById('badge-popup').classList.add('show');
+  }
+
+  window.closePopup = function() {
+    document.getElementById('badge-popup').classList.remove('show');
+  }
+
+  // ── ALL BADGES DEFINITION ──
+  const ALL_BADGES = {
+    quran: [
+      { id: 'first_surah',   emoji: '🌱', name: 'First Step',       desc: 'Complete your first Surah',            check: (p,s) => s >= 1 },
+      { id: 'juz_amma',      emoji: '📖', name: "Juz 'Amma",        desc: 'Complete all Surahs in Juz 30',         check: (p,s) => s >= 10 },
+      { id: 'ten_surahs',    emoji: '🌿', name: 'Growing Strong',    desc: 'Complete 10 Surahs',                    check: (p,s) => s >= 10 },
+      { id: 'quarter_quran', emoji: '🌙', name: 'Quarter Hafiz',     desc: 'Complete 25% of the Quran (28 Surahs)', check: (p,s) => s >= 28 },
+      { id: 'half_quran',    emoji: '⭐', name: 'Half Hafiz',        desc: 'Complete 50% of the Quran (57 Surahs)', check: (p,s) => s >= 57 },
+      { id: 'full_hafiz',    emoji: '👑', name: 'Full Hafiz',        desc: 'Complete all 114 Surahs of the Quran',  check: (p,s) => s >= 114 },
+      { id: 'page_10',       emoji: '📄', name: 'Page Turner',       desc: 'Complete 10 pages',                     check: (p,s,pg) => pg >= 10 },
+      { id: 'page_100',      emoji: '📚', name: 'Century Pages',     desc: 'Complete 100 pages',                    check: (p,s,pg) => pg >= 100 },
+      { id: 'page_300',      emoji: '🌟', name: 'Halfway There',     desc: 'Complete 300 pages',                    check: (p,s,pg) => pg >= 300 },
+      { id: 'page_604',      emoji: '🏆', name: 'Quran Complete',    desc: 'All 604 pages completed!',              check: (p,s,pg) => pg >= 604 },
+    ],
+    streak: [
+      { id: 'streak_3',   emoji: '🔥', name: 'On Fire',         desc: 'Log sessions 3 days in a row',   check: (p,s,pg,st) => st >= 3 },
+      { id: 'streak_7',   emoji: '🔥🔥', name: 'Week Warrior',   desc: '7-day streak',                    check: (p,s,pg,st) => st >= 7 },
+      { id: 'streak_30',  emoji: '🌙', name: 'Month of Hifz',   desc: '30-day streak — MashaAllah!',     check: (p,s,pg,st) => st >= 30 },
+      { id: 'streak_100', emoji: '💎', name: 'Diamond Hafiz',   desc: '100-day streak — SubhanAllah!',   check: (p,s,pg,st) => st >= 100 },
+      { id: 'streak_365', emoji: '🤲', name: 'Year of Quran',   desc: '365-day streak — Alhamdulillah!', check: (p,s,pg,st) => st >= 365 },
+    ],
+    sessions: [
+      { id: 'session_1',    emoji: '🌱', name: 'First Session',    desc: 'Log your very first session',    check: (p,s,pg,st,ss) => ss >= 1 },
+      { id: 'session_10',   emoji: '📝', name: 'Committed',        desc: 'Log 10 sessions',                check: (p,s,pg,st,ss) => ss >= 10 },
+      { id: 'session_50',   emoji: '📚', name: 'Dedicated',        desc: 'Log 50 sessions',                check: (p,s,pg,st,ss) => ss >= 50 },
+      { id: 'session_100',  emoji: '🎯', name: 'Centurion',        desc: 'Log 100 sessions',               check: (p,s,pg,st,ss) => ss >= 100 },
+      { id: 'session_500',  emoji: '👑', name: 'Legend',           desc: 'Log 500 sessions — Legend!',     check: (p,s,pg,st,ss) => ss >= 500 },
+      { id: 'night_session',emoji: '🌙', name: 'Night Owl',        desc: 'Log a session after 10pm',       check: (p,s,pg,st,ss,hr) => hr >= 22 },
+      { id: 'fajr_session', emoji: '🌅', name: 'Fajr Fighter',     desc: 'Log a session before 6am',       check: (p,s,pg,st,ss,hr) => hr >= 0 && hr < 6 },
+    ],
+    community: [
+      { id: 'joined',       emoji: '🤝', name: 'Welcome',          desc: 'Joined HuffazWorld',             check: () => true },
+      { id: 'first_post',   emoji: '✍️', name: 'First Post',       desc: 'Share your first post',          check: (p) => p.posts >= 1 },
+      { id: 'ten_posts',    emoji: '📣', name: 'Voice of Ummah',   desc: 'Share 10 posts',                  check: (p) => p.posts >= 10 },
+      { id: 'fifty_posts',  emoji: '🌍', name: 'Community Pillar', desc: 'Share 50 posts',                  check: (p) => p.posts >= 50 },
+    ]
+  };
+
+  // ── CHECK AND AWARD BADGES ──
+  async function checkAndAwardBadges(progress, posts) {
+    const surahs = progress.surahs ? Object.values(progress.surahs).filter(s => s.status === 'completed').length : 0;
+    const pages = progress.pages ? Object.keys(progress.pages).length : 0;
+    const streak = progress.streak || 0;
+    const sessionSnap = await getDocs(collection(db, 'hifzSessions', currentUser.uid, 'sessions'));
+    const sessions = sessionSnap.size;
+    const hour = new Date().getHours();
+    const postCount = posts || 0;
+    const communityData = { posts: postCount };
+
+    const newlyEarned = [];
+
+    for (const [cat, badges] of Object.entries(ALL_BADGES)) {
+      for (const badge of badges) {
+        const alreadyEarned = earnedBadges[badge.id];
+        const earned = badge.check(communityData, surahs, pages, streak, sessions, hour);
+        if (earned && !alreadyEarned) {
+          earnedBadges[badge.id] = { earnedAt: new Date().toISOString() };
+          newlyEarned.push(badge);
+        }
+      }
+    }
+
+    // Save to Firebase if new badges earned
+    if (newlyEarned.length > 0) {
+      await setDoc(doc(db, 'badges', currentUser.uid), { earned: earnedBadges }, { merge: true });
+      // Show popup for first new badge
+      showBadgePopup(newlyEarned[0]);
+      if (newlyEarned.length > 1) showToast(`🏅 ${newlyEarned.length} new badges earned!`);
+    }
+
+    return { surahs, pages, streak, sessions };
+  }
+
+  // ── RENDER BADGES ──
+  function renderBadges(stats) {
+    const { surahs, pages, streak, sessions } = stats;
+    const grids = { quran: 'grid-quran', streak: 'grid-streak', sessions: 'grid-sessions', community: 'grid-community' };
+    let totalEarned = 0;
+    let totalBadges = 0;
+    let nextBadge = null;
+    let nextBadgeProgress = 0;
+
+    for (const [cat, badges] of Object.entries(ALL_BADGES)) {
+      const gridEl = document.getElementById(grids[cat]);
+      gridEl.innerHTML = '';
+      totalBadges += badges.length;
+
+      badges.forEach(badge => {
+        const earned = !!earnedBadges[badge.id];
+        if (earned) totalEarned++;
+        const earnedDate = earned && earnedBadges[badge.id].earnedAt ? earnedBadges[badge.id].earnedAt.split('T')[0] : '';
+
+        // Calculate progress for locked badges
+        let progressText = '';
+        let progressPct = 0;
+        if (!earned) {
+          if (badge.id === 'first_surah')   { progressPct = Math.min(100, surahs * 100); progressText = `${Math.min(surahs,1)}/1 Surah`; }
+          if (badge.id === 'juz_amma')      { progressPct = Math.min(100, (surahs/10)*100); progressText = `${Math.min(surahs,10)}/10 Surahs`; }
+          if (badge.id === 'ten_surahs')    { progressPct = Math.min(100, (surahs/10)*100); progressText = `${Math.min(surahs,10)}/10 Surahs`; }
+          if (badge.id === 'quarter_quran') { progressPct = Math.min(100, (surahs/28)*100); progressText = `${surahs}/28 Surahs`; }
+          if (badge.id === 'half_quran')    { progressPct = Math.min(100, (surahs/57)*100); progressText = `${surahs}/57 Surahs`; }
+          if (badge.id === 'full_hafiz')    { progressPct = Math.min(100, (surahs/114)*100); progressText = `${surahs}/114 Surahs`; }
+          if (badge.id === 'page_10')       { progressPct = Math.min(100, (pages/10)*100); progressText = `${Math.min(pages,10)}/10 Pages`; }
+          if (badge.id === 'page_100')      { progressPct = Math.min(100, (pages/100)*100); progressText = `${pages}/100 Pages`; }
+          if (badge.id === 'page_300')      { progressPct = Math.min(100, (pages/300)*100); progressText = `${pages}/300 Pages`; }
+          if (badge.id === 'page_604')      { progressPct = Math.min(100, (pages/604)*100); progressText = `${pages}/604 Pages`; }
+          if (badge.id === 'streak_3')      { progressPct = Math.min(100, (streak/3)*100); progressText = `${Math.min(streak,3)}/3 days`; }
+          if (badge.id === 'streak_7')      { progressPct = Math.min(100, (streak/7)*100); progressText = `${Math.min(streak,7)}/7 days`; }
+          if (badge.id === 'streak_30')     { progressPct = Math.min(100, (streak/30)*100); progressText = `${streak}/30 days`; }
+          if (badge.id === 'streak_100')    { progressPct = Math.min(100, (streak/100)*100); progressText = `${streak}/100 days`; }
+          if (badge.id === 'streak_365')    { progressPct = Math.min(100, (streak/365)*100); progressText = `${streak}/365 days`; }
+          if (badge.id === 'session_1')     { progressPct = Math.min(100, sessions*100); progressText = `${Math.min(sessions,1)}/1`; }
+          if (badge.id === 'session_10')    { progressPct = Math.min(100, (sessions/10)*100); progressText = `${Math.min(sessions,10)}/10`; }
+          if (badge.id === 'session_50')    { progressPct = Math.min(100, (sessions/50)*100); progressText = `${sessions}/50`; }
+          if (badge.id === 'session_100')   { progressPct = Math.min(100, (sessions/100)*100); progressText = `${sessions}/100`; }
+          if (badge.id === 'session_500')   { progressPct = Math.min(100, (sessions/500)*100); progressText = `${sessions}/500`; }
+
+          // Track next badge (highest progress not yet earned)
+          if (progressPct > nextBadgeProgress && progressPct < 100) {
+            nextBadgeProgress = progressPct;
+            nextBadge = { ...badge, progressText, progressPct };
+          }
+        }
+
+        const card = document.createElement('div');
+        card.className = `badge-card ${earned ? 'earned' : 'locked'}`;
+        card.innerHTML = `
+          ${earned ? '<div class="badge-earned-tag">✅ Earned</div>' : ''}
+          <span class="badge-emoji">${badge.emoji}</span>
+          <div class="badge-name">${badge.name}</div>
+          <div class="badge-desc">${badge.desc}</div>
+          ${earned ? `<div class="badge-date">🗓️ ${earnedDate}</div>` : progressText ? `<div class="badge-progress">${progressText}</div>` : ''}
+        `;
+        card.onclick = () => {
+          if (earned) showToast(`🏅 ${badge.name} — ${badge.desc}`);
+        };
+        gridEl.appendChild(card);
+      });
+    }
+
+    // Update summary
+    document.getElementById('earned-count').textContent = totalEarned;
+    document.getElementById('locked-count').textContent = totalBadges - totalEarned;
+    document.getElementById('pct-count').textContent = Math.round((totalEarned/totalBadges)*100) + '%';
+
+    // Show next badge
+    if (nextBadge) {
+      document.getElementById('next-badge-card').style.display = 'flex';
+      document.getElementById('next-badge-emoji').textContent = nextBadge.emoji;
+      document.getElementById('next-badge-name').textContent = nextBadge.name + ' — ' + nextBadge.progressText;
+      document.getElementById('next-badge-fill').style.width = nextBadge.progressPct + '%';
+      document.getElementById('next-badge-pct').textContent = Math.round(nextBadge.progressPct) + '% there';
+    }
+  }
+
+  // ── AUTH ──
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+
+      // Load user info
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const d = userDoc.data();
+          document.getElementById('nav-avatar').textContent = (d.fullname||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        }
+      } catch(e) {}
+
+      // Load existing earned badges
+      try {
+        const badgeSnap = await getDoc(doc(db, 'badges', user.uid));
+        if (badgeSnap.exists() && badgeSnap.data().earned) earnedBadges = badgeSnap.data().earned;
+      } catch(e) {}
+
+      // Load progress data
+      let progress = {};
+      try {
+        const progSnap = await getDoc(doc(db, 'hifzProgress', user.uid));
+        if (progSnap.exists()) progress = progSnap.data();
+      } catch(e) {}
+
+      // Count posts
+      let postCount = 0;
+      try {
+        const { query, collection: col, where, getDocs: gd } = await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
+        const postsSnap = await gd(query(col(db, 'posts'), where('uid','==',user.uid)));
+        postCount = postsSnap.size;
+      } catch(e) {}
+
+      // Check & award badges, then render
+      const stats = await checkAndAwardBadges(progress, postCount);
+      renderBadges(stats);
+
+    } else { window.location.href = 'login.html'; }
+  });
+</script>
+</body>
+</html>
