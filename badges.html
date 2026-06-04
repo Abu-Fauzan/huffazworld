@@ -15,13 +15,13 @@
   body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; padding-bottom: 90px; }
 
   /* NAV */
-  nav { background: var(--emerald-dark); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  nav { background: var(--emerald-dark); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; }
   .nav-logo { font-family: 'Amiri', serif; font-size: 1.4rem; font-weight: 700; color: white; text-decoration: none; }
   .nav-logo span { color: var(--gold); }
   .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; text-decoration: none; }
 
   /* CONTAINER */
-  .container { max-width: 750px; margin: 0 auto; padding: 1.25rem 1rem; }
+  .container { max-width: 750px; margin: 0 auto; padding: 1.25rem 1rem; padding-top: calc(56px + 1.25rem); }
 
   /* BANNER */
   .banner { background: linear-gradient(135deg, var(--emerald-dark), var(--emerald)); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
