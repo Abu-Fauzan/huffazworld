@@ -467,7 +467,7 @@
 
         const snap = await getDocs(collection(db,'users'));
         allUsers = [];
-        snap.forEach(d => allUsers.push(d.data()));
+        snap.forEach(d => allUsers.push({ uid: d.id, ...d.data() }));
         await loadFollowStates(user.uid);
         filterAndSearch();
       } catch(e) { console.error(e); }

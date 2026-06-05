@@ -425,6 +425,7 @@
         <div class="header-status" id="header-status">HuffazWorld Member</div>
       </div>
       <div class="header-actions">
+        <button class="header-action-btn" id="mark-read-btn" onclick="markConversationRead()" title="Mark as read" style="display:none;">✅</button>
         <button class="header-action-btn" onclick="showToast('📞 Voice calls coming soon!')" title="Voice call">📞</button>
         <button class="header-action-btn" onclick="showToast('📹 Video calls coming soon!')" title="Video call">📹</button>
       </div>
@@ -959,6 +960,35 @@
     audio.play().catch(() => showToast('Could not play voice note.'));
   }
 
+  // ── MARK AS READ ─────────────────────────────────────────────────
+  async function checkUnreadStatus() {
+    if (!convId || !currentUser) return;
+    try {
+      const snap = await getDoc(doc(db, 'conversations', convId));
+      if (snap.exists()) {
+        const unreadBy = snap.data().unreadBy || [];
+        const isUnread = unreadBy.includes(currentUser.uid);
+        document.getElementById('mark-read-btn').style.display = isUnread ? 'flex' : 'none';
+        // Auto mark as read when opening chat
+        if (isUnread) await markConversationRead();
+      }
+    } catch(e) {}
+  }
+
+  window.markConversationRead = async function() {
+    if (!convId || !currentUser) return;
+    try {
+      const snap = await getDoc(doc(db, 'conversations', convId));
+      if (snap.exists()) {
+        const unreadBy = (snap.data().unreadBy || []).filter(uid => uid !== currentUser.uid);
+        await setDoc(doc(db, 'conversations', convId), { unreadBy }, { merge: true });
+        document.getElementById('mark-read-btn').style.display = 'none';
+        showToast('✅ Marked as read');
+      }
+    } catch(e) {}
+  }
+  // ─────────────────────────────────────────────────────────────────
+
   // ── SEND MESSAGE ──
   window.sendMessage = async function() {
     const input = document.getElementById('msg-input');
@@ -1031,6 +1061,7 @@
 
         initEmojiPanel();
         loadMessages();
+        checkUnreadStatus();
       } catch(e) { console.error('Header setup error:', e); }
 
       // Always show the app — even if something above fails
