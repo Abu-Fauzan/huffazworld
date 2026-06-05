@@ -48,10 +48,16 @@
     background: var(--gold); color: var(--emerald-dark);
     display: flex; align-items: center; justify-content: center;
     font-family: 'Amiri', serif; font-size: 2rem; font-weight: 700;
-    flex-shrink: 0; border: 4px solid rgba(255,255,255,0.2);
-    cursor: pointer; transition: transform 0.2s;
+    flex-shrink: 0; border: 4px solid rgba(255,255,255,0.3);
+    cursor: pointer; transition: transform 0.2s; overflow: hidden; position: relative;
   }
   .profile-avatar-big:hover { transform: scale(1.05); }
+  .profile-avatar-big:hover .avatar-overlay { opacity: 1; }
+  .avatar-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; border-radius: 50%; }
+  .avatar-overlay span { font-size: 1.4rem; }
+  .profile-avatar-big img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; position: absolute; inset: 0; }
+  .nav-avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .upload-progress { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--emerald-dark); color: white; padding: 0.6rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600; z-index: 9999; display: none; white-space: nowrap; }
   .profile-info { flex: 1; }
   .profile-name { font-family: 'Amiri', serif; font-size: 2rem; font-weight: 700; color: white; margin-bottom: 0.25rem; }
   .profile-role { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(201,168,76,0.2); color: var(--gold-light); padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.82rem; font-weight: 600; margin-bottom: 0.75rem; }
@@ -249,7 +255,12 @@
 
     <!-- PROFILE HEADER -->
     <div class="profile-header">
-      <div class="profile-avatar-big" id="profile-avatar-big">?</div>
+      <div class="profile-avatar-big" id="profile-avatar-big" onclick="document.getElementById('avatar-file-input').click()" title="Click to change photo">
+        <span id="avatar-initials">?</span>
+        <div class="avatar-overlay"><span>📷</span></div>
+      </div>
+      <input type="file" id="avatar-file-input" accept="image/*" style="display:none;" onchange="handleAvatarSelected(this)"/>
+      <div class="upload-progress" id="upload-progress">☁️ Uploading photo...</div>
       <div class="profile-info">
         <div class="profile-name" id="profile-name">Loading...</div>
         <div class="profile-role" id="profile-role">🏅 Member</div>
@@ -358,7 +369,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, updateDoc, deleteDoc, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
@@ -374,6 +385,49 @@
   const db = getFirestore(app);
   let currentUser = null;
   let currentUserData = null;
+
+  // ── CLOUDINARY AVATAR UPLOAD ──────────────────────────────────
+  const CLOUDINARY_CLOUD = 'dl1rabt4f';
+  const CLOUDINARY_PRESET = 'huffazworld';
+
+  window.handleAvatarSelected = async function(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast('⚠️ Photo must be under 5MB'); input.value = ''; return; }
+
+    const progress = document.getElementById('upload-progress');
+    progress.style.display = 'block';
+    progress.textContent = '☁️ Uploading photo...';
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    formData.append('folder', 'avatars');
+
+    try {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method:'POST', body:formData });
+      const data = await res.json();
+      if (data.secure_url) {
+        // Save to Firebase
+        await setDoc(doc(db, 'users', currentUser.uid), { photoURL: data.secure_url }, { merge:true });
+        currentUserData.photoURL = data.secure_url;
+        loadProfile(currentUserData, currentUser);
+        progress.textContent = '✅ Photo updated!';
+        showToast('Profile photo updated! 🤲');
+        setTimeout(() => progress.style.display = 'none', 2000);
+      } else {
+        progress.textContent = '❌ Upload failed';
+        showToast('Upload failed. Try again.');
+        setTimeout(() => progress.style.display = 'none', 2000);
+      }
+    } catch(e) {
+      progress.textContent = '❌ Error uploading';
+      showToast('Could not upload photo.');
+      setTimeout(() => progress.style.display = 'none', 2000);
+    }
+    input.value = '';
+  }
+  // ─────────────────────────────────────────────────────────────
 
   function showToast(msg) {
     const t = document.getElementById('toast');
@@ -400,8 +454,22 @@
   function loadProfile(data, user) {
     const name = data.fullname || user.displayName || 'Friend';
     const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-    document.getElementById('profile-avatar-big').textContent = initials;
-    document.getElementById('nav-avatar').textContent = initials;
+    // Avatar — show photo if exists, else initials
+    const avatarBig = document.getElementById('profile-avatar-big');
+    const initialsEl = document.getElementById('avatar-initials');
+    initialsEl.textContent = initials;
+    if (data.photoURL) {
+      const old = avatarBig.querySelector('img');
+      if (old) old.remove();
+      const img = document.createElement('img');
+      img.src = data.photoURL; img.alt = name;
+      avatarBig.insertBefore(img, avatarBig.firstChild);
+      initialsEl.style.display = 'none';
+    } else { initialsEl.style.display = ''; }
+    // Nav avatar
+    const navAvatar = document.getElementById('nav-avatar');
+    if (data.photoURL) { navAvatar.innerHTML = `<img src="${data.photoURL}" class="nav-avatar-img" alt="${name}"/>`; }
+    else { navAvatar.textContent = initials; }
     document.getElementById('profile-name').textContent = name;
     document.getElementById('profile-role').textContent = (data.role === 'Hafiz' ? '🏅 ' : data.role === 'Teacher' ? '🎓 ' : '📖 ') + (data.role || 'Member');
     document.getElementById('profile-country').textContent = data.country || '—';

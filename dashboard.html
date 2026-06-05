@@ -450,7 +450,7 @@
     div.dataset.text = (data.text||'').replace(/'/g,'').slice(0,100);
     div.innerHTML = `
       <div class="post-header">
-        <a href="user.html?uid=${data.uid}" style="text-decoration:none;"><div class="avatar" style="background:${bg};color:${fg};">${initials}</div></a>
+        <a href="user.html?uid=${data.uid}" style="text-decoration:none;"><div class="avatar" style="background:${bg};color:${fg};">${data.authorPhoto ? `<img src="${data.authorPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />` : initials}</div></a>
         <div class="post-meta">
           <div class="post-author"><a href="user.html?uid=${data.uid}" style="color:var(--emerald-dark);text-decoration:none;font-weight:700;">${data.authorName||'Anonymous'}</a> <span class="role-badge">${data.authorRole||'Member'}</span>${data.topBadge ? ` <span title="${data.topBadge.name}" style="font-size:0.95rem;">${data.topBadge.emoji}</span>` : ''}</div>
           <div class="post-info">${timeAgo(data.createdAt)} · ${data.authorCountry||''}</div>
@@ -655,6 +655,7 @@
         authorName: currentUserData ? currentUserData.fullname : (currentUser.displayName || 'Anonymous'),
         authorRole: currentUserData ? currentUserData.role : 'Member',
         authorCountry: currentUserData ? currentUserData.country : '',
+        authorPhoto: currentUserData ? (currentUserData.photoURL || null) : null,
         tag: currentTag,
         likes: [],
         comments: [],
@@ -922,6 +923,9 @@
         const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
         document.getElementById('nav-name').textContent = name;
         document.getElementById('nav-avatar').textContent = initials;
+        if (currentUserData && currentUserData.photoURL) {
+          document.getElementById('nav-avatar').innerHTML = `<img src="${currentUserData.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+        }
         document.getElementById('welcome-name').textContent = 'Welcome back, ' + name.split(' ')[0] + '! 🤲';
         document.getElementById('welcome-role').textContent = role + ' · Continue your blessed journey today.';
         const usersSnap = await getDocs(collection(db,'users'));
