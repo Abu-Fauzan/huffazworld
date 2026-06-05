@@ -468,7 +468,7 @@
         const name = userData.fullname || user.displayName || 'Friend';
         const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
         const navAvatar = document.getElementById('nav-avatar');
-        if (d.data().photoURL) { navAvatar.innerHTML = `<img src="${d.data().photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`; }
+        if (userData.photoURL) { navAvatar.innerHTML = `<img src="${userData.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`; }
         else { navAvatar.textContent = initials; }
 
         const snap = await getDocs(collection(db,'users'));
@@ -476,7 +476,7 @@
         snap.forEach(d => allUsers.push({ uid: d.id, ...d.data() }));
         await loadFollowStates(user.uid);
         filterAndSearch();
-      } catch(e) { console.error(e); }
+      } catch(e) { console.error('Search error:', e); }
 
       document.getElementById('loading').style.display = 'none';
       document.getElementById('app').style.display = 'block';
