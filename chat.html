@@ -983,12 +983,17 @@
 
     try {
       await addDoc(collection(db,'conversations',convId,'messages'), msgData);
-      await setDoc(doc(db,'conversations',convId), {
+      const convData = {
         members: [currentUser.uid, otherUid],
         lastMessage: text.slice(0,60),
         lastTime: new Date().toISOString(),
         unreadBy: [otherUid]
-      }, { merge: true });
+      };
+      // Save sender photo so inbox can display it
+      if (currentUserData && currentUserData.photoURL) {
+        convData['photo_' + currentUser.uid] = currentUserData.photoURL;
+      }
+      await setDoc(doc(db,'conversations',convId), convData, { merge: true });
     } catch(e) { console.error('Send error:', e); showToast('Could not send.'); }
 
     btn.disabled = false;

@@ -179,7 +179,7 @@
       const [bg,fg] = getColor(c.otherUid);
       const initials = (c.otherName||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
       return `<a href="chat.html?uid=${c.otherUid}&name=${encodeURIComponent(c.otherName)}" class="conv-item ${c.unread?'unread':''}" style="animation:fadeUp 0.3s ease ${i*0.05}s both;">
-        <div class="conv-avatar" style="background:${bg};color:${fg};">${initials}</div>
+        <div class="conv-avatar" style="background:${bg};color:${fg};overflow:hidden;">${c.otherPhoto ? `<img src="${c.otherPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />` : initials}</div>
         <div class="conv-info">
           <div class="conv-name">${c.otherName}</div>
           <div class="conv-preview">${c.lastMessage||'Start a conversation...'}</div>
@@ -207,7 +207,9 @@
         const userDoc = await getDoc(doc(db,'users',user.uid));
         const userData = userDoc.exists() ? userDoc.data() : {};
         const name = userData.fullname || user.displayName || 'Friend';
-        document.getElementById('nav-avatar').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        const navAvatar = document.getElementById('nav-avatar');
+        if (userData.photoURL) { navAvatar.innerHTML = `<img src="${userData.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`; }
+        else { navAvatar.textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
 
         // Load conversations
         const q = query(collection(db,'conversations'), where('members','array-contains',user.uid));
@@ -217,11 +219,15 @@
             const data = d.data();
             const otherUid = data.members.find(m => m !== user.uid);
             let otherName = 'Unknown';
+            let otherPhoto = null;
             try {
               const otherDoc = await getDoc(doc(db,'users',otherUid));
-              if (otherDoc.exists()) otherName = otherDoc.data().fullname || 'Unknown';
+              if (otherDoc.exists()) {
+                otherName = otherDoc.data().fullname || 'Unknown';
+                otherPhoto = otherDoc.data().photoURL || null;
+              }
             } catch(e) {}
-            allConvs.push({ id:d.id, otherUid, otherName, lastMessage: data.lastMessage, lastTime: data.lastTime, unread: data.unreadBy?.includes(user.uid) });
+            allConvs.push({ id:d.id, otherUid, otherName, otherPhoto, lastMessage: data.lastMessage, lastTime: data.lastTime, unread: data.unreadBy?.includes(user.uid) });
           }
           allConvs.sort((a,b) => new Date(b.lastTime||0) - new Date(a.lastTime||0));
           renderConvs(allConvs);

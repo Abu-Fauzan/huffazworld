@@ -663,7 +663,7 @@
         const userDoc = await getDoc(doc(db,'users',user.uid));
         currentUserData = userDoc.exists() ? userDoc.data() : {};
         const name = currentUserData.fullname || user.displayName || 'Friend';
-        document.getElementById('nav-avatar').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        const _navEl=document.getElementById('nav-avatar');if(currentUserData && currentUserData.photoURL){_navEl.innerHTML=`<img src="${currentUserData.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;}else{_navEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
 
         const groupDoc = await getDoc(doc(db,'groups',groupId));
         if (groupDoc.exists()) {

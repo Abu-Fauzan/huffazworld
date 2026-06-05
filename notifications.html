@@ -383,7 +383,9 @@
         const userData = userDoc.exists() ? userDoc.data() : {};
         const name = userData.fullname || user.displayName || 'Friend';
         const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-        document.getElementById('nav-avatar').textContent = initials;
+        const navAvatar = document.getElementById('nav-avatar');
+        if (d.data().photoURL) { navAvatar.innerHTML = `<img src="${d.data().photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`; }
+        else { navAvatar.textContent = initials; }
       } catch(e) {}
       await loadNotifications(user.uid);
       document.getElementById('loading').style.display = 'none';
