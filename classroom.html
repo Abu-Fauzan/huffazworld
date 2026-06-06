@@ -13,184 +13,290 @@
     --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
   }
   body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; padding-bottom: 90px; }
+
+  /* NAV */
   nav { background: var(--emerald-dark); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; }
   .nav-logo { font-family: 'Amiri', serif; font-size: 1.4rem; font-weight: 700; color: white; text-decoration: none; }
   .nav-logo span { color: var(--gold); }
-  .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; cursor: pointer; text-decoration: none; overflow: hidden; }
+  .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; text-decoration: none; overflow: hidden; }
+
+  /* CONTAINER */
   .container { max-width: 750px; margin: 0 auto; padding: 1.25rem 1rem; padding-top: calc(56px + 1.25rem); }
-  .banner { background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 100%); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.25rem; }
-  .banner h1 { font-family: 'Amiri', serif; font-size: 1.6rem; color: white; margin-bottom: 0.2rem; }
+
+  /* BANNER */
+  .banner { background: linear-gradient(135deg, var(--emerald-dark), var(--emerald)); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .banner h1 { font-family: 'Amiri', serif; font-size: 1.5rem; color: white; margin-bottom: 0.2rem; }
   .banner p { font-size: 0.82rem; color: rgba(255,255,255,0.65); }
+  .banner-arabic { font-family: 'Amiri', serif; font-size: 1.2rem; color: var(--gold-light); direction: rtl; }
+
+  /* NOT TEACHER */
+  .not-teacher { text-align: center; padding: 3rem 1rem; background: var(--white); border-radius: 16px; border: 1px solid rgba(201,168,76,0.18); }
+  .not-teacher .icon { font-size: 3rem; margin-bottom: 1rem; }
+  .not-teacher h3 { font-size: 1rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.5rem; }
+  .not-teacher p { font-size: 0.82rem; color: var(--muted); }
+
+  /* SECTION */
   .section { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; }
-  .section-title { font-size: 0.95rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
-  .form-group { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.85rem; }
-  .form-group label { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
-  .form-group input, .form-group textarea, .form-group select { border: 1.5px solid rgba(201,168,76,0.25); border-radius: 8px; padding: 0.6rem 0.85rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; color: var(--text); background: var(--cream); outline: none; width: 100%; }
+  .section-title { font-size: 0.95rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 1rem; }
+
+  /* CLASS CARD */
+  .class-card { background: linear-gradient(135deg, var(--emerald-dark), var(--emerald)); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; color: white; position: relative; overflow: hidden; }
+  .class-card::after { content: '📖'; position: absolute; right: -10px; bottom: -10px; font-size: 5rem; opacity: 0.1; }
+  .class-name { font-family: 'Amiri', serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .class-desc { font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 1rem; }
+  .class-code-wrap { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+  .class-code-label { font-size: 0.72rem; color: rgba(255,255,255,0.7); margin-bottom: 0.2rem; }
+  .class-code { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.15em; font-family: monospace; color: var(--gold-light); }
+  .copy-btn { background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; padding: 0.4rem 0.75rem; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .copy-btn:hover { background: rgba(255,255,255,0.3); }
+  .class-stats { display: flex; gap: 1rem; }
+  .class-stat { text-align: center; }
+  .class-stat-val { font-size: 1.2rem; font-weight: 700; }
+  .class-stat-label { font-size: 0.65rem; color: rgba(255,255,255,0.65); }
+
+  /* CREATE CLASS FORM */
+  .form-group { margin-bottom: 0.85rem; }
+  .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .form-group input, .form-group textarea, .form-group select { width: 100%; border: 1.5px solid rgba(201,168,76,0.25); border-radius: 10px; padding: 0.65rem 0.85rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; color: var(--text); background: var(--cream); outline: none; resize: none; }
   .form-group input:focus, .form-group textarea:focus { border-color: var(--emerald); background: white; }
-  .form-group textarea { resize: vertical; min-height: 80px; }
-  .btn-primary { background: var(--emerald); color: white; border: none; border-radius: 12px; padding: 0.75rem 1.5rem; font-size: 0.92rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%; transition: background 0.2s; }
-  .btn-primary:hover { background: var(--emerald-dark); }
-  .btn-primary:disabled { background: #aab8af; cursor: not-allowed; }
-  .btn-secondary { background: var(--cream); color: var(--emerald-dark); border: 1.5px solid rgba(201,168,76,0.3); border-radius: 12px; padding: 0.65rem 1.25rem; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s; }
-  .btn-secondary:hover { border-color: var(--emerald); }
-  .class-card { background: linear-gradient(135deg, var(--emerald-dark), var(--emerald)); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; color: white; }
-  .class-card-name { font-family: 'Amiri', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.2rem; }
-  .class-card-desc { font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 1rem; }
-  .class-code-box { background: rgba(255,255,255,0.12); border-radius: 10px; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; }
-  .class-code-label { font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-bottom: 0.15rem; }
-  .class-code-value { font-family: 'Amiri', serif; font-size: 1.5rem; font-weight: 700; color: var(--gold-light); letter-spacing: 0.1em; }
-  .copy-btn { background: rgba(255,255,255,0.18); border: none; border-radius: 8px; padding: 0.4rem 0.85rem; color: white; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
-  .copy-btn:hover { background: rgba(255,255,255,0.28); }
-  .class-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-top: 1rem; }
-  .class-stat { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 0.6rem; text-align: center; }
-  .class-stat-val { font-family: 'Amiri', serif; font-size: 1.3rem; font-weight: 700; color: var(--gold-light); }
-  .class-stat-lbl { font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 0.1rem; }
-  .student-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 0; border-bottom: 1px solid rgba(201,168,76,0.1); }
+  .submit-btn { background: var(--emerald); color: white; border: none; border-radius: 12px; padding: 0.75rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%; transition: background 0.2s; }
+  .submit-btn:hover { background: var(--emerald-dark); }
+  .submit-btn:disabled { background: #aab8af; cursor: not-allowed; }
+
+  /* STUDENT LIST */
+  .student-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 0; border-bottom: 1px solid rgba(201,168,76,0.1); }
   .student-item:last-child { border-bottom: none; }
-  .student-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--emerald); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
-  .student-info { flex: 1; }
+  .student-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--emerald); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.88rem; flex-shrink: 0; overflow: hidden; }
   .student-name { font-size: 0.9rem; font-weight: 700; color: var(--text); }
-  .student-meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
-  .student-actions { display: flex; gap: 0.5rem; }
-  .btn-sm { padding: 0.35rem 0.75rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; border: none; }
-  .btn-sm-green { background: var(--emerald-light); color: var(--emerald-dark); }
-  .btn-sm-red { background: #fdecea; color: #e53935; }
-  .progress-mini { height: 5px; background: var(--emerald-light); border-radius: 99px; margin-top: 0.4rem; overflow: hidden; }
-  .progress-mini-fill { height: 100%; background: linear-gradient(90deg, var(--emerald), var(--gold)); border-radius: 99px; }
-  .task-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.85rem; background: var(--cream); border-radius: 12px; margin-bottom: 0.5rem; }
-  .task-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.1rem; }
-  .task-info { flex: 1; }
-  .task-title { font-size: 0.88rem; font-weight: 700; color: var(--text); }
-  .task-meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
-  .task-badge { font-size: 0.68rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 6px; margin-top: 0.3rem; display: inline-block; }
-  .badge-pending { background: #FFF3CD; color: #856404; }
-  .badge-done { background: var(--emerald-light); color: var(--emerald-dark); }
-  .badge-graded { background: rgba(201,168,76,0.15); color: #7a5c00; }
-  .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--muted); font-size: 0.85rem; }
-  .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  .student-meta { font-size: 0.73rem; color: var(--muted); margin-top: 0.1rem; }
+  .student-actions { margin-left: auto; display: flex; gap: 0.4rem; }
+  .action-btn { padding: 0.35rem 0.7rem; border-radius: 7px; border: 1.5px solid; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .action-btn.view { border-color: var(--emerald); color: var(--emerald); background: var(--emerald-light); }
+  .action-btn.remove { border-color: #e53935; color: #e53935; background: #ffebee; }
+  .action-btn:hover { opacity: 0.85; }
+
+  /* TASK SECTION */
+  .task-item { background: var(--cream); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.6rem; border-left: 3px solid var(--emerald); }
+  .task-title { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
+  .task-meta { font-size: 0.73rem; color: var(--muted); }
+  .task-stats { font-size: 0.73rem; color: var(--emerald); font-weight: 600; margin-top: 0.3rem; }
+  .empty-state { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; background: var(--white); border-bottom: 2px solid rgba(201,168,76,0.15); margin-bottom: 0; overflow-x: auto; scrollbar-width: none; border-radius: 16px 16px 0 0; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { padding: 0.75rem 1.1rem; font-size: 0.82rem; font-weight: 700; color: var(--muted); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; margin-bottom: -2px; transition: all 0.2s; }
+  .tab-btn.active { color: var(--emerald); border-bottom-color: var(--emerald); }
+  .tab-content { display: none; background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-top: none; border-radius: 0 0 16px 16px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .tab-content.active { display: block; }
+
+  /* ASSIGN TASK FORM */
+  .assign-form { background: var(--emerald-light); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+  .assign-title { font-size: 0.85rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.75rem; }
+
+  /* TOAST */
   #toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--emerald-dark); color: white; padding: 0.65rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 9999; pointer-events: none; white-space: nowrap; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; align-items: flex-end; justify-content: center; }
-  .modal-overlay.show { display: flex; }
-  .modal { background: white; border-radius: 24px 24px 0 0; padding: 1.5rem; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
-  .modal-handle { width: 40px; height: 4px; background: #ddd; border-radius: 99px; margin: 0 auto 1.25rem; }
-  .modal h3 { font-size: 1.05rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 1rem; }
-  .no-class-view { text-align: center; padding: 3rem 1rem; }
-  .no-class-view .icon { font-size: 3.5rem; margin-bottom: 1rem; }
-  .no-class-view h2 { font-family: 'Amiri', serif; font-size: 1.4rem; color: var(--emerald-dark); margin-bottom: 0.5rem; }
-  .no-class-view p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.7; }
-  .role-guard { text-align: center; padding: 3rem 1rem; }
-  .role-guard .icon { font-size: 3rem; margin-bottom: 0.75rem; }
+
+  /* LOADING */
+  #loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--cream); position: fixed; inset: 0; z-index: 999; }
+  .loader { font-family: 'Amiri', serif; font-size: 1.5rem; color: var(--emerald); }
+
+  /* MOBILE NAV */
   .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid rgba(201,168,76,0.18); padding: 0.5rem 0; z-index: 200; }
   .mobile-nav-inner { display: flex; justify-content: space-around; align-items: center; }
   .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; text-decoration: none; color: var(--muted); font-size: 0.6rem; font-weight: 600; padding: 0.3rem 0.5rem; }
   .mobile-nav-item span:first-child { font-size: 1.2rem; }
   .mobile-nav-item.active, .mobile-nav-item:hover { color: var(--emerald); }
-  @media (max-width: 768px) { .mobile-nav { display: block; } body { padding-bottom: 80px; } }
+  @media (max-width: 768px) { .mobile-nav { display: block; } }
 </style>
 </head>
 <body>
+
+<div id="loading"><div class="loader">Loading... 🤲</div></div>
+
 <nav>
   <a href="dashboard.html" class="nav-logo">Huffaz<span>World</span></a>
-  <a href="profile.html" class="nav-avatar" id="nav-avatar">HW</a>
+  <a href="profile.html" class="nav-avatar" id="nav-avatar">?</a>
 </nav>
-
-<div class="container">
-  <div id="loading" class="empty-state"><div class="icon">⏳</div><p>Loading classroom…</p></div>
-  <div id="role-guard" class="role-guard" style="display:none;">
-    <div class="icon">🎓</div>
-    <h3 style="font-size:1rem;font-weight:700;color:var(--emerald-dark);margin-bottom:0.4rem;">Teachers Only</h3>
-    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem;">This page is for certified teachers. Update your role in your profile to access the classroom.</p>
-    <a href="profile.html" class="btn-primary" style="display:inline-block;width:auto;padding:0.65rem 1.5rem;text-decoration:none;">Go to Profile</a>
-  </div>
-  <div id="no-class-view" style="display:none;">
-    <div class="no-class-view">
-      <div class="icon">🏫</div>
-      <h2>Create Your Classroom</h2>
-      <p>Set up your virtual classroom, get a unique class code, and start teaching your students. They join with your code — just like Google Classroom.</p>
-    </div>
-    <div class="section">
-      <div class="section-title">📋 New Classroom</div>
-      <div class="form-group"><label>Class Name</label><input type="text" id="class-name" placeholder="e.g. Hifz Class — Batch 2025"/></div>
-      <div class="form-group"><label>Description</label><textarea id="class-desc" placeholder="Tell students what this class is about…"></textarea></div>
-      <div class="form-group"><label>Level</label>
-        <select id="class-level">
-          <option value="beginner">Beginner — Starting memorisation</option>
-          <option value="intermediate">Intermediate — Mid Quran</option>
-          <option value="advanced">Advanced — Near completion</option>
-          <option value="revision">Revision — Strengthening hifz</option>
-        </select>
-      </div>
-      <button class="btn-primary" onclick="createClass()">🚀 Create Classroom</button>
-    </div>
-  </div>
-  <div id="class-view" style="display:none;">
-    <div class="class-card" id="class-card">
-      <div class="class-card-name" id="card-name"></div>
-      <div class="class-card-desc" id="card-desc"></div>
-      <div class="class-code-box">
-        <div>
-          <div class="class-code-label">Class Code — Share with your students</div>
-          <div class="class-code-value" id="card-code"></div>
-        </div>
-        <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
-      </div>
-      <div class="class-stats">
-        <div class="class-stat"><div class="class-stat-val" id="stat-students">0</div><div class="class-stat-lbl">Students</div></div>
-        <div class="class-stat"><div class="class-stat-val" id="stat-tasks">0</div><div class="class-stat-lbl">Tasks</div></div>
-        <div class="class-stat"><div class="class-stat-val" id="stat-done">0%</div><div class="class-stat-lbl">Completion</div></div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-title">👨‍🎓 Enrolled Students</div>
-      <div id="students-list"><div class="empty-state"><div class="icon">👥</div><p>No students yet. Share your class code!</p></div></div>
-    </div>
-
-    <div class="section">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-        <div class="section-title" style="margin-bottom:0;">📝 Assigned Tasks</div>
-        <button class="btn-secondary" onclick="openTaskModal()" style="font-size:0.8rem;padding:0.45rem 0.9rem;">+ Assign Task</button>
-      </div>
-      <div id="tasks-list"><div class="empty-state"><p>No tasks assigned yet.</p></div></div>
-    </div>
-  </div>
-</div>
-
-<!-- Assign Task Modal -->
-<div class="modal-overlay" id="task-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <h3>📝 Assign New Task</h3>
-    <div class="form-group"><label>Task Title</label><input type="text" id="task-title" placeholder="e.g. Memorise Surah Al-Mulk"/></div>
-    <div class="form-group"><label>Description / Instructions</label><textarea id="task-desc" placeholder="Pages 560–562. Recite from memory by next session."></textarea></div>
-    <div class="form-group"><label>Assign To</label>
-      <select id="task-assignee">
-        <option value="all">All Students</option>
-      </select>
-    </div>
-    <div class="form-group"><label>Due Date (Optional)</label><input type="date" id="task-due"/></div>
-    <button class="btn-primary" onclick="assignTask()" style="margin-bottom:0.5rem;">Assign Task</button>
-    <button onclick="closeTaskModal()" style="background:var(--cream);color:var(--muted);border:none;border-radius:12px;padding:0.65rem;font-size:0.85rem;font-weight:600;cursor:pointer;width:100%;font-family:'Plus Jakarta Sans',sans-serif;">Cancel</button>
-  </div>
-</div>
 
 <div id="toast"></div>
 
+<div class="container" id="app" style="display:none;">
+
+  <div class="banner">
+    <div>
+      <h1>👨‍🏫 My Classroom</h1>
+      <p>Manage your students and track their Hifz progress</p>
+    </div>
+    <div class="banner-arabic">عَلَّمَ الْقُرْآنَ</div>
+  </div>
+
+  <!-- NOT A TEACHER -->
+  <div id="not-teacher-msg" style="display:none;">
+    <div class="not-teacher">
+      <div class="icon">👨‍🏫</div>
+      <h3>Teachers Only</h3>
+      <p>This page is only for users with the Teacher role.<br><br>
+      Update your profile role to Teacher to access the classroom.</p>
+      <a href="profile.html" style="display:inline-block;margin-top:1rem;background:var(--emerald);color:white;padding:0.6rem 1.25rem;border-radius:10px;text-decoration:none;font-weight:700;font-size:0.85rem;">Update Profile</a>
+    </div>
+  </div>
+
+  <!-- TEACHER DASHBOARD -->
+  <div id="teacher-content" style="display:none;">
+
+    <!-- NO CLASS YET -->
+    <div id="no-class-section">
+      <div class="section" style="text-align:center;padding:2rem;">
+        <div style="font-size:3rem;margin-bottom:1rem;">🏫</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--emerald-dark);margin-bottom:0.5rem;">Create Your First Class</div>
+        <div style="font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem;">Set up your virtual classroom and invite students with a unique code</div>
+        <button class="submit-btn" style="max-width:250px;" onclick="document.getElementById('create-class-section').style.display='block';this.closest('.section').style.display='none';">🏫 Create Classroom</button>
+      </div>
+
+      <!-- CREATE CLASS FORM -->
+      <div class="section" id="create-class-section" style="display:none;">
+        <div class="section-title">🏫 Create Your Classroom</div>
+        <div class="form-group">
+          <label>Class Name</label>
+          <input type="text" id="class-name-input" placeholder="e.g. Juz Amma Beginners 2024"/>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="class-desc-input" rows="2" placeholder="e.g. For students memorizing Juz 30 from scratch"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Level</label>
+          <select id="class-level-input">
+            <option value="Beginner">🌱 Beginner</option>
+            <option value="Intermediate">📖 Intermediate</option>
+            <option value="Advanced">🏅 Advanced</option>
+            <option value="Revision">🔄 Revision / Muraja'ah</option>
+          </select>
+        </div>
+        <button class="submit-btn" id="create-class-btn" onclick="createClass()">✅ Create Classroom</button>
+      </div>
+    </div>
+
+    <!-- CLASS EXISTS -->
+    <div id="class-section" style="display:none;">
+
+      <!-- CLASS CARD -->
+      <div class="class-card" id="class-card">
+        <div class="class-name" id="class-name-display">Loading...</div>
+        <div class="class-desc" id="class-desc-display"></div>
+        <div class="class-code-wrap">
+          <div>
+            <div class="class-code-label">🔑 Student Join Code — Share this with your students</div>
+            <div class="class-code" id="class-code-display">------</div>
+          </div>
+          <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
+        </div>
+        <div class="class-stats">
+          <div class="class-stat">
+            <div class="class-stat-val" id="class-student-count">0</div>
+            <div class="class-stat-label">Students</div>
+          </div>
+          <div class="class-stat">
+            <div class="class-stat-val" id="class-task-count">0</div>
+            <div class="class-stat-label">Tasks</div>
+          </div>
+          <div class="class-stat">
+            <div class="class-stat-val" id="class-level-display">-</div>
+            <div class="class-stat-label">Level</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('students', this)">👥 Students</button>
+        <button class="tab-btn" onclick="switchTab('tasks', this)">📋 Tasks</button>
+        <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ Settings</button>
+      </div>
+
+      <!-- STUDENTS TAB -->
+      <div class="tab-content active" id="tab-students">
+        <div id="students-list"><div class="empty-state">No students yet. Share your class code to get started! 🤲</div></div>
+      </div>
+
+      <!-- TASKS TAB -->
+      <div class="tab-content" id="tab-tasks">
+        <!-- Assign Task Form -->
+        <div class="assign-form">
+          <div class="assign-title">➕ Assign New Task</div>
+          <div class="form-group">
+            <label>Task Title</label>
+            <input type="text" id="task-title-input" placeholder="e.g. Memorize Surah Al-Mulk"/>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="task-desc-input" rows="2" placeholder="e.g. Memorize verses 1-15 by next week"></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+            <div class="form-group">
+              <label>Type</label>
+              <select id="task-type-input">
+                <option value="memorize">📖 Memorize</option>
+                <option value="revise">🔄 Revise</option>
+                <option value="recite">🎙️ Recite</option>
+                <option value="listen">🎧 Listen</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Due (days from now)</label>
+              <input type="number" id="task-due-input" value="7" min="1" max="90"/>
+            </div>
+          </div>
+          <button class="submit-btn" id="assign-task-btn" onclick="assignTask()">📋 Assign to All Students</button>
+        </div>
+        <!-- Task List -->
+        <div id="tasks-list"><div class="empty-state">No tasks assigned yet.</div></div>
+      </div>
+
+      <!-- SETTINGS TAB -->
+      <div class="tab-content" id="tab-settings">
+        <div class="form-group">
+          <label>Class Name</label>
+          <input type="text" id="edit-class-name"/>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="edit-class-desc" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Level</label>
+          <select id="edit-class-level">
+            <option value="Beginner">🌱 Beginner</option>
+            <option value="Intermediate">📖 Intermediate</option>
+            <option value="Advanced">🏅 Advanced</option>
+            <option value="Revision">🔄 Revision / Muraja'ah</option>
+          </select>
+        </div>
+        <button class="submit-btn" onclick="updateClass()" style="margin-bottom:0.75rem;">💾 Save Changes</button>
+        <button onclick="deleteClass()" style="width:100%;padding:0.65rem;border-radius:12px;border:2px solid #e53935;background:#ffebee;color:#e53935;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🗑️ Delete Classroom</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE NAV -->
 <nav class="mobile-nav">
   <div class="mobile-nav-inner">
     <a href="dashboard.html" class="mobile-nav-item"><span>🏠</span><span>Home</span></a>
     <a href="search.html" class="mobile-nav-item"><span>🔍</span><span>Search</span></a>
-    <a href="tracker.html" class="mobile-nav-item"><span>📊</span><span>Tracker</span></a>
-    <a href="classroom.html" class="mobile-nav-item active"><span>🏫</span><span>Class</span></a>
+    <a href="classroom.html" class="mobile-nav-item active"><span>👨‍🏫</span><span>Class</span></a>
     <a href="profile.html" class="mobile-nav-item"><span>👤</span><span>Profile</span></a>
+    <a href="notifications.html" class="mobile-nav-item"><span>🔔</span><span>Alerts</span></a>
   </div>
 </nav>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, updateDoc, deleteDoc, orderBy, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
@@ -207,225 +313,258 @@
 
   let currentUser = null;
   let currentUserData = null;
-  let classData = null;
-  let classId = null;
-  let students = [];
-  let tasks = [];
+  let myClass = null;
 
+  // ── TOAST ──
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
+    setTimeout(() => t.classList.remove('show'), 3500);
   }
 
+  // ── TABS ──
+  window.switchTab = function(tab, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ── GENERATE CLASS CODE ──
   function generateCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = 'HAFIZ-';
+    let code = 'HW-';
     for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
     return code;
   }
 
+  // ── COPY CODE ──
   window.copyCode = function() {
-    if (classData?.code) {
-      navigator.clipboard.writeText(classData.code).then(() => showToast('✅ Class code copied!'));
-    }
-  };
+    const code = document.getElementById('class-code-display').textContent;
+    navigator.clipboard?.writeText(code).then(() => showToast('✅ Code copied! Share it with your students.'));
+  }
 
-  window.openTaskModal = function() {
-    // Populate assignee dropdown
-    const sel = document.getElementById('task-assignee');
-    sel.innerHTML = '<option value="all">All Students</option>';
-    students.forEach(s => {
-      const o = document.createElement('option');
-      o.value = s.uid; o.textContent = s.fullname;
-      sel.appendChild(o);
-    });
-    document.getElementById('task-modal').classList.add('show');
-  };
-  window.closeTaskModal = function() { document.getElementById('task-modal').classList.remove('show'); };
-
+  // ── CREATE CLASS ──
   window.createClass = async function() {
-    const name = document.getElementById('class-name').value.trim();
-    const desc = document.getElementById('class-desc').value.trim();
-    const level = document.getElementById('class-level').value;
-    if (!name) { showToast('Please enter a class name.'); return; }
+    const name = document.getElementById('class-name-input').value.trim();
+    const desc = document.getElementById('class-desc-input').value.trim();
+    const level = document.getElementById('class-level-input').value;
+    if (!name) { showToast('⚠️ Please enter a class name.'); return; }
+    const btn = document.getElementById('create-class-btn');
+    btn.disabled = true; btn.textContent = 'Creating...';
     try {
       const code = generateCode();
-      const ref = await addDoc(collection(db, 'classes'), {
-        name, description: desc, level, code,
+      const classData = {
         teacherUid: currentUser.uid,
         teacherName: currentUserData.fullname || 'Teacher',
-        students: [], taskCount: 0,
+        name, desc, level, code,
+        students: [],
         createdAt: new Date().toISOString()
-      });
-      classId = ref.id;
-      classData = { name, description: desc, level, code, teacherUid: currentUser.uid, teacherName: currentUserData.fullname, students: [], taskCount: 0 };
-      showToast('🎉 Classroom created!');
-      await renderClassView();
-    } catch(e) { console.error(e); showToast('Could not create class. Try again.'); }
-  };
+      };
+      await setDoc(doc(db, 'classes', currentUser.uid), classData);
+      myClass = { id: currentUser.uid, ...classData };
+      showClass();
+      showToast('🎉 Classroom created! Share the code with your students.');
+    } catch(e) { showToast('Could not create class. Try again.'); }
+    btn.disabled = false; btn.textContent = '✅ Create Classroom';
+  }
 
-  window.assignTask = async function() {
-    const title = document.getElementById('task-title').value.trim();
-    const desc = document.getElementById('task-desc').value.trim();
-    const assignee = document.getElementById('task-assignee').value;
-    const due = document.getElementById('task-due').value;
-    if (!title) { showToast('Please enter a task title.'); return; }
-    try {
-      await addDoc(collection(db, 'classes', classId, 'tasks'), {
-        title, description: desc, assignee, due: due || null,
-        classId, teacherUid: currentUser.uid,
-        status: 'pending', submissions: {},
-        createdAt: new Date().toISOString()
-      });
-      await updateDoc(doc(db, 'classes', classId), { taskCount: increment(1) });
+  // ── SHOW CLASS ──
+  function showClass() {
+    document.getElementById('no-class-section').style.display = 'none';
+    document.getElementById('class-section').style.display = 'block';
+    document.getElementById('class-name-display').textContent = myClass.name;
+    document.getElementById('class-desc-display').textContent = myClass.desc || '';
+    document.getElementById('class-code-display').textContent = myClass.code;
+    document.getElementById('class-level-display').textContent = myClass.level || '-';
+    document.getElementById('class-student-count').textContent = (myClass.students || []).length;
+    document.getElementById('edit-class-name').value = myClass.name;
+    document.getElementById('edit-class-desc').value = myClass.desc || '';
+    document.getElementById('edit-class-level').value = myClass.level || 'Beginner';
+    loadStudents();
+    loadTasks();
+  }
 
-      // Notify students
-      const targets = assignee === 'all' ? students : students.filter(s => s.uid === assignee);
-      for (const s of targets) {
-        await addDoc(collection(db, 'notifications'), {
-          toUid: s.uid, type: 'task_assigned',
-          message: `📝 New task from <strong>${currentUserData.fullname}</strong>: <em>${title}</em>`,
-          fromUid: currentUser.uid, classId, read: false,
-          createdAt: new Date().toISOString()
-        });
-      }
-      closeTaskModal();
-      document.getElementById('task-title').value = '';
-      document.getElementById('task-desc').value = '';
-      showToast('✅ Task assigned!');
-      await loadTasks();
-    } catch(e) { console.error(e); showToast('Could not assign task.'); }
-  };
-
-  window.removeStudent = async function(uid) {
-    if (!confirm('Remove this student from the class?')) return;
-    try {
-      const q = query(collection(db, 'classEnrollments'), where('classId','==',classId), where('studentUid','==',uid));
-      const snap = await getDocs(q);
-      snap.forEach(d => deleteDoc(d.ref));
-      await updateDoc(doc(db, 'classes', classId), { students: classData.students.filter(s => s !== uid) });
-      students = students.filter(s => s.uid !== uid);
-      classData.students = classData.students.filter(s => s !== uid);
-      renderStudents();
-      showToast('Student removed.');
-    } catch(e) { showToast('Could not remove student.'); }
-  };
-
+  // ── LOAD STUDENTS ──
   async function loadStudents() {
-    students = [];
-    if (!classData.students || classData.students.length === 0) { renderStudents(); return; }
-    for (const uid of classData.students) {
-      try {
-        const d = await getDoc(doc(db, 'users', uid));
-        if (d.exists()) students.push({ uid, ...d.data() });
-      } catch(e) { console.error('loadStudents error for uid', uid, e); }
+    const list = document.getElementById('students-list');
+    const students = myClass.students || [];
+    document.getElementById('class-student-count').textContent = students.length;
+    if (!students.length) {
+      list.innerHTML = '<div class="empty-state">No students yet.<br>Share your class code: <strong>' + myClass.code + '</strong> 🤲</div>';
+      return;
     }
-    renderStudents();
-  }
-
-  async function loadTasks() {
-    try {
-      // No orderBy — avoids requiring a Firestore composite index on new projects
-      const snap = await getDocs(collection(db, 'classes', classId, 'tasks'));
-      tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      renderTasks();
-    } catch(e) { console.error('loadTasks error:', e); showToast('Could not load tasks.'); }
-  }
-
-  function renderStudents() {
-    const el = document.getElementById('students-list');
-    document.getElementById('stat-students').textContent = students.length;
-    if (students.length === 0) { el.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>No students yet. Share your class code!</p></div>'; return; }
-    el.innerHTML = students.map(s => {
-      const initials = (s.fullname || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
-      const progress = s.hifzPercent || 0;
-      return `
-        <div class="student-item">
-          <div class="student-avatar">${initials}</div>
-          <div class="student-info">
-            <div class="student-name">${s.fullname || 'Student'}</div>
-            <div class="student-meta">${s.country || ''} · ${progress}% Hifz complete</div>
-            <div class="progress-mini"><div class="progress-mini-fill" style="width:${progress}%"></div></div>
+    list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:0.8rem;">Loading students...</div>';
+    const items = await Promise.all(students.map(async uid => {
+      try {
+        const snap = await getDoc(doc(db, 'users', uid));
+        if (!snap.exists()) return null;
+        const d = snap.data();
+        const initials = (d.fullname||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        const avatarContent = d.photoURL ? `<img src="${d.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>` : initials;
+        // Get their progress
+        const progSnap = await getDoc(doc(db, 'hifzProgress', uid));
+        const prog = progSnap.exists() ? progSnap.data() : {};
+        const surahs = prog.surahs ? Object.values(prog.surahs).filter(s=>s.status==='completed').length : 0;
+        const streak = prog.streak || 0;
+        return `<div class="student-item">
+          <div class="student-avatar">${avatarContent}</div>
+          <div style="flex:1;min-width:0;">
+            <div class="student-name">${d.fullname||'Student'}</div>
+            <div class="student-meta">${d.country||''} · ✅ ${surahs} Surahs · 🔥 ${streak} streak</div>
           </div>
           <div class="student-actions">
-            <button class="btn-sm btn-sm-red" onclick="removeStudent('${s.uid}')">Remove</button>
+            <a href="user.html?uid=${uid}" class="action-btn view" style="text-decoration:none;display:flex;align-items:center;">👁️ View</a>
+            <button class="action-btn remove" onclick="removeStudent('${uid}','${(d.fullname||'Student').replace(/'/g,'')}')">✕</button>
           </div>
         </div>`;
-    }).join('');
+      } catch(e) { return null; }
+    }));
+    list.innerHTML = items.filter(Boolean).join('') || '<div class="empty-state">Could not load students.</div>';
   }
 
-  function renderTasks() {
-    const el = document.getElementById('tasks-list');
-    document.getElementById('stat-tasks').textContent = tasks.length;
-    if (tasks.length === 0) { el.innerHTML = '<div class="empty-state"><p>No tasks assigned yet.</p></div>'; return; }
-    const done = tasks.filter(t => {
-      const subs = Object.values(t.submissions || {});
-      return subs.length > 0 && subs.every(s => s.status === 'submitted' || s.status === 'graded');
-    }).length;
-    const pct = tasks.length > 0 ? Math.round(done / tasks.length * 100) : 0;
-    document.getElementById('stat-done').textContent = pct + '%';
-    el.innerHTML = tasks.map(t => {
-      const subs = Object.values(t.submissions || {});
-      const submitted = subs.filter(s => s.status === 'submitted' || s.status === 'graded').length;
-      const total = t.assignee === 'all' ? students.length : 1;
-      const assigneeName = t.assignee === 'all' ? 'All Students' : (students.find(s => s.uid === t.assignee)?.fullname || 'Student');
-      return `
-        <div class="task-item">
-          <div class="task-icon">📝</div>
-          <div class="task-info">
-            <div class="task-title">${t.title}</div>
-            <div class="task-meta">→ ${assigneeName}${t.due ? ' · Due: ' + t.due : ''}</div>
-            <div class="task-meta">${submitted}/${total} submitted</div>
-            ${t.description ? `<div class="task-meta" style="margin-top:0.2rem;font-style:italic;">"${t.description}"</div>` : ''}
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  async function renderClassView() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('no-class-view').style.display = 'none';
-    document.getElementById('class-view').style.display = 'block';
-    document.getElementById('card-name').textContent = classData.name;
-    document.getElementById('card-desc').textContent = classData.description || '';
-    document.getElementById('card-code').textContent = classData.code;
-    await loadStudents();  // wait for students before loading tasks
-    await loadTasks();
-  }
-
-  onAuthStateChanged(auth, async user => {
-    if (!user) { window.location.href = 'login.html'; return; }
-    currentUser = user;
+  // ── REMOVE STUDENT ──
+  window.removeStudent = async function(uid, name) {
+    if (!confirm('Remove ' + name + ' from your class?')) return;
     try {
-      const d = await getDoc(doc(db, 'users', user.uid));
-      currentUserData = d.exists() ? d.data() : {};
-      const name = currentUserData.fullname || 'Teacher';
-      const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
-      const av = document.getElementById('nav-avatar');
-      if (currentUserData.photoURL) av.innerHTML = `<img src="${currentUserData.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
-      else av.textContent = initials;
+      const students = (myClass.students || []).filter(s => s !== uid);
+      await updateDoc(doc(db, 'classes', currentUser.uid), { students });
+      myClass.students = students;
+      // Notify student
+      await setDoc(doc(db, 'notifications', 'removed_' + currentUser.uid + '_' + uid), {
+        toUid: uid, type: 'class_removed',
+        message: 'You have been removed from <strong>' + myClass.name + '</strong>.',
+        fromUid: currentUser.uid, fromName: currentUserData.fullname || 'Teacher',
+        read: false, createdAt: new Date().toISOString()
+      });
+      loadStudents();
+      showToast(name + ' removed from class.');
+    } catch(e) { showToast('Could not remove student.'); }
+  }
 
-      if (currentUserData.role !== 'Teacher') {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('role-guard').style.display = 'block';
-        return;
-      }
+  // ── ASSIGN TASK ──
+  window.assignTask = async function() {
+    const title = document.getElementById('task-title-input').value.trim();
+    const desc = document.getElementById('task-desc-input').value.trim();
+    const type = document.getElementById('task-type-input').value;
+    const dueDays = parseInt(document.getElementById('task-due-input').value) || 7;
+    if (!title) { showToast('⚠️ Please enter a task title.'); return; }
+    if (!(myClass.students||[]).length) { showToast('⚠️ No students in class yet.'); return; }
+    const btn = document.getElementById('assign-task-btn');
+    btn.disabled = true; btn.textContent = 'Assigning...';
+    try {
+      const due = new Date();
+      due.setDate(due.getDate() + dueDays);
+      const taskData = {
+        classId: currentUser.uid,
+        teacherUid: currentUser.uid,
+        teacherName: currentUserData.fullname || 'Teacher',
+        title, desc, type,
+        due: due.toISOString().split('T')[0],
+        assignedTo: myClass.students || [],
+        completedBy: [],
+        createdAt: new Date().toISOString()
+      };
+      const taskRef = await addDoc(collection(db, 'tasks'), taskData);
+      // Notify all students
+      await Promise.all((myClass.students||[]).map(uid =>
+        setDoc(doc(db, 'notifications', 'task_' + taskRef.id + '_' + uid), {
+          toUid: uid, type: 'new_task',
+          message: '<strong>' + (currentUserData.fullname||'Your teacher') + '</strong> assigned a new task: <strong>' + title + '</strong>',
+          fromUid: currentUser.uid, fromName: currentUserData.fullname || 'Teacher',
+          taskId: taskRef.id, read: false, createdAt: new Date().toISOString()
+        })
+      ));
+      document.getElementById('task-title-input').value = '';
+      document.getElementById('task-desc-input').value = '';
+      showToast('✅ Task assigned to ' + (myClass.students||[]).length + ' students!');
+      loadTasks();
+    } catch(e) { showToast('Could not assign task.'); }
+    btn.disabled = false; btn.textContent = '📋 Assign to All Students';
+  }
 
-      // Check if teacher already has a class
-      const q = query(collection(db, 'classes'), where('teacherUid', '==', user.uid));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        const docSnap = snap.docs[0];
-        classId = docSnap.id;
-        classData = docSnap.data();
-        await renderClassView();
-      } else {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('no-class-view').style.display = 'block';
-      }
-    } catch(e) { console.error(e); showToast('Error loading classroom.'); }
+  // ── LOAD TASKS ──
+  async function loadTasks() {
+    const list = document.getElementById('tasks-list');
+    try {
+      const snap = await getDocs(query(collection(db, 'tasks'), where('classId','==',currentUser.uid), orderBy('createdAt','desc')));
+      document.getElementById('class-task-count').textContent = snap.size;
+      if (snap.empty) { list.innerHTML = '<div class="empty-state">No tasks assigned yet.</div>'; return; }
+      const typeIcons = { memorize:'📖', revise:'🔄', recite:'🎙️', listen:'🎧' };
+      list.innerHTML = snap.docs.map(d => {
+        const t = d.data();
+        const completedCount = (t.completedBy||[]).length;
+        const totalCount = (t.assignedTo||[]).length;
+        return `<div class="task-item">
+          <div class="task-title">${typeIcons[t.type]||'📋'} ${t.title}</div>
+          <div class="task-meta">${t.desc||''}</div>
+          <div class="task-meta">Due: ${t.due}</div>
+          <div class="task-stats">✅ ${completedCount}/${totalCount} students completed</div>
+        </div>`;
+      }).join('');
+    } catch(e) { list.innerHTML = '<div class="empty-state">Could not load tasks.</div>'; }
+  }
+
+  // ── UPDATE CLASS ──
+  window.updateClass = async function() {
+    const name = document.getElementById('edit-class-name').value.trim();
+    const desc = document.getElementById('edit-class-desc').value.trim();
+    const level = document.getElementById('edit-class-level').value;
+    if (!name) { showToast('⚠️ Class name cannot be empty.'); return; }
+    try {
+      await updateDoc(doc(db, 'classes', currentUser.uid), { name, desc, level });
+      myClass = { ...myClass, name, desc, level };
+      document.getElementById('class-name-display').textContent = name;
+      document.getElementById('class-desc-display').textContent = desc;
+      document.getElementById('class-level-display').textContent = level;
+      showToast('✅ Classroom updated!');
+    } catch(e) { showToast('Could not update.'); }
+  }
+
+  // ── DELETE CLASS ──
+  window.deleteClass = async function() {
+    if (!confirm('Are you sure you want to delete this classroom? This cannot be undone.')) return;
+    try {
+      await deleteDoc(doc(db, 'classes', currentUser.uid));
+      myClass = null;
+      document.getElementById('class-section').style.display = 'none';
+      document.getElementById('no-class-section').style.display = 'block';
+      document.getElementById('create-class-section').style.display = 'none';
+      document.querySelector('#no-class-section .section').style.display = 'block';
+      showToast('Classroom deleted.');
+    } catch(e) { showToast('Could not delete.'); }
+  }
+
+  // ── AUTH ──
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        currentUserData = userDoc.exists() ? userDoc.data() : {};
+        const name = currentUserData.fullname || 'Teacher';
+        const navAvatar = document.getElementById('nav-avatar');
+        if (currentUserData.photoURL) { navAvatar.innerHTML = `<img src="${currentUserData.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`; }
+        else { navAvatar.textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
+
+        // Check if teacher
+        if (currentUserData.role !== 'Teacher') {
+          document.getElementById('not-teacher-msg').style.display = 'block';
+        } else {
+          document.getElementById('teacher-content').style.display = 'block';
+          // Load existing class
+          const classSnap = await getDoc(doc(db, 'classes', user.uid));
+          if (classSnap.exists()) {
+            myClass = { id: classSnap.id, ...classSnap.data() };
+            showClass();
+          } else {
+            document.getElementById('no-class-section').style.display = 'block';
+          }
+        }
+      } catch(e) { console.error(e); }
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else { window.location.href = 'login.html'; }
   });
 </script>
 </body>

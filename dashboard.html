@@ -234,6 +234,7 @@
       <a href="search.html" class="nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">🔍 Search</a>
       <a href="tracker.html" class="nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">📊 Tracker</a>
       <a href="badges.html" class="nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">🏅 Badges</a>
+      <a href="classroom.html" class="nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">👨‍🏫 Classroom</a>
       <a href="groups.html" class="nav-link group-nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">🕌</a>
       <a href="messages.html" class="nav-link msg-bell-wrap msg-nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">
         💬 <span class="msg-badge" id="msg-badge"></span>
@@ -364,6 +365,10 @@
       <a href="badges.html" class="mobile-nav-item">
         <span class="m-icon">🏅</span>
         <span class="m-label">Badges</span>
+      </a>
+      <a id="class-nav-link" href="join-class.html" class="mobile-nav-item">
+        <span class="m-icon">📖</span>
+        <span class="m-label" id="class-nav-label">My Class</span>
       </a>
       <a href="notifications.html" class="mobile-nav-item">
         <span class="m-icon-wrap"><span class="m-icon">🔔</span><span class="m-badge" id="m-notif-badge"></span></span>
@@ -1038,6 +1043,20 @@
         document.getElementById('welcome-role').textContent = role + ' · Continue your blessed journey today.';
         const usersSnap = await getDocs(collection(db,'users'));
         document.getElementById('stat-members').textContent = usersSnap.size;
+
+        // Set classroom nav link based on role
+        const classLink = document.getElementById('class-nav-link');
+        if (classLink) {
+          if (currentUserData.role === 'Teacher') {
+            classLink.href = 'classroom.html';
+            classLink.querySelector('.m-icon').textContent = '👨‍🏫';
+            classLink.querySelector('.m-label').textContent = 'Classroom';
+          } else {
+            classLink.href = currentUserData.classId ? 'my-class.html' : 'join-class.html';
+            classLink.querySelector('.m-icon').textContent = '📖';
+            classLink.querySelector('.m-label').textContent = 'My Class';
+          }
+        }
       } catch(e) { console.error(e); }
       loadFeed();
       loadSidebarSuggestions();
