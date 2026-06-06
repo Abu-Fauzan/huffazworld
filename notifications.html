@@ -251,7 +251,7 @@
           <div class="notif-text">${n.message}</div>
           <div class="notif-time">${timeAgo(n.createdAt)}</div>
           ${isFollowReq ? `
-            <div style="display:flex;gap:0.5rem;margin-top:0.6rem;">
+            <div class="notif-actions" style="display:flex;gap:0.5rem;margin-top:0.6rem;">
               <button onclick="acceptFollow('${n.id}','${n.fromUid}','${n.fromName}')" style="background:var(--emerald);color:white;border:none;border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✅ Accept</button>
               <button onclick="declineFollow('${n.id}','${n.fromUid}')" style="background:#fdecea;color:#e53935;border:1px solid #e53935;border-radius:8px;padding:0.4rem 0.9rem;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">❌ Decline</button>
             </div>` : ''}
@@ -317,47 +317,60 @@
 
   window.acceptFollow = async function(notifId, fromUid, fromName) {
     if (!currentUser) return;
+    // Immediately update UI
+    const el = document.getElementById('notif-' + notifId);
+    if (el) {
+      const btns = el.querySelector('.notif-actions');
+      if (btns) btns.innerHTML = '<div style="margin-top:0.4rem;font-size:0.78rem;color:var(--emerald);font-weight:600;">✅ You accepted this request</div>';
+    }
     try {
-      // Add to followers/following
+      // Add to followers/following arrays on BOTH users
       await updateDoc(doc(db,'users',currentUser.uid), { followers: arrayUnion(fromUid) });
       await updateDoc(doc(db,'users',fromUid), { following: arrayUnion(currentUser.uid) });
 
-      // Delete follow request
+      // Delete follow request document
       await deleteDoc(doc(db,'followRequests', fromUid + '_' + currentUser.uid));
 
-      // Update notification status
+      // Update notification status to accepted
       await updateDoc(doc(db,'notifications','follow_' + fromUid + '_' + currentUser.uid), { read: true, status: 'accepted' });
 
-      // Notify the requester
+      // Send notification to requester that they were accepted
       await setDoc(doc(db,'notifications','accepted_' + currentUser.uid + '_' + fromUid), {
         toUid: fromUid,
         type: 'follow_accepted',
         message: '<strong>' + (currentUserData?.fullname||'Someone') + '</strong> accepted your follow request! 🎉',
         fromUid: currentUser.uid,
+        fromName: currentUserData?.fullname || 'Someone',
         read: false,
         createdAt: new Date().toISOString()
       });
 
-      // Update UI
-      const el = document.getElementById('notif-' + notifId);
-      if (el) {
-        const btns = el.querySelector('div[style*="display:flex"]');
-        if (btns) btns.innerHTML = '<div style="margin-top:0.4rem;font-size:0.78rem;color:var(--emerald);font-weight:600;">✅ You accepted this request</div>';
-      }
-      showToast('✅ You are now connected! May Allah bless this connection 🤲');
+      showToast('✅ Connected! May Allah bless this connection 🤲');
     } catch(e) { console.error(e); showToast('Could not accept. Try again.'); }
   }
 
   window.declineFollow = async function(notifId, fromUid) {
     if (!currentUser) return;
+    // Update UI immediately
+    const el = document.getElementById('notif-' + notifId);
+    if (el) {
+      const btns = el.querySelector('.notif-actions');
+      if (btns) btns.innerHTML = '<div style="margin-top:0.4rem;font-size:0.78rem;color:var(--muted);font-weight:600;">❌ Declined</div>';
+    }
     try {
+      // Delete the follow request so requester's button resets to "Follow"
       await deleteDoc(doc(db,'followRequests', fromUid + '_' + currentUser.uid));
+      // Mark notification as declined
       await updateDoc(doc(db,'notifications','follow_' + fromUid + '_' + currentUser.uid), { read: true, status: 'declined' });
-      const el = document.getElementById('notif-' + notifId);
-      if (el) {
-        const btns = el.querySelector('div[style*="display:flex"]');
-        if (btns) btns.innerHTML = '<div style="margin-top:0.4rem;font-size:0.78rem;color:var(--muted);font-weight:600;">❌ Declined</div>';
-      }
+      // Notify the requester so they know
+      await setDoc(doc(db,'notifications','declined_' + currentUser.uid + '_' + fromUid), {
+        toUid: fromUid,
+        type: 'follow_declined',
+        message: 'Your follow request was not accepted. You can send another request later.',
+        fromUid: currentUser.uid,
+        read: false,
+        createdAt: new Date().toISOString()
+      });
       showToast('Request declined.');
     } catch(e) { showToast('Could not decline. Try again.'); }
   }

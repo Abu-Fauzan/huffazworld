@@ -396,11 +396,14 @@
     if (state === 'following') {
       // Unfollow
       try {
-        await updateDoc(doc(db,'users',currentUser.uid), { following: arrayUnion() });
-        // Remove from following list
-        const userDoc = await getDoc(doc(db,'users',currentUser.uid));
-        const following = (userDoc.data()?.following || []).filter(f => f !== uid);
+        // Remove from MY following list
+        const myDoc = await getDoc(doc(db,'users',currentUser.uid));
+        const following = (myDoc.data()?.following || []).filter(f => f !== uid);
         await updateDoc(doc(db,'users',currentUser.uid), { following });
+        // Remove from THEIR followers list
+        const theirDoc = await getDoc(doc(db,'users',uid));
+        const followers = (theirDoc.data()?.followers || []).filter(f => f !== currentUser.uid);
+        await updateDoc(doc(db,'users',uid), { followers });
         followStates[uid] = 'none';
         applyFollowBtnStyle(btn, 'none');
         showToast('Unfollowed.');
