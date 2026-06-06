@@ -145,7 +145,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, getDocs, query, where, orderBy, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, getDocs, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
@@ -171,11 +171,16 @@
   async function loadTasks() {
     const list = document.getElementById('tasks-list');
     try {
-      const snap = await getDocs(query(collection(db,'tasks'), where('classId','==',myClassData.id), orderBy('createdAt','desc')));
+      const snap = await getDocs(query(collection(db,'tasks'), where('classId','==',myClassData.id)));
       if (snap.empty) { list.innerHTML = '<div class="empty-state">No tasks yet. Your teacher will assign tasks soon! 🤲</div>'; return; }
       const typeIcons = { memorize:'📖', revise:'🔄', recite:'🎙️', listen:'🎧' };
+      // Filter: only tasks assigned to this student
+      const myDocs = snap.docs.filter(d => (d.data().assignedTo||[]).includes(currentUser.uid));
+      if (!myDocs.length) { list.innerHTML = '<div class="empty-state">No tasks assigned to you yet. 🤲</div>'; return; }
+      // Sort newest first in JS
+      const docs = myDocs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
       let total = 0, done = 0;
-      const html = snap.docs.map(d => {
+      const html = docs.map(d => {
         const t = d.data();
         const isCompleted = (t.completedBy||[]).includes(currentUser.uid);
         const today = new Date().toISOString().split('T')[0];
@@ -222,9 +227,11 @@
   async function loadFeedback() {
     const list = document.getElementById('feedback-list');
     try {
-      const snap = await getDocs(query(collection(db,'teacherNotes',myClassData.teacherUid,'notes'), where('studentUid','==',currentUser.uid), orderBy('createdAt','desc')));
+      const snap = await getDocs(query(collection(db,'teacherNotes',myClassData.teacherUid,'notes'), where('studentUid','==',currentUser.uid)));
       if (snap.empty) { list.innerHTML = '<div class="empty-state">No feedback yet from your teacher.</div>'; return; }
-      list.innerHTML = snap.docs.map(d => {
+      // Sort newest first in JS
+      const docs = snap.docs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
+      list.innerHTML = docs.map(d => {
         const n = d.data();
         return `<div class="feedback-item">
           <div class="feedback-from">👨‍🏫 ${myClassData.teacherName}</div>

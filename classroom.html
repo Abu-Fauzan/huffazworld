@@ -249,7 +249,13 @@
               <input type="number" id="task-due-input" value="7" min="1" max="90"/>
             </div>
           </div>
-          <button class="submit-btn" id="assign-task-btn" onclick="assignTask()">📋 Assign to All Students</button>
+          <div class="form-group">
+            <label>Assign To</label>
+            <select id="task-assign-to">
+              <option value="all">👥 All Students</option>
+            </select>
+          </div>
+          <button class="submit-btn" id="assign-task-btn" onclick="assignTask()">📋 Assign Task</button>
         </div>
         <!-- Task List -->
         <div id="tasks-list"><div class="empty-state">No tasks assigned yet.</div></div>
@@ -296,7 +302,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
@@ -388,8 +394,11 @@
   // ── LOAD STUDENTS ──
   async function loadStudents() {
     const list = document.getElementById('students-list');
+    const assignSelect = document.getElementById('task-assign-to');
     const students = myClass.students || [];
     document.getElementById('class-student-count').textContent = students.length;
+    // Reset assign dropdown
+    assignSelect.innerHTML = '<option value="all">👥 All Students</option>';
     if (!students.length) {
       list.innerHTML = '<div class="empty-state">No students yet.<br>Share your class code: <strong>' + myClass.code + '</strong> 🤲</div>';
       return;
@@ -402,6 +411,11 @@
         const d = snap.data();
         const initials = (d.fullname||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
         const avatarContent = d.photoURL ? `<img src="${d.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>` : initials;
+        // Add to assign dropdown
+        const opt = document.createElement('option');
+        opt.value = uid;
+        opt.textContent = '👤 ' + (d.fullname || 'Student');
+        assignSelect.appendChild(opt);
         // Get their progress
         const progSnap = await getDoc(doc(db, 'hifzProgress', uid));
         const prog = progSnap.exists() ? progSnap.data() : {};
@@ -448,8 +462,14 @@
     const desc = document.getElementById('task-desc-input').value.trim();
     const type = document.getElementById('task-type-input').value;
     const dueDays = parseInt(document.getElementById('task-due-input').value) || 7;
+    const assignTo = document.getElementById('task-assign-to').value;
     if (!title) { showToast('⚠️ Please enter a task title.'); return; }
     if (!(myClass.students||[]).length) { showToast('⚠️ No students in class yet.'); return; }
+
+    // Determine who gets this task
+    const targetStudents = assignTo === 'all' ? (myClass.students || []) : [assignTo];
+    if (!targetStudents.length) { showToast('⚠️ No student selected.'); return; }
+
     const btn = document.getElementById('assign-task-btn');
     btn.disabled = true; btn.textContent = 'Assigning...';
     try {
@@ -461,48 +481,63 @@
         teacherName: currentUserData.fullname || 'Teacher',
         title, desc, type,
         due: due.toISOString().split('T')[0],
-        assignedTo: myClass.students || [],
+        assignedTo: targetStudents,
+        assignedToAll: assignTo === 'all',
         completedBy: [],
         createdAt: new Date().toISOString()
       };
       const taskRef = await addDoc(collection(db, 'tasks'), taskData);
-      // Notify all students
-      await Promise.all((myClass.students||[]).map(uid =>
+
+      // Notify assigned students
+      await Promise.all(targetStudents.map(uid =>
         setDoc(doc(db, 'notifications', 'task_' + taskRef.id + '_' + uid), {
           toUid: uid, type: 'new_task',
-          message: '<strong>' + (currentUserData.fullname||'Your teacher') + '</strong> assigned a new task: <strong>' + title + '</strong>',
+          message: '<strong>' + (currentUserData.fullname||'Your teacher') + '</strong> assigned you a new task: <strong>' + title + '</strong>',
           fromUid: currentUser.uid, fromName: currentUserData.fullname || 'Teacher',
           taskId: taskRef.id, read: false, createdAt: new Date().toISOString()
         })
       ));
+
       document.getElementById('task-title-input').value = '';
       document.getElementById('task-desc-input').value = '';
-      showToast('✅ Task assigned to ' + (myClass.students||[]).length + ' students!');
+      document.getElementById('task-assign-to').value = 'all';
+
+      const msg = assignTo === 'all'
+        ? '✅ Task assigned to all ' + targetStudents.length + ' students!'
+        : '✅ Task assigned to student!';
+      showToast(msg);
       loadTasks();
-    } catch(e) { showToast('Could not assign task.'); }
-    btn.disabled = false; btn.textContent = '📋 Assign to All Students';
+    } catch(e) { console.error(e); showToast('Could not assign task.'); }
+    btn.disabled = false; btn.textContent = '📋 Assign Task';
   }
 
   // ── LOAD TASKS ──
   async function loadTasks() {
     const list = document.getElementById('tasks-list');
     try {
-      const snap = await getDocs(query(collection(db, 'tasks'), where('classId','==',currentUser.uid), orderBy('createdAt','desc')));
+      const snap = await getDocs(query(collection(db, 'tasks'), where('classId','==',currentUser.uid)));
       document.getElementById('class-task-count').textContent = snap.size;
       if (snap.empty) { list.innerHTML = '<div class="empty-state">No tasks assigned yet.</div>'; return; }
       const typeIcons = { memorize:'📖', revise:'🔄', recite:'🎙️', listen:'🎧' };
-      list.innerHTML = snap.docs.map(d => {
+      // Sort by createdAt in JS instead of Firestore (avoids needing composite index)
+      const docs = snap.docs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
+      list.innerHTML = docs.map(d => {
         const t = d.data();
         const completedCount = (t.completedBy||[]).length;
         const totalCount = (t.assignedTo||[]).length;
+        const pct = totalCount ? Math.round((completedCount/totalCount)*100) : 0;
+        const assignedLabel = t.assignedToAll ? '👥 All Students' : `👤 ${totalCount} student${totalCount>1?'s':''}`;
         return `<div class="task-item">
           <div class="task-title">${typeIcons[t.type]||'📋'} ${t.title}</div>
-          <div class="task-meta">${t.desc||''}</div>
-          <div class="task-meta">Due: ${t.due}</div>
-          <div class="task-stats">✅ ${completedCount}/${totalCount} students completed</div>
+          ${t.desc ? `<div class="task-meta">${t.desc}</div>` : ''}
+          <div class="task-meta">📅 Due: ${t.due} · 🎯 Assigned to: ${assignedLabel}</div>
+          <div class="task-stats">✅ ${completedCount}/${totalCount} students completed (${pct}%)</div>
         </div>`;
       }).join('');
-    } catch(e) { list.innerHTML = '<div class="empty-state">Could not load tasks.</div>'; }
+    } catch(e) {
+      console.error('loadTasks error:', e);
+      list.innerHTML = '<div class="empty-state">Could not load tasks. Error: ' + e.message + '</div>';
+    }
   }
 
   // ── UPDATE CLASS ──
