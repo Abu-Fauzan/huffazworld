@@ -175,12 +175,12 @@
 
   async function loadTasks() {
     try {
-      const q = query(collection(db, 'classes', classId, 'tasks'), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
+      const snap = await getDocs(collection(db, 'classes', classId, 'tasks'));
       tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-        .filter(t => t.assignee === 'all' || t.assignee === currentUser.uid);
+        .filter(t => t.assignee === 'all' || t.assignee === currentUser.uid)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       renderTasks();
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error('loadTasks error:', e); }
   }
 
   function renderTasks() {

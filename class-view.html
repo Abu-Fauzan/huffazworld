@@ -221,18 +221,18 @@
       try {
         const d = await getDoc(doc(db, 'users', uid));
         if (d.exists()) students.push({ uid, ...d.data() });
-      } catch(e) {}
+      } catch(e) { console.error('loadStudents error for uid', uid, e); }
     }
     renderStudents();
   }
 
   async function loadTasks() {
     try {
-      const q = query(collection(db, 'classes', classId, 'tasks'), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const snap = await getDocs(collection(db, 'classes', classId, 'tasks'));
+      tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       renderTasksTab();
-    } catch(e) {}
+    } catch(e) { console.error('loadTasks error:', e); }
   }
 
   function renderStudents() {
@@ -370,7 +370,7 @@
       classData = classDoc.data();
       document.getElementById('loading').style.display = 'none';
       document.getElementById('main-content').style.display = 'block';
-      await loadStudents();
+      await loadStudents();  // await so students[] is ready before renderTasks uses it
       await loadTasks();
     } catch(e) { console.error(e); showToast('Error loading class view.'); }
   });

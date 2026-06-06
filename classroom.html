@@ -261,7 +261,7 @@
       classId = ref.id;
       classData = { name, description: desc, level, code, teacherUid: currentUser.uid, teacherName: currentUserData.fullname, students: [], taskCount: 0 };
       showToast('🎉 Classroom created!');
-      renderClassView();
+      await renderClassView();
     } catch(e) { console.error(e); showToast('Could not create class. Try again.'); }
   };
 
@@ -319,18 +319,19 @@
       try {
         const d = await getDoc(doc(db, 'users', uid));
         if (d.exists()) students.push({ uid, ...d.data() });
-      } catch(e) {}
+      } catch(e) { console.error('loadStudents error for uid', uid, e); }
     }
     renderStudents();
   }
 
   async function loadTasks() {
     try {
-      const q = query(collection(db, 'classes', classId, 'tasks'), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // No orderBy — avoids requiring a Firestore composite index on new projects
+      const snap = await getDocs(collection(db, 'classes', classId, 'tasks'));
+      tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       renderTasks();
-    } catch(e) {}
+    } catch(e) { console.error('loadTasks error:', e); showToast('Could not load tasks.'); }
   }
 
   function renderStudents() {
@@ -383,15 +384,15 @@
     }).join('');
   }
 
-  function renderClassView() {
+  async function renderClassView() {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('no-class-view').style.display = 'none';
     document.getElementById('class-view').style.display = 'block';
     document.getElementById('card-name').textContent = classData.name;
     document.getElementById('card-desc').textContent = classData.description || '';
     document.getElementById('card-code').textContent = classData.code;
-    loadStudents();
-    loadTasks();
+    await loadStudents();  // wait for students before loading tasks
+    await loadTasks();
   }
 
   onAuthStateChanged(auth, async user => {
@@ -419,7 +420,7 @@
         const docSnap = snap.docs[0];
         classId = docSnap.id;
         classData = docSnap.data();
-        renderClassView();
+        await renderClassView();
       } else {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('no-class-view').style.display = 'block';
