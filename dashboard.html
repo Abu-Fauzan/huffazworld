@@ -167,7 +167,18 @@
   @keyframes popIn { 0%{transform:scale(0)} 70%{transform:scale(1.2)} 100%{transform:scale(1)} }
 
   /* MOBILE NAV BADGE */
-  .m-icon-wrap { position: relative; display: inline-block; }
+  /* MORE DRAWER */
+  .more-drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 299; }
+  .more-drawer-overlay.show { display: block; }
+  .more-drawer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-radius: 24px 24px 0 0; padding: 1.25rem 1rem 2rem; z-index: 300; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+  .more-drawer.show { transform: translateY(0); }
+  .more-drawer-handle { width: 40px; height: 4px; background: #ddd; border-radius: 99px; margin: 0 auto 1.25rem; }
+  .more-drawer-title { font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+  .more-drawer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+  .more-drawer-item { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; text-decoration: none; background: var(--cream); border-radius: 14px; padding: 0.85rem 0.5rem; color: var(--text); transition: all 0.2s; border: 1.5px solid transparent; }
+  .more-drawer-item:hover, .more-drawer-item.active { background: var(--emerald-light); border-color: rgba(26,107,74,0.2); color: var(--emerald-dark); }
+  .more-drawer-item .di-icon { font-size: 1.5rem; }
+  .more-drawer-item .di-label { font-size: 0.68rem; font-weight: 700; text-align: center; }
   .m-badge {
     position: absolute; top: -4px; right: -6px;
     background: #e53935; color: white;
@@ -340,6 +351,23 @@
       </div>
     </div>
   </div>
+  <!-- MORE DRAWER -->
+  <div class="more-drawer-overlay" id="more-overlay" onclick="closeMoreDrawer()"></div>
+  <div class="more-drawer" id="more-drawer">
+    <div class="more-drawer-handle"></div>
+    <div class="more-drawer-title">More Features</div>
+    <div class="more-drawer-grid">
+      <a href="tracker.html" class="more-drawer-item"><span class="di-icon">📊</span><span class="di-label">Tracker</span></a>
+      <a href="badges.html" class="more-drawer-item"><span class="di-icon">🏅</span><span class="di-label">Badges</span></a>
+      <a href="groups.html" class="more-drawer-item"><span class="di-icon">👥</span><span class="di-label">Groups</span></a>
+      <a href="messages.html" class="more-drawer-item"><span class="di-icon">💬</span><span class="di-label">Messages</span></a>
+      <a id="more-class-link" href="join-class.html" class="more-drawer-item"><span class="di-icon">📖</span><span class="di-label" id="more-class-label">My Class</span></a>
+      <a href="notifications.html" class="more-drawer-item"><span class="di-icon">🔔</span><span class="di-label">Alerts</span></a>
+      <a href="profile.html" class="more-drawer-item"><span class="di-icon">👤</span><span class="di-label">Profile</span></a>
+      <a href="classroom.html" class="more-drawer-item"><span class="di-icon">👨‍🏫</span><span class="di-label">Classroom</span></a>
+    </div>
+  </div>
+
   <!-- MOBILE BOTTOM NAV -->
   <div class="mobile-nav">
     <div class="mobile-nav-inner">
@@ -354,26 +382,14 @@
       <a href="dashboard.html" class="mobile-nav-post" onclick="document.getElementById('post-input').focus(); return false;">
         ✏️
       </a>
-      <a href="profile.html" class="mobile-nav-item">
-        <span class="m-icon">👤</span>
-        <span class="m-label">Profile</span>
-      </a>
-      <a href="tracker.html" class="mobile-nav-item">
-        <span class="m-icon">📊</span>
-        <span class="m-label">Tracker</span>
-      </a>
-      <a href="badges.html" class="mobile-nav-item">
-        <span class="m-icon">🏅</span>
-        <span class="m-label">Badges</span>
-      </a>
-      <a id="class-nav-link" href="join-class.html" class="mobile-nav-item">
-        <span class="m-icon">📖</span>
-        <span class="m-label" id="class-nav-label">My Class</span>
-      </a>
       <a href="notifications.html" class="mobile-nav-item">
         <span class="m-icon-wrap"><span class="m-icon">🔔</span><span class="m-badge" id="m-notif-badge"></span></span>
         <span class="m-label">Alerts</span>
       </a>
+      <button onclick="openMoreDrawer()" class="mobile-nav-item" style="background:none;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
+        <span class="m-icon">⋯</span>
+        <span class="m-label">More</span>
+      </button>
     </div>
   </div>
 </div>
@@ -485,6 +501,26 @@
       </div>`;
     return div;
   }
+
+  // ── MORE DRAWER ──────────────────────────────────────────────────
+  window.openMoreDrawer = function() {
+    document.getElementById('more-drawer').classList.add('show');
+    document.getElementById('more-overlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  window.closeMoreDrawer = function() {
+    document.getElementById('more-drawer').classList.remove('show');
+    document.getElementById('more-overlay').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+  // Close drawer on back swipe
+  document.getElementById('more-drawer').addEventListener('touchstart', e => {
+    const startY = e.touches[0].clientY;
+    document.getElementById('more-drawer').addEventListener('touchend', e2 => {
+      if (e2.changedTouches[0].clientY - startY > 60) closeMoreDrawer();
+    }, { once: true });
+  });
+  // ────────────────────────────────────────────────────────────────
 
   // ── VIDEO VIEW TRACKING ──────────────────────────────────────────
   const viewedPosts = new Set();
@@ -1045,16 +1081,16 @@
         document.getElementById('stat-members').textContent = usersSnap.size;
 
         // Set classroom nav link based on role
-        const classLink = document.getElementById('class-nav-link');
+        const classLink = document.getElementById('more-class-link');
         if (classLink) {
           if (currentUserData.role === 'Teacher') {
             classLink.href = 'classroom.html';
-            classLink.querySelector('.m-icon').textContent = '👨‍🏫';
-            classLink.querySelector('.m-label').textContent = 'Classroom';
+            classLink.querySelector('.di-icon').textContent = '👨‍🏫';
+            classLink.querySelector('.di-label').textContent = 'Classroom';
           } else {
             classLink.href = currentUserData.classId ? 'my-class.html' : 'join-class.html';
-            classLink.querySelector('.m-icon').textContent = '📖';
-            classLink.querySelector('.m-label').textContent = 'My Class';
+            classLink.querySelector('.di-icon').textContent = '📖';
+            classLink.querySelector('.di-label').textContent = 'My Class';
           }
         }
       } catch(e) { console.error(e); }

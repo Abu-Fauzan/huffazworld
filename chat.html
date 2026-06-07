@@ -1072,5 +1072,22 @@
     } else { window.location.href = 'login.html'; }
   });
 </script>
+
+<style>
+.mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #0D3D29; border-top: 1px solid rgba(201,168,76,0.2); padding: 0.5rem 0 0.75rem; z-index: 200; }
+.mobile-bottom-nav-inner { display: flex; justify-content: space-around; align-items: center; }
+.mobile-bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; text-decoration: none; color: rgba(255,255,255,0.6); font-size: 0.62rem; font-weight: 600; padding: 0.3rem 0.6rem; }
+.mobile-bottom-nav-item span:first-child { font-size: 1.3rem; }
+@media (max-width: 768px) { .mobile-bottom-nav { display: block; } body { padding-bottom: 70px; } }
+</style>
+<div class="mobile-bottom-nav">
+  <div class="mobile-bottom-nav-inner">
+    <a href="dashboard.html" class="mobile-bottom-nav-item"><span>🏠</span><span>Home</span></a>
+    <a href="search.html" class="mobile-bottom-nav-item"><span>🔍</span><span>Search</span></a>
+    <a href="messages.html" class="mobile-bottom-nav-item"><span>💬</span><span>Chat</span></a>
+    <a href="notifications.html" class="mobile-bottom-nav-item"><span>🔔</span><span>Alerts</span></a>
+    <a href="profile.html" class="mobile-bottom-nav-item"><span>👤</span><span>Profile</span></a>
+  </div>
+</div>
 </body>
 </html>
