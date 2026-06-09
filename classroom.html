@@ -75,7 +75,24 @@
   .action-btn.remove { border-color: #e53935; color: #e53935; background: #ffebee; }
   .action-btn:hover { opacity: 0.85; }
 
-  /* TASK SECTION */
+  /* RECITATIONS */
+  .recitation-item { background: var(--cream); border-radius: 12px; padding: 0.9rem; margin-bottom: 0.65rem; border-left: 3px solid var(--gold); }
+  .recitation-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.4rem; }
+  .recitation-student { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+  .recitation-task { font-size: 0.75rem; color: var(--muted); }
+  .recitation-date { font-size: 0.72rem; color: var(--muted); }
+  .recitation-audio { width: 100%; margin: 0.5rem 0; border-radius: 8px; }
+  .recitation-status { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 99px; }
+  .recitation-status.pending { background: #FFF3CD; color: #856404; }
+  .recitation-status.reviewed { background: var(--emerald-light); color: var(--emerald-dark); }
+  .mark-reviewed-btn { background: var(--emerald); color: white; border: none; border-radius: 7px; padding: 0.3rem 0.7rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .feedback-student-select { width: 100%; border: 1.5px solid rgba(201,168,76,0.25); border-radius: 10px; padding: 0.65rem 0.85rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; color: var(--text); background: var(--cream); outline: none; margin-bottom: 0.75rem; }
+  .feedback-student-select:focus { border-color: var(--emerald); background: white; }
+  .feedback-item { background: var(--cream); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.6rem; border-left: 3px solid var(--emerald); }
+  .feedback-item-student { font-size: 0.75rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.25rem; }
+  .feedback-item-text { font-size: 0.83rem; color: var(--text); white-space: pre-wrap; }
+  .feedback-item-date { font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem; }
+  .feedback-delete-btn { float: right; background: none; border: none; color: #e53935; font-size: 0.75rem; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; }
   .task-item { background: var(--cream); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.6rem; border-left: 3px solid var(--emerald); }
   .task-title { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
   .task-meta { font-size: 0.73rem; color: var(--muted); }
@@ -213,6 +230,8 @@
       <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('students', this)">👥 Students</button>
         <button class="tab-btn" onclick="switchTab('tasks', this)">📋 Tasks</button>
+        <button class="tab-btn" onclick="switchTab('recitations', this)">🎙️ Recitations</button>
+        <button class="tab-btn" onclick="switchTab('feedback', this)">💬 Feedback</button>
         <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ Settings</button>
       </div>
 
@@ -259,6 +278,34 @@
         </div>
         <!-- Task List -->
         <div id="tasks-list"><div class="empty-state">No tasks assigned yet.</div></div>
+      </div>
+
+      <!-- RECITATIONS TAB -->
+      <div class="tab-content" id="tab-recitations">
+        <div class="section-title" style="margin-bottom:0.75rem;">🎙️ Student Recitation Submissions</div>
+        <div id="recitations-list"><div class="empty-state">No recitations submitted yet.</div></div>
+      </div>
+
+      <!-- FEEDBACK TAB -->
+      <div class="tab-content" id="tab-feedback">
+        <div style="margin-bottom:1rem;">
+          <div class="section-title" style="margin-bottom:0.75rem;">💬 Write Feedback to a Student</div>
+          <div class="form-group">
+            <label>Select Student</label>
+            <select class="feedback-student-select" id="feedback-student-select">
+              <option value="">-- Choose a student --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Feedback / Note</label>
+            <textarea id="feedback-text-input" rows="4" placeholder="e.g. MashaAllah! Your recitation of Al-Mulk has improved greatly. Please focus on verse 15 this week..." style="width:100%;border:1.5px solid rgba(201,168,76,0.25);border-radius:10px;padding:0.65rem 0.85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);outline:none;resize:none;"></textarea>
+          </div>
+          <button class="submit-btn" id="send-feedback-btn" onclick="sendFeedback()">💬 Send Feedback</button>
+        </div>
+        <div style="border-top:1px solid rgba(201,168,76,0.15);padding-top:1rem;margin-top:0.5rem;">
+          <div class="section-title" style="margin-bottom:0.75rem;">📋 All Feedback Sent</div>
+          <div id="all-feedback-list"><div class="empty-state">No feedback sent yet.</div></div>
+        </div>
       </div>
 
       <!-- SETTINGS TAB -->
@@ -334,6 +381,8 @@
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
     btn.classList.add('active');
+    if (tab === 'feedback') loadFeedbackTab();
+    if (tab === 'recitations') loadRecitations();
   }
 
   // ── GENERATE CLASS CODE ──
@@ -455,6 +504,139 @@
       showToast(name + ' removed from class.');
     } catch(e) { showToast('Could not remove student.'); }
   }
+
+  // ── RECITATIONS ──────────────────────────────────────────────────
+  async function loadRecitations() {
+    const list = document.getElementById('recitations-list');
+    list.innerHTML = '<div class="empty-state">Loading...</div>';
+    try {
+      const snap = await getDocs(query(collection(db, 'recitations'), where('classId','==',currentUser.uid)));
+      if (snap.empty) { list.innerHTML = '<div class="empty-state">No recitations submitted yet. 🎙️<br><br>Students can record and submit recitations from their task cards.</div>'; return; }
+      const docs = snap.docs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
+      list.innerHTML = docs.map(d => {
+        const r = d.data();
+        const durStr = r.duration ? Math.floor(r.duration/60)+':'+String(r.duration%60).padStart(2,'0') : '';
+        return `<div class="recitation-item" id="rec-item-${d.id}">
+          <div class="recitation-header">
+            <div>
+              <div class="recitation-student">👤 ${r.studentName}</div>
+              <div class="recitation-task">📋 ${r.taskTitle}</div>
+            </div>
+            <div style="text-align:right;">
+              <span class="recitation-status ${r.status||'pending'}">${r.status==='reviewed'?'✅ Reviewed':'⏳ Pending'}</span>
+              <div class="recitation-date">${r.createdAt?r.createdAt.split('T')[0]:''} ${durStr?'· '+durStr:''}</div>
+            </div>
+          </div>
+          <audio class="recitation-audio" controls src="${r.audioUrl}"></audio>
+          ${r.status !== 'reviewed' ? `<button class="mark-reviewed-btn" onclick="markRecitationReviewed('${d.id}','${r.studentUid}','${(r.studentName||'').replace(/'/g,'')}','${(r.taskTitle||'').replace(/'/g,'')}')">✅ Mark as Reviewed</button>` : ''}
+        </div>`;
+      }).join('');
+    } catch(e) { list.innerHTML = '<div class="empty-state">Could not load recitations.</div>'; }
+  }
+
+  window.markRecitationReviewed = async function(recId, studentUid, studentName, taskTitle) {
+    try {
+      await updateDoc(doc(db, 'recitations', recId), { status: 'reviewed' });
+      await setDoc(doc(db, 'notifications', 'reviewed_' + recId), {
+        toUid: studentUid, type: 'recitation_reviewed',
+        message: '<strong>' + (currentUserData.fullname||'Your teacher') + '</strong> reviewed your recitation for: <strong>' + taskTitle + '</strong> 🎙️✅',
+        fromUid: currentUser.uid, fromName: currentUserData.fullname||'Teacher',
+        read: false, createdAt: new Date().toISOString()
+      });
+      showToast('✅ Marked as reviewed! Student notified.');
+      loadRecitations();
+    } catch(e) { showToast('Could not update. Try again.'); }
+  }
+  // ────────────────────────────────────────────────────────────────
+
+  // ── FEEDBACK ─────────────────────────────────────────────────────
+  async function loadFeedbackTab() {
+    const select = document.getElementById('feedback-student-select');
+    select.innerHTML = '<option value="">-- Choose a student --</option>';
+
+    if (!(myClass.students||[]).length) {
+      select.innerHTML = '<option value="">No students enrolled yet</option>';
+      loadAllFeedback();
+      return;
+    }
+
+    // Load each student's name from Firebase
+    await Promise.all((myClass.students || []).map(async uid => {
+      try {
+        const snap = await getDoc(doc(db, 'users', uid));
+        const name = snap.exists() ? (snap.data().fullname || 'Student') : 'Student';
+        const opt = document.createElement('option');
+        opt.value = uid;
+        opt.textContent = '👤 ' + name;
+        select.appendChild(opt);
+      } catch(e) {}
+    }));
+
+    loadAllFeedback();
+  }
+
+  window.sendFeedback = async function() {
+    const studentUid = document.getElementById('feedback-student-select').value;
+    const text = document.getElementById('feedback-text-input').value.trim();
+    if (!studentUid) { showToast('⚠️ Please select a student.'); return; }
+    if (!text) { showToast('⚠️ Please write your feedback.'); return; }
+    const btn = document.getElementById('send-feedback-btn');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    try {
+      // Get student name
+      const studentSnap = await getDoc(doc(db, 'users', studentUid));
+      const studentName = studentSnap.exists() ? (studentSnap.data().fullname || 'Student') : 'Student';
+      // Save note
+      await addDoc(collection(db, 'teacherNotes', currentUser.uid, 'notes'), {
+        studentUid,
+        studentName,
+        note: text,
+        teacherName: currentUserData.fullname || 'Teacher',
+        createdAt: new Date().toISOString()
+      });
+      // Notify student
+      await setDoc(doc(db, 'notifications', 'feedback_' + currentUser.uid + '_' + studentUid + '_' + Date.now()), {
+        toUid: studentUid, type: 'teacher_feedback',
+        message: '<strong>' + (currentUserData.fullname || 'Your teacher') + '</strong> sent you feedback! 💬',
+        fromUid: currentUser.uid,
+        fromName: currentUserData.fullname || 'Teacher',
+        read: false, createdAt: new Date().toISOString()
+      });
+      document.getElementById('feedback-text-input').value = '';
+      document.getElementById('feedback-student-select').value = '';
+      showToast('✅ Feedback sent to ' + studentName + '! 🤲');
+      loadAllFeedback();
+    } catch(e) { console.error(e); showToast('Could not send feedback. Try again.'); }
+    btn.disabled = false; btn.textContent = '💬 Send Feedback';
+  }
+
+  async function loadAllFeedback() {
+    const list = document.getElementById('all-feedback-list');
+    try {
+      const snap = await getDocs(collection(db, 'teacherNotes', currentUser.uid, 'notes'));
+      if (snap.empty) { list.innerHTML = '<div class="empty-state">No feedback sent yet.</div>'; return; }
+      const docs = snap.docs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
+      list.innerHTML = docs.map(d => {
+        const n = d.data();
+        return `<div class="feedback-item">
+          <button class="feedback-delete-btn" onclick="deleteFeedback('${d.id}')">🗑️</button>
+          <div class="feedback-item-student">👤 ${n.studentName || 'Student'}</div>
+          <div class="feedback-item-text">${n.note}</div>
+          <div class="feedback-item-date">📅 ${n.createdAt ? n.createdAt.split('T')[0] : ''}</div>
+        </div>`;
+      }).join('');
+    } catch(e) { list.innerHTML = '<div class="empty-state">Could not load feedback.</div>'; }
+  }
+
+  window.deleteFeedback = async function(noteId) {
+    if (!confirm('Delete this feedback?')) return;
+    try {
+      await deleteDoc(doc(db, 'teacherNotes', currentUser.uid, 'notes', noteId));
+      showToast('Feedback deleted.');
+      loadAllFeedback();
+    } catch(e) { showToast('Could not delete.'); }
+  }
+  // ────────────────────────────────────────────────────────────────
 
   // ── ASSIGN TASK ──
   window.assignTask = async function() {

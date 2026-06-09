@@ -50,7 +50,24 @@
   .complete-btn:disabled { background: #aab8af; cursor: not-allowed; }
   .completed-tag { font-size: 0.78rem; font-weight: 700; color: var(--emerald); }
 
-  /* FEEDBACK */
+  /* RECITATION RECORDER */
+  .recorder-wrap { margin-top: 0.75rem; background: var(--emerald-light); border-radius: 12px; padding: 0.85rem; }
+  .recorder-title { font-size: 0.78rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.65rem; }
+  .recorder-controls { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .rec-btn { width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s; flex-shrink: 0; }
+  .rec-btn.start { background: #e53935; color: white; box-shadow: 0 2px 8px rgba(229,57,53,0.35); }
+  .rec-btn.start:hover { background: #c62828; transform: scale(1.05); }
+  .rec-btn.start.recording { animation: pulse-red 1s infinite; }
+  @keyframes pulse-red { 0%{box-shadow:0 0 0 0 rgba(229,57,53,0.5)} 70%{box-shadow:0 0 0 10px rgba(229,57,53,0)} 100%{box-shadow:0 0 0 0 rgba(229,57,53,0)} }
+  .rec-btn.stop { background: #555; color: white; }
+  .rec-timer { font-size: 0.85rem; font-weight: 700; color: #e53935; font-variant-numeric: tabular-nums; min-width: 36px; }
+  .rec-status { font-size: 0.75rem; color: var(--muted); flex: 1; }
+  .rec-preview { margin-top: 0.65rem; width: 100%; border-radius: 8px; background: white; display: none; }
+  .rec-preview.show { display: block; }
+  .rec-submit-btn { width: 100%; margin-top: 0.6rem; background: var(--emerald); color: white; border: none; border-radius: 8px; padding: 0.55rem; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .rec-submit-btn:disabled { background: #aab8af; cursor: not-allowed; }
+  .rec-submitted { font-size: 0.78rem; font-weight: 700; color: var(--emerald); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
+  .rec-clear-btn { background: none; border: none; color: #e53935; font-size: 0.72rem; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; margin-left: auto; }
   .feedback-item { background: var(--emerald-light); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.6rem; border-left: 3px solid var(--emerald); }
   .feedback-from { font-size: 0.75rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.3rem; }
   .feedback-text { font-size: 0.83rem; color: var(--text); white-space: pre-wrap; }
@@ -145,7 +162,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, getDocs, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, getDocs, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
@@ -196,7 +213,23 @@
           </div>
           ${t.desc ? `<div class="task-desc">${t.desc}</div>` : ''}
           <div class="task-meta">📅 Due: ${t.due} · 👨‍🏫 ${t.teacherName||'Teacher'}</div>
-          ${!isCompleted ? `<button class="complete-btn" id="cbtn-${d.id}" onclick="markComplete('${d.id}','${t.title.replace(/'/g,'')}','${t.teacherUid}')">✅ Mark as Complete</button>` : `<div class="completed-tag">✅ You completed this task</div>`}
+          ${!isCompleted ? `
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.4rem;">
+              <button class="complete-btn" id="cbtn-${d.id}" onclick="markComplete('${d.id}','${t.title.replace(/'/g,'')}','${t.teacherUid}')">✅ Mark as Complete</button>
+              <button class="complete-btn" style="background:var(--gold);color:var(--emerald-dark);" onclick="toggleRecorder('${d.id}')">🎙️ Record Recitation</button>
+            </div>
+            <div class="recorder-wrap" id="recorder-${d.id}" style="display:none;">
+              <div class="recorder-title">🎙️ Record Your Recitation — Send to Teacher</div>
+              <div class="recorder-controls">
+                <button class="rec-btn start" id="rec-start-${d.id}" onclick="startRecording('${d.id}')">🎙️</button>
+                <span class="rec-timer" id="rec-timer-${d.id}">0:00</span>
+                <span class="rec-status" id="rec-status-${d.id}">Tap 🎙️ to start recording</span>
+                <button class="rec-clear-btn" id="rec-clear-${d.id}" onclick="clearRecording('${d.id}')" style="display:none;">✕ Clear</button>
+              </div>
+              <audio class="rec-preview" id="rec-preview-${d.id}" controls></audio>
+              <button class="rec-submit-btn" id="rec-submit-${d.id}" onclick="submitRecitation('${d.id}','${t.title.replace(/'/g,'')}','${t.teacherUid}')" style="display:none;">📤 Submit Recitation to Teacher</button>
+            </div>
+          ` : `<div class="completed-tag">✅ You completed this task</div>`}
         </div>`;
       }).join('');
       list.innerHTML = html;
@@ -206,6 +239,156 @@
       document.getElementById('ch-tasks-pct').textContent = total ? Math.round((done/total)*100)+'%' : '0%';
     } catch(e) { list.innerHTML = '<div class="empty-state">Could not load tasks.</div>'; }
   }
+
+  // ── RECITATION RECORDER ──────────────────────────────────────────
+  const CLOUDINARY_CLOUD = 'dl1rabt4f';
+  const CLOUDINARY_PRESET = 'huffazworld';
+  let recorders = {}; // Store recorder state per task
+
+  window.toggleRecorder = function(taskId) {
+    const wrap = document.getElementById('recorder-' + taskId);
+    if (wrap) wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+  }
+
+  window.startRecording = async function(taskId) {
+    const state = recorders[taskId] || {};
+    // If already recording — stop
+    if (state.isRecording) {
+      stopRecording(taskId);
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      const chunks = [];
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      mediaRecorder.onstop = () => handleRecordingStop(taskId, chunks, mimeType);
+      mediaRecorder.start(100);
+
+      recorders[taskId] = { mediaRecorder, stream, chunks, isRecording: true, seconds: 0 };
+
+      // UI
+      const startBtn = document.getElementById('rec-start-' + taskId);
+      const status = document.getElementById('rec-status-' + taskId);
+      startBtn.textContent = '⏹️';
+      startBtn.classList.add('recording');
+      status.textContent = 'Recording... tap ⏹️ to stop';
+      status.style.color = '#e53935';
+
+      // Timer
+      recorders[taskId].timer = setInterval(() => {
+        recorders[taskId].seconds++;
+        const s = recorders[taskId].seconds;
+        const m = Math.floor(s / 60);
+        document.getElementById('rec-timer-' + taskId).textContent = m + ':' + String(s % 60).padStart(2, '0');
+        // Max 3 minutes
+        if (s >= 180) stopRecording(taskId);
+      }, 1000);
+
+    } catch(e) {
+      showToast('⚠️ Microphone access denied. Please allow microphone.');
+    }
+  }
+
+  function stopRecording(taskId) {
+    const state = recorders[taskId];
+    if (!state || !state.isRecording) return;
+    state.mediaRecorder.stop();
+    state.stream.getTracks().forEach(t => t.stop());
+    clearInterval(state.timer);
+    state.isRecording = false;
+    // UI
+    const startBtn = document.getElementById('rec-start-' + taskId);
+    startBtn.textContent = '🎙️';
+    startBtn.classList.remove('recording');
+    document.getElementById('rec-status-' + taskId).textContent = 'Processing...';
+    document.getElementById('rec-status-' + taskId).style.color = 'var(--muted)';
+  }
+
+  function handleRecordingStop(taskId, chunks, mimeType) {
+    const blob = new Blob(chunks, { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    // Show preview player
+    const preview = document.getElementById('rec-preview-' + taskId);
+    preview.src = url;
+    preview.classList.add('show');
+    // Show submit + clear buttons
+    document.getElementById('rec-submit-' + taskId).style.display = 'block';
+    document.getElementById('rec-clear-' + taskId).style.display = 'block';
+    document.getElementById('rec-status-' + taskId).textContent = '✅ Recording ready — preview and submit!';
+    // Store blob for upload
+    recorders[taskId].blob = blob;
+  }
+
+  window.clearRecording = function(taskId) {
+    const preview = document.getElementById('rec-preview-' + taskId);
+    preview.src = '';
+    preview.classList.remove('show');
+    document.getElementById('rec-submit-' + taskId).style.display = 'none';
+    document.getElementById('rec-clear-' + taskId).style.display = 'none';
+    document.getElementById('rec-timer-' + taskId).textContent = '0:00';
+    document.getElementById('rec-status-' + taskId).textContent = 'Tap 🎙️ to start recording';
+    if (recorders[taskId]) recorders[taskId].blob = null;
+  }
+
+  window.submitRecitation = async function(taskId, taskTitle, teacherUid) {
+    const state = recorders[taskId];
+    if (!state || !state.blob) { showToast('⚠️ No recording found. Record first.'); return; }
+    const btn = document.getElementById('rec-submit-' + taskId);
+    btn.disabled = true; btn.textContent = '☁️ Uploading...';
+    try {
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('file', state.blob, 'recitation.webm');
+      formData.append('upload_preset', CLOUDINARY_PRESET);
+      formData.append('resource_type', 'video'); // Cloudinary uses video for audio
+      formData.append('folder', 'recitations');
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/video/upload`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!data.secure_url) throw new Error('Upload failed');
+      const audioUrl = data.secure_url;
+
+      // Save recitation to Firebase
+      await addDoc(collection(db, 'recitations'), {
+        taskId,
+        taskTitle,
+        studentUid: currentUser.uid,
+        studentName: currentUserData.fullname || 'Student',
+        teacherUid,
+        classId: myClassData.id,
+        audioUrl,
+        duration: recorders[taskId].seconds || 0,
+        status: 'pending', // pending | reviewed
+        createdAt: new Date().toISOString()
+      });
+
+      // Notify teacher
+      await setDoc(doc(db, 'notifications', 'recitation_' + taskId + '_' + currentUser.uid), {
+        toUid: teacherUid, type: 'recitation_submitted',
+        message: '<strong>' + (currentUserData.fullname || 'A student') + '</strong> submitted a recitation for: <strong>' + taskTitle + '</strong> 🎙️',
+        fromUid: currentUser.uid,
+        fromName: currentUserData.fullname || 'Student',
+        read: false, createdAt: new Date().toISOString()
+      });
+
+      btn.textContent = '✅ Submitted!';
+      btn.style.background = 'var(--emerald-dark)';
+      showToast('🎙️ Recitation submitted to teacher! Alhamdulillah 🤲');
+
+      // Hide recorder after submit
+      setTimeout(() => {
+        document.getElementById('recorder-' + taskId).style.display = 'none';
+      }, 2000);
+
+    } catch(e) {
+      console.error(e);
+      btn.disabled = false;
+      btn.textContent = '📤 Submit Recitation to Teacher';
+      showToast('❌ Upload failed. Check your connection.');
+    }
+  }
+  // ────────────────────────────────────────────────────────────────
 
   window.markComplete = async function(taskId, taskTitle, teacherUid) {
     const btn = document.getElementById('cbtn-' + taskId);
