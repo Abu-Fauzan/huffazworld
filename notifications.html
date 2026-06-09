@@ -237,7 +237,7 @@
     const isAccepted = n.type === 'follow_request' && n.status === 'accepted';
     const isDeclined = n.type === 'follow_request' && n.status === 'declined';
     return `
-      <div class="notif-item ${n.read ? '' : 'unread'}" id="notif-${n.id}" style="animation-delay:${i*0.05}s;cursor:${n.groupId ? 'pointer' : 'default'}" onclick="handleNotifClick('${n.id}', '${n.groupId||''}', '${n.type}')">
+      <div class="notif-item ${n.read ? '' : 'unread'}" id="notif-${n.id}" style="animation-delay:${i*0.05}s;cursor:pointer;" onclick="handleNotifClick('${n.id}', '${n.groupId||''}', '${n.type}', '${n.postId||''}')">
         <div class="notif-icon ${cls}">${icon}</div>
         <div class="notif-content">
           <div class="notif-text">${n.message}</div>
@@ -367,13 +367,30 @@
     } catch(e) { showToast('Could not decline. Try again.'); }
   }
 
-  window.handleNotifClick = async function(notifId, groupId, type) {
+  window.handleNotifClick = async function(notifId, groupId, type, postId) {
     // Mark as read
     try {
       await updateDoc(doc(db,'notifications',notifId), { read: true });
     } catch(e) {}
-    // Navigate to group if group_post
-    if (groupId && type === 'group_post') {
+
+    // Navigate based on notification type
+    if (type === 'like' || type === 'comment') {
+      if (postId && postId !== 'null' && postId !== '') {
+        window.location.href = 'dashboard.html#post-' + postId;
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    } else if (type === 'follow_request' || type === 'follow_accepted' || type === 'follow_declined') {
+      // Do nothing — handled by accept/decline buttons
+    } else if (type === 'new_task' || type === 'task_completed') {
+      window.location.href = 'my-class.html';
+    } else if (type === 'teacher_feedback' || type === 'recitation_reviewed') {
+      window.location.href = 'my-class.html';
+    } else if (type === 'recitation_submitted') {
+      window.location.href = 'classroom.html';
+    } else if (type === 'student_joined') {
+      window.location.href = 'classroom.html';
+    } else if (groupId && groupId !== 'null' && groupId !== '') {
       window.location.href = 'group.html?id=' + groupId;
     }
   }
