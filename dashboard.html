@@ -415,13 +415,14 @@
   let currentUser = null;
   let currentUserData = null;
 
-  async function saveNotification(toUid, type, message) {
+  async function saveNotification(toUid, type, message, postId = null) {
     if (!toUid || toUid === currentUser?.uid) return;
     try {
       await addDoc(collection(db,'notifications'), {
         toUid, type, message,
         fromUid: currentUser?.uid || '',
         fromName: currentUserData?.fullname || 'Someone',
+        postId: postId || null,
         read: false,
         createdAt: new Date().toISOString()
       });
@@ -852,7 +853,7 @@
     if (!liked) {
       const postOwner = snap.data()?.uid;
       const postPreview = (snap.data()?.text||'').slice(0,40);
-      await saveNotification(postOwner, 'like', '<strong>' + (currentUserData?.fullname||'Someone') + '</strong> liked your post: "' + postPreview + '..."');
+      await saveNotification(postOwner, 'like', '<strong>' + (currentUserData?.fullname||'Someone') + '</strong> liked your post: "' + postPreview + '..."', postId);
     }
     const newCount = liked ? likes.length-1 : likes.length+1;
     btn.className = 'post-btn ' + (!liked?'liked':'');
@@ -875,7 +876,7 @@
     await updateDoc(doc(db,'posts',postId), { comments: arrayUnion(comment) });
     const postOwner = postSnap.data()?.uid;
     const postPreview = (postSnap.data()?.text||'').slice(0,40);
-    await saveNotification(postOwner, 'comment', '<strong>' + comment.name + '</strong> commented on your post: "' + postPreview + '..."');
+    await saveNotification(postOwner, 'comment', '<strong>' + comment.name + '</strong> commented on your post: "' + postPreview + '..."', postId);
     const list = document.getElementById('comments-list-'+postId);
     const initials = comment.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
     const div = document.createElement('div');
@@ -1095,6 +1096,21 @@
       } catch(e) { console.error(e); }
       loadFeed();
       loadSidebarSuggestions();
+
+      // Scroll to post if navigated from notification
+      if (window.location.hash && window.location.hash.startsWith('#post-')) {
+        const targetPostId = window.location.hash.replace('#post-', '');
+        // Wait for feed to load then scroll
+        setTimeout(() => {
+          const postEl = document.getElementById('post-' + targetPostId);
+          if (postEl) {
+            postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            postEl.style.transition = 'box-shadow 0.3s';
+            postEl.style.boxShadow = '0 0 0 3px var(--gold)';
+            setTimeout(() => postEl.style.boxShadow = '', 2500);
+          }
+        }, 1500);
+      }
       loadUnreadCount(user.uid);
       loadUnreadMessages(user.uid);
       document.getElementById('loading').style.display = 'none';
