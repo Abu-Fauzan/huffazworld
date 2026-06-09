@@ -179,13 +179,14 @@
   .more-drawer-item:hover, .more-drawer-item.active { background: var(--emerald-light); border-color: rgba(26,107,74,0.2); color: var(--emerald-dark); }
   .more-drawer-item .di-icon { font-size: 1.5rem; }
   .more-drawer-item .di-label { font-size: 0.68rem; font-weight: 700; text-align: center; }
+  .m-icon-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; }
   .m-badge {
     position: absolute; top: -4px; right: -6px;
     background: #e53935; color: white;
     border-radius: 50%; width: 16px; height: 16px;
     font-size: 0.6rem; font-weight: 700;
     display: none; align-items: center; justify-content: center;
-    border: 2px solid var(--emerald-dark);
+    border: 2px solid white;
   }
   .m-badge.show { display: flex; }
   @media (max-width: 768px) {
@@ -245,7 +246,7 @@
       <a href="search.html" class="nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">🔍 Search</a>
       <a href="tracker.html" class="nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">📊 Tracker</a>
       <a href="badges.html" class="nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">🏅 Badges</a>
-      <a href="classroom.html" class="nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">👨‍🏫 Classroom</a>
+      <a href="classroom.html" id="desktop-class-link" class="nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">👨‍🏫 Classroom</a>
       <a href="groups.html" class="nav-link group-nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">🕌</a>
       <a href="messages.html" class="nav-link msg-bell-wrap msg-nav-link" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.88rem;font-weight:500;">
         💬 <span class="msg-badge" id="msg-badge"></span>
@@ -1080,18 +1081,16 @@
         const usersSnap = await getDocs(collection(db,'users'));
         document.getElementById('stat-members').textContent = usersSnap.size;
 
-        // Set classroom nav link based on role
+        // Set classroom nav link based on role (mobile + desktop)
         const classLink = document.getElementById('more-class-link');
-        if (classLink) {
-          if (currentUserData.role === 'Teacher') {
-            classLink.href = 'classroom.html';
-            classLink.querySelector('.di-icon').textContent = '👨‍🏫';
-            classLink.querySelector('.di-label').textContent = 'Classroom';
-          } else {
-            classLink.href = currentUserData.classId ? 'my-class.html' : 'join-class.html';
-            classLink.querySelector('.di-icon').textContent = '📖';
-            classLink.querySelector('.di-label').textContent = 'My Class';
-          }
+        const desktopClassLink = document.getElementById('desktop-class-link');
+        if (currentUserData.role === 'Teacher') {
+          if (classLink) { classLink.href = 'classroom.html'; classLink.querySelector('.di-icon').textContent = '👨‍🏫'; classLink.querySelector('.di-label').textContent = 'Classroom'; }
+          if (desktopClassLink) { desktopClassLink.href = 'classroom.html'; desktopClassLink.textContent = '👨‍🏫 Classroom'; }
+        } else {
+          const classPage = currentUserData.classId ? 'my-class.html' : 'join-class.html';
+          if (classLink) { classLink.href = classPage; classLink.querySelector('.di-icon').textContent = '📖'; classLink.querySelector('.di-label').textContent = 'My Class'; }
+          if (desktopClassLink) { desktopClassLink.href = classPage; desktopClassLink.textContent = '📖 My Class'; }
         }
       } catch(e) { console.error(e); }
       loadFeed();
