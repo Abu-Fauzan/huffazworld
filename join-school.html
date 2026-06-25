@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Join a School – HuffazWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F0D98A;
+    --emerald: #1A6B4A; --emerald-light: #E6F5EE; --emerald-dark: #0D3D29;
+    --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; padding-bottom: 90px; }
+  nav { background: var(--emerald-dark); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; }
+  .nav-logo { font-family: 'Amiri', serif; font-size: 1.4rem; font-weight: 700; color: white; text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; text-decoration: none; overflow: hidden; }
+  .container { max-width: 500px; margin: 0 auto; padding: 1.25rem 1rem; padding-top: calc(56px + 1.25rem); }
+  .banner { background: linear-gradient(135deg, var(--emerald-dark), var(--emerald)); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; text-align: center; }
+  .banner h1 { font-family: 'Amiri', serif; font-size: 1.5rem; color: white; margin-bottom: 0.3rem; }
+  .banner p { font-size: 0.82rem; color: rgba(255,255,255,0.65); }
+  .section { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.25rem; }
+  .section-title { font-size: 0.95rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.5rem; text-align: center; }
+  .section-sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.25rem; text-align: center; }
+  .code-input-wrap { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .code-input { flex: 1; border: 2px solid rgba(201,168,76,0.3); border-radius: 12px; padding: 0.85rem 1rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text); background: var(--cream); outline: none; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; }
+  .code-input:focus { border-color: var(--emerald); background: white; }
+  .join-btn { width: 100%; background: var(--emerald); color: white; border: none; border-radius: 12px; padding: 0.85rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.2s; }
+  .join-btn:hover { background: var(--emerald-dark); }
+  .join-btn:disabled { background: #aab8af; cursor: not-allowed; }
+
+  /* Preview card */
+  .preview-card { background: var(--emerald-light); border: 1.5px solid rgba(26,107,74,0.2); border-radius: 14px; padding: 1.1rem; margin-bottom: 1rem; display: none; }
+  .preview-card.show { display: block; }
+  .preview-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5rem; }
+  .preview-name { font-size: 1rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.2rem; }
+  .preview-meta { font-size: 0.82rem; color: var(--muted); }
+  .preview-badge { display: inline-block; background: var(--emerald); color: white; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 99px; margin-top: 0.4rem; }
+
+  /* Already in school card */
+  .my-school-card { background: linear-gradient(135deg, var(--emerald-dark), var(--emerald)); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; color: white; position: relative; overflow: hidden; }
+  .my-school-card::after { content: '🏫'; position: absolute; right: -10px; bottom: -10px; font-size: 5rem; opacity: 0.1; }
+  .my-school-label { font-size: 0.72rem; color: rgba(255,255,255,0.6); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .my-school-name { font-family: 'Amiri', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .my-school-meta { font-size: 0.82rem; color: rgba(255,255,255,0.7); margin-bottom: 1rem; }
+  .leave-btn { display: block; background: rgba(229,57,53,0.2); color: #ffcdd2; text-align: center; border-radius: 10px; padding: 0.5rem; font-weight: 700; font-size: 0.8rem; cursor: pointer; border: none; width: 100%; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+  /* Not a teacher notice */
+  .not-teacher { text-align: center; padding: 3rem 1rem; background: var(--white); border-radius: 16px; border: 1px solid rgba(201,168,76,0.18); }
+  .not-teacher .icon { font-size: 3rem; margin-bottom: 1rem; }
+  .not-teacher h3 { font-size: 1rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.5rem; }
+  .not-teacher p { font-size: 0.82rem; color: var(--muted); }
+
+  #toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--emerald-dark); color: white; padding: 0.65rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 9999; pointer-events: none; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--cream); position: fixed; inset: 0; z-index: 999; }
+  .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid rgba(201,168,76,0.18); padding: 0.5rem 0; z-index: 200; }
+  .mobile-nav-inner { display: flex; justify-content: space-around; }
+  .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; text-decoration: none; color: var(--muted); font-size: 0.6rem; font-weight: 600; padding: 0.3rem 0.5rem; }
+  .mobile-nav-item span:first-child { font-size: 1.2rem; }
+  .mobile-nav-item.active { color: var(--emerald); }
+  @media (max-width: 768px) { .mobile-nav { display: block; } }
+</style>
+</head>
+<body>
+
+<div id="loading"><div style="font-family:'Amiri',serif;font-size:1.5rem;color:#1A6B4A;">Loading... 🤲</div></div>
+
+<nav>
+  <a href="dashboard.html" class="nav-logo">Huffaz<span>World</span></a>
+  <a href="profile.html" class="nav-avatar" id="nav-avatar">?</a>
+</nav>
+
+<div id="toast"></div>
+
+<div class="container" id="app" style="display:none;">
+
+  <div class="banner">
+    <h1>🏫 Join a School</h1>
+    <p>Enter the code your school admin shared with you</p>
+  </div>
+
+  <!-- NOT A TEACHER -->
+  <div id="not-teacher-msg" style="display:none;">
+    <div class="not-teacher">
+      <div class="icon">👨‍🏫</div>
+      <h3>Teachers Only</h3>
+      <p>Only teachers can join a school on HuffazWorld.<br><br>
+      Update your profile role to Teacher to access this page.</p>
+      <a href="profile.html" style="display:inline-block;margin-top:1rem;background:var(--emerald);color:white;padding:0.6rem 1.25rem;border-radius:10px;text-decoration:none;font-weight:700;font-size:0.85rem;">Update Profile</a>
+    </div>
+  </div>
+
+  <!-- ALREADY IN A SCHOOL -->
+  <div id="already-in-school" style="display:none;">
+    <div class="my-school-card">
+      <div class="my-school-label">Your Current School</div>
+      <div class="my-school-name" id="my-school-name">Loading...</div>
+      <div class="my-school-meta" id="my-school-meta"></div>
+      <button class="leave-btn" onclick="leaveSchool()">Leave this school</button>
+    </div>
+    <div class="section" style="text-align:center;padding:1.5rem;">
+      <div style="font-size:2rem;margin-bottom:0.75rem;">✅</div>
+      <div style="font-size:0.9rem;font-weight:700;color:var(--emerald-dark);margin-bottom:0.4rem;">You're part of a school</div>
+      <div style="font-size:0.8rem;color:var(--muted);">Your classroom is linked to this school. The school admin can see your class stats and send announcements.</div>
+    </div>
+  </div>
+
+  <!-- JOIN FORM -->
+  <div id="join-form-section" style="display:none;">
+    <div class="section">
+      <div class="section-title">Enter School Code</div>
+      <div class="section-sub">Your school admin will share a code like <strong>SCH-XXXX</strong></div>
+
+      <!-- PREVIEW CARD -->
+      <div class="preview-card" id="preview-card">
+        <div class="preview-label">✅ School Found</div>
+        <div class="preview-name" id="preview-name"></div>
+        <div class="preview-meta" id="preview-meta"></div>
+        <span class="preview-badge" id="preview-type"></span>
+      </div>
+
+      <div class="code-input-wrap">
+        <input type="text" class="code-input" id="code-input" maxlength="8" placeholder="SCH-XXXX" oninput="handleCodeInput(this)"/>
+      </div>
+      <button class="join-btn" id="join-btn" onclick="joinSchool()">Join School 🤲</button>
+    </div>
+  </div>
+
+</div>
+
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <a href="dashboard.html" class="mobile-nav-item"><span>🏠</span><span>Home</span></a>
+    <a href="search.html" class="mobile-nav-item"><span>🔍</span><span>Search</span></a>
+    <a href="messages.html" class="mobile-nav-item"><span>💬</span><span>Chat</span></a>
+    <a href="notifications.html" class="mobile-nav-item"><span>🔔</span><span>Alerts</span></a>
+    <a href="profile.html" class="mobile-nav-item"><span>👤</span><span>Profile</span></a>
+  </div>
+</nav>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, getDocs, query, where, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "1071311461394",
+    appId: "1:1071311461394:web:2218e814e9a3a40f5b9c74"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let currentUserData = null;
+  let foundSchool = null;
+  let mySchoolId = null;
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ── CODE INPUT: auto-search when full code typed ──
+  let searchTimeout = null;
+  window.handleCodeInput = function(input) {
+    input.value = input.value.toUpperCase();
+    const code = input.value.trim();
+    clearTimeout(searchTimeout);
+    document.getElementById('preview-card').classList.remove('show');
+    foundSchool = null;
+    if (code.length >= 8) {
+      searchTimeout = setTimeout(() => searchSchool(code), 400);
+    }
+  }
+
+  async function searchSchool(code) {
+    try {
+      const snap = await getDocs(query(collection(db, 'schools'), where('code', '==', code)));
+      if (!snap.empty) {
+        const d = snap.docs[0];
+        foundSchool = { id: d.id, ...d.data() };
+        document.getElementById('preview-name').textContent = foundSchool.name;
+        document.getElementById('preview-meta').textContent = '📍 ' + (foundSchool.city || '') + ' · 👤 Admin: ' + (foundSchool.adminName || 'School Admin');
+        document.getElementById('preview-type').textContent = foundSchool.type || 'School';
+        document.getElementById('preview-card').classList.add('show');
+      } else {
+        foundSchool = null;
+      }
+    } catch(e) { console.error(e); }
+  }
+
+  // ── JOIN SCHOOL ──
+  window.joinSchool = async function() {
+    const code = document.getElementById('code-input').value.trim().toUpperCase();
+    if (!code) { showToast('⚠️ Please enter a school code.'); return; }
+    const btn = document.getElementById('join-btn');
+    btn.disabled = true; btn.textContent = 'Joining...';
+    try {
+      if (!foundSchool) await searchSchool(code);
+      if (!foundSchool) {
+        showToast('❌ School not found. Check the code and try again.');
+        btn.disabled = false; btn.textContent = 'Join School 🤲';
+        return;
+      }
+      if (foundSchool.adminUid === currentUser.uid) {
+        showToast('⚠️ You cannot join your own school as a teacher!');
+        btn.disabled = false; btn.textContent = 'Join School 🤲';
+        return;
+      }
+      if ((foundSchool.teachers || []).includes(currentUser.uid)) {
+        showToast('You are already part of this school!');
+        btn.disabled = false; btn.textContent = 'Join School 🤲';
+        return;
+      }
+
+      // Add teacher to school's teachers array
+      await updateDoc(doc(db, 'schools', foundSchool.id), {
+        teachers: arrayUnion(currentUser.uid)
+      });
+
+      // Save school reference on teacher's profile
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        schoolId: foundSchool.id,
+        schoolName: foundSchool.name
+      });
+
+      mySchoolId = foundSchool.id;
+
+      // Notify school admin
+      await setDoc(doc(db, 'notifications', 'school_joined_' + currentUser.uid + '_' + foundSchool.adminUid), {
+        toUid: foundSchool.adminUid,
+        type: 'teacher_joined',
+        message: '👨‍🏫 <strong>' + (currentUserData.fullname || 'A teacher') + '</strong> joined your school <strong>' + foundSchool.name + '</strong>! 🎉',
+        fromUid: currentUser.uid,
+        fromName: currentUserData.fullname || 'Teacher',
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+
+      showToast('🎉 Joined ' + foundSchool.name + '! Bismillah! 🤲');
+
+      // Show the "already in school" card
+      setTimeout(() => {
+        showMySchool(foundSchool);
+      }, 1200);
+
+    } catch(e) { console.error(e); showToast('Could not join school. Try again.'); }
+    btn.disabled = false; btn.textContent = 'Join School 🤲';
+  }
+
+  // ── LEAVE SCHOOL ──
+  window.leaveSchool = async function() {
+    if (!mySchoolId || !confirm('Leave this school? The school admin will be notified.')) return;
+    try {
+      await updateDoc(doc(db, 'schools', mySchoolId), {
+        teachers: arrayRemove(currentUser.uid)
+      });
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        schoolId: null,
+        schoolName: null
+      });
+      showToast('You have left the school.');
+      mySchoolId = null;
+      document.getElementById('already-in-school').style.display = 'none';
+      document.getElementById('join-form-section').style.display = 'block';
+    } catch(e) { showToast('Could not leave school.'); }
+  }
+
+  function showMySchool(school) {
+    document.getElementById('my-school-name').textContent = school.name;
+    document.getElementById('my-school-meta').textContent =
+      '📍 ' + (school.city || '') + '  ·  ' + (school.type || 'School') + '  ·  Admin: ' + (school.adminName || 'School Admin');
+    document.getElementById('already-in-school').style.display = 'block';
+    document.getElementById('join-form-section').style.display = 'none';
+  }
+
+  // ── AUTH ──
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        currentUserData = userDoc.exists() ? userDoc.data() : {};
+        const name = currentUserData.fullname || 'Teacher';
+        const navAvatar = document.getElementById('nav-avatar');
+        if (currentUserData.photoURL) {
+          navAvatar.innerHTML = `<img src="${currentUserData.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
+        } else {
+          navAvatar.textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+
+        // Only Teachers can join a school
+        if (currentUserData.role !== 'Teacher') {
+          document.getElementById('not-teacher-msg').style.display = 'block';
+        } else {
+          // Check if already in a school
+          if (currentUserData.schoolId) {
+            mySchoolId = currentUserData.schoolId;
+            try {
+              const schoolSnap = await getDoc(doc(db, 'schools', currentUserData.schoolId));
+              if (schoolSnap.exists()) {
+                showMySchool({ id: schoolSnap.id, ...schoolSnap.data() });
+              } else {
+                // School was deleted, clear the reference
+                await updateDoc(doc(db, 'users', currentUser.uid), { schoolId: null, schoolName: null });
+                document.getElementById('join-form-section').style.display = 'block';
+              }
+            } catch(e) {
+              document.getElementById('join-form-section').style.display = 'block';
+            }
+          } else {
+            document.getElementById('join-form-section').style.display = 'block';
+          }
+        }
+      } catch(e) { console.error(e); }
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else { window.location.href = 'login.html'; }
+  });
+</script>
+</body>
+</html>

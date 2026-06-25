@@ -93,6 +93,17 @@
   .feedback-item-text { font-size: 0.83rem; color: var(--text); white-space: pre-wrap; }
   .feedback-item-date { font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem; }
   .feedback-delete-btn { float: right; background: none; border: none; color: #e53935; font-size: 0.75rem; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; }
+  .feedback-type-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .feedback-type-btn { flex: 1; padding: 0.55rem; border-radius: 10px; border: 1.5px solid rgba(201,168,76,0.25); background: var(--cream); color: var(--muted); font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s; }
+  .feedback-type-btn.active { background: var(--emerald); color: white; border-color: var(--emerald); }
+  .voice-recorder-box { background: var(--cream); border: 1.5px dashed rgba(201,168,76,0.35); border-radius: 12px; padding: 1.25rem; text-align: center; margin-bottom: 0.85rem; }
+  .vr-timer { font-size: 1.6rem; font-weight: 700; color: var(--emerald-dark); font-variant-numeric: tabular-nums; margin: 0.5rem 0; }
+  .vr-btn { padding: 0.65rem 1.5rem; border-radius: 50px; border: none; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s; }
+  .vr-btn.record { background: #e53935; color: white; }
+  .vr-btn.stop { background: var(--emerald-dark); color: white; }
+  .vr-btn.clear { background: var(--cream); color: var(--muted); border: 1.5px solid rgba(201,168,76,0.3); font-size: 0.78rem; padding: 0.45rem 1rem; }
+  .vr-status { font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem; }
+  .feedback-audio-player { width: 100%; margin-top: 0.4rem; border-radius: 8px; }
   .task-item { background: var(--cream); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.6rem; border-left: 3px solid var(--emerald); }
   .task-title { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
   .task-meta { font-size: 0.73rem; color: var(--muted); }
@@ -147,6 +158,15 @@
       <p>Manage your students and track their Hifz progress</p>
     </div>
     <div class="banner-arabic">عَلَّمَ الْقُرْآنَ</div>
+  </div>
+
+  <!-- SCHOOL LINK BANNER (shown to teachers not yet in a school) -->
+  <div id="school-join-banner" style="display:none;background:var(--white);border:1.5px solid rgba(201,168,76,0.25);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:none;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;">
+    <div>
+      <div style="font-size:0.88rem;font-weight:700;color:var(--emerald-dark);">🏫 Link to a School</div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-top:0.15rem;">Join your school to appear in their dashboard</div>
+    </div>
+    <a href="join-school.html" style="background:var(--emerald);color:white;border-radius:10px;padding:0.5rem 1rem;font-size:0.82rem;font-weight:700;text-decoration:none;white-space:nowrap;">Join School →</a>
   </div>
 
   <!-- NOT A TEACHER -->
@@ -289,18 +309,44 @@
       <!-- FEEDBACK TAB -->
       <div class="tab-content" id="tab-feedback">
         <div style="margin-bottom:1rem;">
-          <div class="section-title" style="margin-bottom:0.75rem;">💬 Write Feedback to a Student</div>
+          <div class="section-title" style="margin-bottom:0.75rem;">💬 Send Feedback to a Student</div>
           <div class="form-group">
             <label>Select Student</label>
             <select class="feedback-student-select" id="feedback-student-select">
               <option value="">-- Choose a student --</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Feedback / Note</label>
-            <textarea id="feedback-text-input" rows="4" placeholder="e.g. MashaAllah! Your recitation of Al-Mulk has improved greatly. Please focus on verse 15 this week..." style="width:100%;border:1.5px solid rgba(201,168,76,0.25);border-radius:10px;padding:0.65rem 0.85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);outline:none;resize:none;"></textarea>
+
+          <!-- Feedback type toggle -->
+          <div class="feedback-type-tabs">
+            <button class="feedback-type-btn active" id="ftype-written-btn" onclick="switchFeedbackType('written')">✍️ Written</button>
+            <button class="feedback-type-btn" id="ftype-voice-btn" onclick="switchFeedbackType('voice')">🎙️ Voice</button>
           </div>
-          <button class="submit-btn" id="send-feedback-btn" onclick="sendFeedback()">💬 Send Feedback</button>
+
+          <!-- Written feedback -->
+          <div id="written-feedback-section">
+            <div class="form-group">
+              <label>Feedback / Note</label>
+              <textarea id="feedback-text-input" rows="4" placeholder="e.g. MashaAllah! Your recitation of Al-Mulk has improved greatly. Please focus on verse 15 this week..." style="width:100%;border:1.5px solid rgba(201,168,76,0.25);border-radius:10px;padding:0.65rem 0.85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);outline:none;resize:none;"></textarea>
+            </div>
+            <button class="submit-btn" id="send-feedback-btn" onclick="sendFeedback()">💬 Send Written Feedback</button>
+          </div>
+
+          <!-- Voice feedback -->
+          <div id="voice-feedback-section" style="display:none;">
+            <div class="voice-recorder-box">
+              <div style="font-size:2rem;" id="vf-icon">🎙️</div>
+              <div class="vr-timer" id="vf-timer">0:00</div>
+              <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:0.5rem;">
+                <button class="vr-btn record" id="vf-record-btn" onclick="startVoiceFeedback()">🎙️ Start Recording</button>
+                <button class="vr-btn stop" id="vf-stop-btn" onclick="stopVoiceFeedback()" style="display:none;">⏹️ Stop</button>
+                <button class="vr-btn clear" id="vf-clear-btn" onclick="clearVoiceFeedback()" style="display:none;">🗑️ Clear</button>
+              </div>
+              <div class="vr-status" id="vf-status">Tap record to start. Max 5 minutes.</div>
+            </div>
+            <audio id="vf-preview" class="feedback-audio-player" controls style="display:none;margin-bottom:0.75rem;"></audio>
+            <button class="submit-btn" id="send-voice-feedback-btn" onclick="sendVoiceFeedback()" disabled>🎙️ Send Voice Feedback</button>
+          </div>
         </div>
         <div style="border-top:1px solid rgba(201,168,76,0.15);padding-top:1rem;margin-top:0.5rem;">
           <div class="section-title" style="margin-bottom:0.75rem;">📋 All Feedback Sent</div>
@@ -575,6 +621,115 @@
     loadAllFeedback();
   }
 
+  // ── FEEDBACK TYPE SWITCHER ──
+  window.switchFeedbackType = function(type) {
+    document.getElementById('written-feedback-section').style.display = type === 'written' ? 'block' : 'none';
+    document.getElementById('voice-feedback-section').style.display = type === 'voice' ? 'block' : 'none';
+    document.getElementById('ftype-written-btn').classList.toggle('active', type === 'written');
+    document.getElementById('ftype-voice-btn').classList.toggle('active', type === 'voice');
+    if (type === 'voice') clearVoiceFeedback();
+  }
+
+  // ── VOICE FEEDBACK RECORDER ──
+  let vfRecorder = null, vfChunks = [], vfBlob = null, vfTimer = null, vfSeconds = 0;
+
+  window.startVoiceFeedback = async function() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      vfChunks = []; vfBlob = null; vfSeconds = 0;
+      vfRecorder = new MediaRecorder(stream);
+      vfRecorder.ondataavailable = e => { if (e.data.size > 0) vfChunks.push(e.data); };
+      vfRecorder.onstop = () => {
+        vfBlob = new Blob(vfChunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(vfBlob);
+        const preview = document.getElementById('vf-preview');
+        preview.src = url; preview.style.display = 'block';
+        document.getElementById('send-voice-feedback-btn').disabled = false;
+        document.getElementById('vf-status').textContent = 'Recording ready. Preview above, then send.';
+        document.getElementById('vf-icon').textContent = '✅';
+        stream.getTracks().forEach(t => t.stop());
+      };
+      vfRecorder.start();
+      document.getElementById('vf-record-btn').style.display = 'none';
+      document.getElementById('vf-stop-btn').style.display = 'inline-flex';
+      document.getElementById('vf-icon').textContent = '🔴';
+      document.getElementById('vf-status').textContent = 'Recording...';
+      vfTimer = setInterval(() => {
+        vfSeconds++;
+        const m = Math.floor(vfSeconds / 60);
+        const s = vfSeconds % 60;
+        document.getElementById('vf-timer').textContent = m + ':' + String(s).padStart(2, '0');
+        if (vfSeconds >= 300) stopVoiceFeedback();
+      }, 1000);
+    } catch(e) { showToast('⚠️ Microphone access denied. Please allow mic access.'); }
+  }
+
+  window.stopVoiceFeedback = function() {
+    if (vfRecorder && vfRecorder.state !== 'inactive') vfRecorder.stop();
+    clearInterval(vfTimer);
+    document.getElementById('vf-stop-btn').style.display = 'none';
+    document.getElementById('vf-clear-btn').style.display = 'inline-flex';
+  }
+
+  window.clearVoiceFeedback = function() {
+    if (vfRecorder && vfRecorder.state !== 'inactive') { vfRecorder.stop(); }
+    clearInterval(vfTimer);
+    vfBlob = null; vfChunks = []; vfSeconds = 0;
+    document.getElementById('vf-timer').textContent = '0:00';
+    document.getElementById('vf-icon').textContent = '🎙️';
+    document.getElementById('vf-status').textContent = 'Tap record to start. Max 5 minutes.';
+    document.getElementById('vf-record-btn').style.display = 'inline-flex';
+    document.getElementById('vf-stop-btn').style.display = 'none';
+    document.getElementById('vf-clear-btn').style.display = 'none';
+    document.getElementById('vf-preview').style.display = 'none';
+    document.getElementById('vf-preview').src = '';
+    document.getElementById('send-voice-feedback-btn').disabled = true;
+  }
+
+  window.sendVoiceFeedback = async function() {
+    const studentUid = document.getElementById('feedback-student-select').value;
+    if (!studentUid) { showToast('⚠️ Please select a student.'); return; }
+    if (!vfBlob) { showToast('⚠️ Please record a voice feedback first.'); return; }
+    const btn = document.getElementById('send-voice-feedback-btn');
+    btn.disabled = true; btn.textContent = 'Uploading...';
+    try {
+      const CLOUDINARY_CLOUD = 'dl1rabt4f';
+      const CLOUDINARY_PRESET = 'huffazworld';
+      const formData = new FormData();
+      formData.append('file', vfBlob, 'voice-feedback.webm');
+      formData.append('upload_preset', CLOUDINARY_PRESET);
+      formData.append('folder', 'feedback');
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/video/upload`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!data.secure_url) throw new Error('Upload failed');
+      const audioUrl = data.secure_url;
+
+      const select = document.getElementById('feedback-student-select');
+      const studentName = select.options[select.selectedIndex]?.text || 'Student';
+      await addDoc(collection(db, 'feedback'), {
+        teacherUid: currentUser.uid,
+        teacherName: currentUserData.fullname || 'Teacher',
+        studentUid, studentName,
+        type: 'voice',
+        audioUrl,
+        text: '🎙️ Voice feedback',
+        classId: currentUser.uid,
+        createdAt: new Date().toISOString()
+      });
+      await setDoc(doc(db, 'notifications', 'feedback_voice_' + currentUser.uid + '_' + studentUid + '_' + Date.now()), {
+        toUid: studentUid, type: 'teacher_feedback',
+        message: '🎙️ <strong>' + (currentUserData.fullname || 'Your teacher') + '</strong> sent you a voice feedback!',
+        fromUid: currentUser.uid, fromName: currentUserData.fullname || 'Teacher',
+        read: false, createdAt: new Date().toISOString()
+      });
+      clearVoiceFeedback();
+      document.getElementById('feedback-student-select').value = '';
+      showToast('🎙️ Voice feedback sent to ' + studentName + '! 🤲');
+      loadAllFeedback();
+    } catch(e) { console.error(e); showToast('Could not send voice feedback. Try again.'); }
+    btn.disabled = false; btn.textContent = '🎙️ Send Voice Feedback';
+  }
+
   window.sendFeedback = async function() {
     const studentUid = document.getElementById('feedback-student-select').value;
     const text = document.getElementById('feedback-text-input').value.trim();
@@ -618,10 +773,14 @@
       const docs = snap.docs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
       list.innerHTML = docs.map(d => {
         const n = d.data();
+        const isVoice = n.type === 'voice' && n.audioUrl;
         return `<div class="feedback-item">
           <button class="feedback-delete-btn" onclick="deleteFeedback('${d.id}')">🗑️</button>
-          <div class="feedback-item-student">👤 ${n.studentName || 'Student'}</div>
-          <div class="feedback-item-text">${n.note}</div>
+          <div class="feedback-item-student">👤 ${n.studentName || 'Student'} · ${isVoice ? '🎙️ Voice' : '✍️ Written'}</div>
+          ${isVoice
+            ? `<audio src="${n.audioUrl}" controls style="width:100%;margin-top:0.4rem;border-radius:8px;"></audio>`
+            : `<div class="feedback-item-text">${n.note || n.text || ''}</div>`
+          }
           <div class="feedback-item-date">📅 ${n.createdAt ? n.createdAt.split('T')[0] : ''}</div>
         </div>`;
       }).join('');

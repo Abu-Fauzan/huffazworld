@@ -1085,7 +1085,10 @@
         // Set classroom nav link based on role (mobile + desktop)
         const classLink = document.getElementById('more-class-link');
         const desktopClassLink = document.getElementById('desktop-class-link');
-        if (currentUserData.role === 'Teacher') {
+        if (currentUserData.role === 'School Admin') {
+          if (classLink) { classLink.href = 'school-admin.html'; classLink.querySelector('.di-icon').textContent = '🏫'; classLink.querySelector('.di-label').textContent = 'School'; }
+          if (desktopClassLink) { desktopClassLink.href = 'school-admin.html'; desktopClassLink.textContent = '🏫 School'; }
+        } else if (currentUserData.role === 'Teacher') {
           if (classLink) { classLink.href = 'classroom.html'; classLink.querySelector('.di-icon').textContent = '👨‍🏫'; classLink.querySelector('.di-label').textContent = 'Classroom'; }
           if (desktopClassLink) { desktopClassLink.href = 'classroom.html'; desktopClassLink.textContent = '👨‍🏫 Classroom'; }
         } else {

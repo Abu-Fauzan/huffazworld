@@ -113,6 +113,7 @@
     <div class="class-header">
       <div class="class-header-name" id="ch-name">Loading...</div>
       <div class="class-header-teacher" id="ch-teacher"></div>
+      <div id="ch-school" style="display:none;margin-bottom:0.6rem;font-size:0.75rem;font-weight:700;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);padding:0.25rem 0.7rem;border-radius:50px;width:fit-content;"></div>
       <div class="class-header-stats">
         <div>
           <div class="ch-stat-val" id="ch-tasks-total">0</div>
@@ -282,8 +283,8 @@
         const s = recorders[taskId].seconds;
         const m = Math.floor(s / 60);
         document.getElementById('rec-timer-' + taskId).textContent = m + ':' + String(s % 60).padStart(2, '0');
-        // Max 3 minutes
-        if (s >= 180) stopRecording(taskId);
+        // Max 5 minutes
+        if (s >= 300) stopRecording(taskId);
       }, 1000);
 
     } catch(e) {
@@ -410,15 +411,24 @@
   async function loadFeedback() {
     const list = document.getElementById('feedback-list');
     try {
-      const snap = await getDocs(query(collection(db,'teacherNotes',myClassData.teacherUid,'notes'), where('studentUid','==',currentUser.uid)));
-      if (snap.empty) { list.innerHTML = '<div class="empty-state">No feedback yet from your teacher.</div>'; return; }
-      // Sort newest first in JS
-      const docs = snap.docs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
-      list.innerHTML = docs.map(d => {
-        const n = d.data();
+      // Load both written notes and voice feedback
+      const [notesSnap, feedbackSnap] = await Promise.all([
+        getDocs(query(collection(db,'teacherNotes',myClassData.teacherUid,'notes'), where('studentUid','==',currentUser.uid))),
+        getDocs(query(collection(db,'feedback'), where('studentUid','==',currentUser.uid), where('classId','==',myClassData.teacherUid)))
+      ]);
+      const allDocs = [
+        ...notesSnap.docs.map(d => ({ id: d.id, ...d.data(), _type: 'written' })),
+        ...feedbackSnap.docs.map(d => ({ id: d.id, ...d.data(), _type: d.data().type || 'written' }))
+      ].sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+      if (!allDocs.length) { list.innerHTML = '<div class="empty-state">No feedback yet from your teacher.</div>'; return; }
+      list.innerHTML = allDocs.map(n => {
+        const isVoice = n._type === 'voice' && n.audioUrl;
         return `<div class="feedback-item">
-          <div class="feedback-from">👨‍🏫 ${myClassData.teacherName}</div>
-          <div class="feedback-text">${n.note}</div>
+          <div class="feedback-from">👨‍🏫 ${myClassData.teacherName} · ${isVoice ? '🎙️ Voice' : '✍️ Written'}</div>
+          ${isVoice
+            ? `<audio src="${n.audioUrl}" controls style="width:100%;margin-top:0.4rem;border-radius:8px;"></audio>`
+            : `<div class="feedback-text">${n.note || n.text || ''}</div>`
+          }
           <div class="feedback-date">${n.createdAt ? n.createdAt.split('T')[0] : ''}</div>
         </div>`;
       }).join('');
@@ -446,6 +456,20 @@
             myClassData = { id: classSnap.id, ...classSnap.data() };
             document.getElementById('ch-name').textContent = myClassData.name;
             document.getElementById('ch-teacher').textContent = '👨‍🏫 ' + myClassData.teacherName + ' · ' + (myClassData.level||'');
+
+            // Show school name if teacher belongs to a school
+            const teacherSnap = await getDoc(doc(db, 'users', myClassData.teacherUid));
+            if (teacherSnap.exists() && teacherSnap.data().schoolId) {
+              const schoolSnap = await getDoc(doc(db, 'schools', teacherSnap.data().schoolId));
+              if (schoolSnap.exists()) {
+                const schoolEl = document.getElementById('ch-school');
+                if (schoolEl) {
+                  schoolEl.textContent = '🏫 ' + schoolSnap.data().name;
+                  schoolEl.style.display = 'inline-flex';
+                }
+              }
+            }
+
             document.getElementById('class-content').style.display = 'block';
             await loadTasks();
             await loadFeedback();
