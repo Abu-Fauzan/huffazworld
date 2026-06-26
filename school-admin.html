@@ -247,6 +247,7 @@
         <button class="tab-btn active" onclick="switchTab('teachers', this)">👨‍🏫 Teachers</button>
         <button class="tab-btn" onclick="switchTab('students', this)">👥 Students</button>
         <button class="tab-btn" onclick="switchTab('announce', this)">📢 Announce</button>
+        <button class="tab-btn" onclick="switchTab('reports', this)">📊 Reports</button>
         <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ Settings</button>
       </div>
 
@@ -277,6 +278,7 @@
           <select id="ann-target-input">
             <option value="all">👥 All Teachers & Students</option>
             <option value="teachers">👨‍🏫 Teachers Only</option>
+            <option value="students">🎓 Students Only</option>
           </select>
         </div>
         <button class="submit-btn" id="ann-btn" onclick="postAnnouncement()" style="margin-bottom:1.25rem;">📢 Post Announcement</button>
@@ -285,6 +287,13 @@
           <div class="section-title" style="margin-bottom:0.75rem;">📋 Past Announcements</div>
           <div id="ann-list"><div class="empty-state">No announcements yet.</div></div>
         </div>
+      </div>
+
+      <!-- REPORTS TAB -->
+      <div class="tab-content" id="tab-reports">
+        <div class="section-title" style="margin-bottom:0.5rem;">📊 Teacher Reports</div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;">Reports sent by your teachers about their classroom progress.</div>
+        <div id="reports-list"><div class="empty-state">No reports received yet.</div></div>
       </div>
 
       <!-- SETTINGS TAB -->
@@ -368,6 +377,7 @@
     if (tab === 'teachers') loadTeachers();
     if (tab === 'students') loadAllStudents();
     if (tab === 'announce') loadAnnouncements();
+    if (tab === 'reports') loadReports();
   }
 
   // ── GENERATE CODE ──
@@ -567,16 +577,46 @@
         adminName: currentUserData.fullname || 'School Admin',
         createdAt: new Date().toISOString()
       });
-      // Notify teachers
       const teachers = mySchool.teachers || [];
-      await Promise.all(teachers.map(uid =>
-        setDoc(doc(db, 'notifications', 'ann_' + currentUser.uid + '_' + uid + '_' + Date.now()), {
-          toUid: uid, type: 'school_announcement',
-          message: '📢 <strong>' + mySchool.name + '</strong>: ' + title,
-          fromUid: currentUser.uid, fromName: currentUserData.fullname || 'School Admin',
-          read: false, createdAt: new Date().toISOString()
-        })
-      ));
+      const target = document.getElementById('ann-target-input').value;
+
+      // Gather student UIDs if needed
+      let studentUids = [];
+      if (target === 'all' || target === 'students') {
+        await Promise.all(teachers.map(async teacherUid => {
+          try {
+            const classSnap = await getDoc(doc(db, 'classes', teacherUid));
+            if (classSnap.exists()) {
+              studentUids = studentUids.concat(classSnap.data().students || []);
+            }
+          } catch(e) {}
+        }));
+      }
+
+      // Notify teachers
+      const ts = Date.now();
+      if (target === 'all' || target === 'teachers') {
+        await Promise.all(teachers.map(uid =>
+          setDoc(doc(db, 'notifications', 'ann_t_' + uid + '_' + ts), {
+            toUid: uid, type: 'school_announcement',
+            message: '📢 <strong>' + mySchool.name + '</strong>: ' + title,
+            fromUid: currentUser.uid, fromName: currentUserData.fullname || 'School Admin',
+            read: false, createdAt: new Date().toISOString()
+          })
+        ));
+      }
+
+      // Notify students
+      if (target === 'all' || target === 'students') {
+        await Promise.all(studentUids.map(uid =>
+          setDoc(doc(db, 'notifications', 'ann_s_' + uid + '_' + ts), {
+            toUid: uid, type: 'school_announcement',
+            message: '📢 <strong>' + mySchool.name + '</strong>: ' + title,
+            fromUid: currentUser.uid, fromName: currentUserData.fullname || 'School Admin',
+            read: false, createdAt: new Date().toISOString()
+          })
+        ));
+      }
       document.getElementById('ann-title-input').value = '';
       document.getElementById('ann-msg-input').value = '';
       showToast('📢 Announcement posted! Teachers notified.');
@@ -593,7 +633,7 @@
       const docs = snap.docs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
       list.innerHTML = docs.map(d => {
         const a = d.data();
-        const targetLabel = a.target === 'teachers' ? '👨‍🏫 Teachers only' : '👥 All';
+        const targetLabel = a.target === 'teachers' ? '👨‍🏫 Teachers only' : a.target === 'students' ? '🎓 Students only' : '👥 All Teachers & Students';
         return `<div class="announce-item">
           <button class="announce-delete" onclick="deleteAnnouncement('${d.id}')">🗑️</button>
           <div class="announce-title">${a.title}</div>
@@ -642,6 +682,37 @@
       document.querySelector('#no-school-section .section').style.display = 'block';
       showToast('School profile deleted.');
     } catch(e) { showToast('Could not delete.'); }
+  }
+
+  // ── LOAD TEACHER REPORTS ──
+  async function loadReports() {
+    const list = document.getElementById('reports-list');
+    if (!list || !mySchool) return;
+    list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:0.8rem;">Loading reports...</div>';
+    try {
+      const snap = await getDocs(collection(db, 'schools', currentUser.uid, 'reports'));
+      if (snap.empty) { list.innerHTML = '<div class="empty-state">No reports received yet.</div>'; return; }
+      const docs = snap.docs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
+      list.innerHTML = docs.map(d => {
+        const r = d.data();
+        return `<div style="background:var(--cream);border-radius:12px;padding:1rem;margin-bottom:0.75rem;border-left:3px solid var(--emerald);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:0.88rem;font-weight:700;color:var(--text);">${r.title}</div>
+              <div style="font-size:0.72rem;color:var(--muted);margin-top:0.15rem;">👨‍🏫 ${r.teacherName} · 📖 ${r.className} · ${r.type}</div>
+              <div style="font-size:0.7rem;color:var(--muted);">📅 ${r.createdAt ? r.createdAt.split('T')[0] : ''}</div>
+            </div>
+            <span style="background:var(--emerald-light);color:var(--emerald-dark);font-size:0.68rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:50px;white-space:nowrap;">${r.type}</span>
+          </div>
+          <div style="font-size:0.82rem;color:var(--text);margin-top:0.6rem;white-space:pre-wrap;">${r.message}</div>
+          <div style="display:flex;gap:1rem;margin-top:0.6rem;font-size:0.7rem;color:var(--muted);">
+            <span>👥 ${r.stats?.totalStudents||0} students</span>
+            <span>🎙️ ${r.stats?.totalRecitations||0} recitations</span>
+            <span>📋 ${r.stats?.totalTasks||0} tasks</span>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) { list.innerHTML = '<div class="empty-state">Could not load reports.</div>'; }
   }
 
   // ── AUTH ──

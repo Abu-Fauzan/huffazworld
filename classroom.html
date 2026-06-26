@@ -161,7 +161,7 @@
   </div>
 
   <!-- SCHOOL LINK BANNER (shown to teachers not yet in a school) -->
-  <div id="school-join-banner" style="display:none;background:var(--white);border:1.5px solid rgba(201,168,76,0.25);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:none;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;">
+  <div id="school-join-banner" style="display:none;background:var(--white);border:1.5px solid rgba(201,168,76,0.25);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;">
     <div>
       <div style="font-size:0.88rem;font-weight:700;color:var(--emerald-dark);">🏫 Link to a School</div>
       <div style="font-size:0.75rem;color:var(--muted);margin-top:0.15rem;">Join your school to appear in their dashboard</div>
@@ -252,6 +252,7 @@
         <button class="tab-btn" onclick="switchTab('tasks', this)">📋 Tasks</button>
         <button class="tab-btn" onclick="switchTab('recitations', this)">🎙️ Recitations</button>
         <button class="tab-btn" onclick="switchTab('feedback', this)">💬 Feedback</button>
+        <button class="tab-btn" onclick="switchTab('report', this)">📊 Report</button>
         <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ Settings</button>
       </div>
 
@@ -355,6 +356,50 @@
       </div>
 
       <!-- SETTINGS TAB -->
+      <!-- REPORT TAB -->
+      <div class="tab-content" id="tab-report">
+        <div class="section-title" style="margin-bottom:0.25rem;">📊 Send Report to School Admin</div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;" id="report-school-label">Loading school info...</div>
+
+        <div id="no-school-report" style="display:none;text-align:center;padding:2rem 1rem;background:var(--cream);border-radius:12px;">
+          <div style="font-size:2rem;margin-bottom:0.5rem;">🏫</div>
+          <div style="font-size:0.88rem;font-weight:700;color:var(--emerald-dark);margin-bottom:0.3rem;">Not linked to a school</div>
+          <div style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;">Join a school first to send reports to your admin.</div>
+          <a href="join-school.html" style="background:var(--emerald);color:white;border-radius:10px;padding:0.5rem 1.1rem;font-size:0.82rem;font-weight:700;text-decoration:none;">Join a School →</a>
+        </div>
+
+        <div id="report-form" style="display:none;">
+          <div class="form-group">
+            <label>Report Type</label>
+            <select id="report-type-select" style="width:100%;border:1.5px solid rgba(201,168,76,0.25);border-radius:10px;padding:0.65rem 0.85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);outline:none;">
+              <option value="Weekly Progress">📅 Weekly Progress</option>
+              <option value="Monthly Summary">📆 Monthly Summary</option>
+              <option value="Student Concern">⚠️ Student Concern</option>
+              <option value="Achievement">🏅 Achievement / Good News</option>
+              <option value="Request">📩 Request to Admin</option>
+              <option value="Other">📝 Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Report Title</label>
+            <input type="text" id="report-title-input" placeholder="e.g. Weekly progress update – Juz 1 class" style="width:100%;border:1.5px solid rgba(201,168,76,0.25);border-radius:10px;padding:0.65rem 0.85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);outline:none;"/>
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea id="report-msg-input" rows="5" placeholder="e.g. Alhamdulillah, 8 out of 10 students completed their Juz 1 recitation this week. 2 students need extra attention on Tajweed rules..." style="width:100%;border:1.5px solid rgba(201,168,76,0.25);border-radius:10px;padding:0.65rem 0.85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;color:var(--text);background:var(--cream);outline:none;resize:none;"></textarea>
+          </div>
+          <div style="background:var(--emerald-light);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.78rem;color:var(--emerald-dark);">
+            📊 <strong>Auto-included with your report:</strong> Total students, number of active recitations, and tasks assigned.
+          </div>
+          <button class="submit-btn" id="send-report-btn" onclick="sendReport()">📊 Send Report to Admin</button>
+        </div>
+
+        <div style="border-top:1px solid rgba(201,168,76,0.15);padding-top:1rem;margin-top:1.25rem;" id="past-reports-section" style="display:none;">
+          <div class="section-title" style="margin-bottom:0.75rem;">📋 Past Reports</div>
+          <div id="past-reports-list"><div class="empty-state">No reports sent yet.</div></div>
+        </div>
+      </div>
+
       <div class="tab-content" id="tab-settings">
         <div class="form-group">
           <label>Class Name</label>
@@ -429,6 +474,7 @@
     btn.classList.add('active');
     if (tab === 'feedback') loadFeedbackTab();
     if (tab === 'recitations') loadRecitations();
+    if (tab === 'report') initReportTab();
   }
 
   // ── GENERATE CLASS CODE ──
@@ -911,6 +957,102 @@
     } catch(e) { showToast('Could not delete.'); }
   }
 
+  // ── REPORT TO ADMIN ──
+  window.sendReport = async function() {
+    const title = document.getElementById('report-title-input').value.trim();
+    const msg = document.getElementById('report-msg-input').value.trim();
+    const type = document.getElementById('report-type-select').value;
+    if (!title) { showToast('⚠️ Please enter a report title.'); return; }
+    if (!msg) { showToast('⚠️ Please write your report message.'); return; }
+    if (!currentUserData.schoolId) { showToast('⚠️ You are not linked to a school.'); return; }
+
+    const btn = document.getElementById('send-report-btn');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    try {
+      // Gather auto stats
+      const [recSnap, taskSnap] = await Promise.all([
+        getDocs(query(collection(db, 'recitations'), where('classId','==',currentUser.uid))),
+        getDocs(query(collection(db, 'tasks'), where('classId','==',currentUser.uid)))
+      ]);
+      const studentCount = myClass ? (myClass.students || []).length : 0;
+      const stats = {
+        totalStudents: studentCount,
+        totalRecitations: recSnap.size,
+        totalTasks: taskSnap.size
+      };
+
+      // Save report to Firestore
+      await addDoc(collection(db, 'schools', currentUserData.schoolId, 'reports'), {
+        teacherUid: currentUser.uid,
+        teacherName: currentUserData.fullname || 'Teacher',
+        className: myClass ? myClass.name : 'My Class',
+        type, title, message: msg, stats,
+        createdAt: new Date().toISOString()
+      });
+
+      // Notify admin
+      const schoolSnap = await getDoc(doc(db, 'schools', currentUserData.schoolId));
+      if (schoolSnap.exists()) {
+        const adminUid = schoolSnap.data().adminUid;
+        await setDoc(doc(db, 'notifications', 'report_' + currentUser.uid + '_' + Date.now()), {
+          toUid: adminUid,
+          type: 'teacher_report',
+          message: '📊 <strong>' + (currentUserData.fullname || 'A teacher') + '</strong> sent a report: <strong>' + title + '</strong>',
+          fromUid: currentUser.uid,
+          fromName: currentUserData.fullname || 'Teacher',
+          read: false,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      document.getElementById('report-title-input').value = '';
+      document.getElementById('report-msg-input').value = '';
+      showToast('📊 Report sent to your school admin! JazakAllahu Khayran 🤲');
+      loadPastReports();
+    } catch(e) { console.error(e); showToast('Could not send report. Try again.'); }
+    btn.disabled = false; btn.textContent = '📊 Send Report to Admin';
+  }
+
+  async function loadPastReports() {
+    if (!currentUserData.schoolId) return;
+    const list = document.getElementById('past-reports-list');
+    if (!list) return;
+    try {
+      const snap = await getDocs(query(
+        collection(db, 'schools', currentUserData.schoolId, 'reports'),
+        where('teacherUid', '==', currentUser.uid)
+      ));
+      if (snap.empty) { list.innerHTML = '<div class="empty-state">No reports sent yet.</div>'; return; }
+      const docs = snap.docs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
+      list.innerHTML = docs.map(d => {
+        const r = d.data();
+        return `<div style="background:var(--cream);border-radius:10px;padding:0.85rem;margin-bottom:0.6rem;border-left:3px solid var(--gold);">
+          <div style="font-size:0.88rem;font-weight:700;color:var(--text);">${r.title}</div>
+          <div style="font-size:0.72rem;color:var(--muted);margin:0.2rem 0;">📅 ${r.createdAt ? r.createdAt.split('T')[0] : ''} · ${r.type}</div>
+          <div style="font-size:0.8rem;color:var(--text);margin-top:0.3rem;white-space:pre-wrap;">${r.message}</div>
+          <div style="font-size:0.7rem;color:var(--muted);margin-top:0.4rem;">👥 ${r.stats?.totalStudents||0} students · 🎙️ ${r.stats?.totalRecitations||0} recitations · 📋 ${r.stats?.totalTasks||0} tasks</div>
+        </div>`;
+      }).join('');
+      document.getElementById('past-reports-section').style.display = 'block';
+    } catch(e) { list.innerHTML = '<div class="empty-state">Could not load reports.</div>'; }
+  }
+
+  async function initReportTab() {
+    if (!currentUserData.schoolId) {
+      document.getElementById('no-school-report').style.display = 'block';
+      document.getElementById('report-school-label').textContent = 'You are not linked to a school yet.';
+    } else {
+      document.getElementById('report-form').style.display = 'block';
+      try {
+        const schoolSnap = await getDoc(doc(db, 'schools', currentUserData.schoolId));
+        if (schoolSnap.exists()) {
+          document.getElementById('report-school-label').textContent = '🏫 Sending to: ' + schoolSnap.data().name;
+        }
+      } catch(e) {}
+      loadPastReports();
+    }
+  }
+
   // ── AUTH ──
   onAuthStateChanged(auth, async user => {
     if (user) {
@@ -928,6 +1070,12 @@
           document.getElementById('not-teacher-msg').style.display = 'block';
         } else {
           document.getElementById('teacher-content').style.display = 'block';
+
+          // Show school join banner if teacher has no school yet
+          if (!currentUserData.schoolId) {
+            const banner = document.getElementById('school-join-banner');
+            if (banner) banner.style.display = 'flex';
+          }
           // Load existing class
           const classSnap = await getDoc(doc(db, 'classes', user.uid));
           if (classSnap.exists()) {
