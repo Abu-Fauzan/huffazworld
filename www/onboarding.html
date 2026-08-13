@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<title>Welcome to HuffazWorld</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --emerald: #1A6B4A;
+    --emerald-dark: #0D3D29;
+    --emerald-light: #E6F5EE;
+    --gold: #C9A84C;
+    --gold-light: #F0D98A;
+    --cream: #FAF7F0;
+    --white: #FFFFFF;
+    --text: #1C2B22;
+    --muted: #5A7060;
+  }
+
+  html,
+  body {
+    width: 100%;
+    min-height: 100%;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background:
+      radial-gradient(
+        circle at 50% 0%,
+        rgba(26, 107, 74, 0.12),
+        transparent 55%
+      ),
+      var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .onboarding {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* ── TOP ── */
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.25rem 0.5rem;
+    min-height: 70px;
+  }
+
+  .brand {
+    font-family: 'Amiri', serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--emerald-dark);
+  }
+
+  .brand span {
+    color: var(--gold);
+  }
+
+  .skip-btn {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+
+  .skip-btn:hover {
+    color: var(--emerald);
+  }
+
+  /* ── SLIDES ── */
+
+  .slides {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    overflow: hidden;
+  }
+
+  .slide {
+    width: 100%;
+    max-width: 500px;
+    display: none;
+    text-align: center;
+    animation: slideIn 0.35s ease;
+  }
+
+  .slide.active {
+    display: block;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .hero-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1.5rem;
+    border-radius: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--emerald-light);
+    border: 1px solid rgba(201, 168, 76, 0.25);
+    box-shadow: 0 15px 40px rgba(13, 61, 41, 0.08);
+    font-size: 4rem;
+  }
+
+  .arabic {
+    font-family: 'Amiri', serif;
+    direction: rtl;
+    color: var(--gold);
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    color: var(--emerald-dark);
+    font-size: clamp(1.8rem, 7vw, 2.6rem);
+    line-height: 1.15;
+    margin-bottom: 0.75rem;
+    font-weight: 800;
+  }
+
+  h2 {
+    color: var(--emerald-dark);
+    font-size: clamp(1.4rem, 6vw, 2rem);
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+    font-weight: 800;
+  }
+
+  .description {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  /* ── FEATURES ── */
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    text-align: left;
+  }
+
+  .feature {
+    padding: 1rem;
+    background: var(--white);
+    border: 1px solid rgba(201, 168, 76, 0.18);
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(15, 26, 20, 0.05);
+  }
+
+  .feature-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .feature h3 {
+    color: var(--emerald-dark);
+    font-size: 0.82rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .feature p {
+    color: var(--muted);
+    font-size: 0.68rem;
+    line-height: 1.45;
+  }
+
+  /* ── JOURNEY ── */
+
+  .roles {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    margin-top: 1.5rem;
+  }
+
+  .role-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 1rem;
+    border-radius: 18px;
+    background: var(--white);
+    border: 1.5px solid rgba(201, 168, 76, 0.2);
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .role-card:hover {
+    border-color: var(--emerald);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(13, 61, 41, 0.08);
+  }
+
+  .role-icon {
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--emerald-light);
+    font-size: 1.7rem;
+  }
+
+  .role-card h3 {
+    color: var(--emerald-dark);
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .role-card p {
+    color: var(--muted);
+    font-size: 0.72rem;
+    line-height: 1.45;
+  }
+
+  /* ── FINAL CTA ── */
+
+  .final-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+
+  .cta-stack {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.95rem 1.2rem;
+    border-radius: 14px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary {
+    background: var(--emerald);
+    color: var(--white);
+    box-shadow: 0 10px 25px rgba(26, 107, 74, 0.18);
+  }
+
+  .btn-primary:hover {
+    background: var(--emerald-dark);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: var(--white);
+    color: var(--emerald);
+    border: 1.5px solid rgba(26, 107, 74, 0.2);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--emerald);
+    background: var(--emerald-light);
+  }
+
+  /* ── BOTTOM ── */
+
+  .bottom-bar {
+    padding: 0.75rem 1.25rem 1.5rem;
+  }
+
+  .dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #CBD8D1;
+    transition: all 0.25s ease;
+  }
+
+  .dot.active {
+    width: 24px;
+    border-radius: 10px;
+    background: var(--gold);
+  }
+
+  .next-btn {
+    display: block;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 0.95rem;
+    border: none;
+    border-radius: 14px;
+    background: var(--emerald);
+    color: var(--white);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(26, 107, 74, 0.16);
+  }
+
+  .next-btn:hover {
+    background: var(--emerald-dark);
+  }
+
+  @media (min-width: 600px) {
+    .top-bar {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+
+    .slides {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+
+    .bottom-bar {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+
+    .features {
+      gap: 1rem;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="onboarding">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="brand">Huffaz<span>World</span></div>
+    <button class="skip-btn" id="skipBtn">Skip</button>
+  </div>
+
+  <!-- SLIDES -->
+  <main class="slides">
+
+    <!-- SCREEN 1 -->
+    <section class="slide active" data-slide="0">
+      <div class="hero-icon">📖</div>
+
+      <div class="arabic">مجتمع الحفّاظ العالمي</div>
+
+      <h1>Welcome to HuffazWorld</h1>
+
+      <p class="description">
+        A global community for Qur'an learners, Huffāẓ and teachers —
+        built to help you learn, memorize, revise and grow.
+      </p>
+    </section>
+
+    <!-- SCREEN 2 -->
+    <section class="slide" data-slide="1">
+      <div class="hero-icon">✨</div>
+
+      <h2>Learn. Memorize. Revise. Connect.</h2>
+
+      <p class="description">
+        Everything you need to strengthen your Qur'an journey
+        in one growing community.
+      </p>
+
+      <div class="features">
+
+        <div class="feature">
+          <div class="feature-icon">📖</div>
+          <h3>Qur'an Learning</h3>
+          <p>
+            Memorize, revise and strengthen your relationship
+            with the Qur'an.
+          </p>
+        </div>
+
+        <div class="feature">
+          <div class="feature-icon">🎤</div>
+          <h3>Recitation & Feedback</h3>
+          <p>
+            Record your recitation and receive guidance from
+            your teacher.
+          </p>
+        </div>
+
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <h3>Track Progress</h3>
+          <p>
+            Follow your memorization and revision journey.
+          </p>
+        </div>
+
+        <div class="feature">
+          <div class="feature-icon">🌍</div>
+          <h3>Global Community</h3>
+          <p>
+            Connect with Qur'an learners, Huffāẓ and teachers.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SCREEN 3 -->
+    <section class="slide" data-slide="2">
+      <div class="hero-icon">🌱</div>
+
+      <h2>Choose Your Journey</h2>
+
+      <p class="description">
+        Whether you are learning or teaching, HuffazWorld
+        gives you tools to grow with the Qur'an.
+      </p>
+
+      <div class="roles">
+
+        <button class="role-card" onclick="chooseRole('Student')">
+          <div class="role-icon">📖</div>
+
+          <div>
+            <h3>I'm a Student</h3>
+            <p>
+              Learn Qur'an, memorize, revise and receive
+              teacher feedback.
+            </p>
+          </div>
+        </button>
+
+        <button class="role-card" onclick="chooseRole('Teacher')">
+          <div class="role-icon">👨‍🏫</div>
+
+          <div>
+            <h3>I'm a Teacher</h3>
+            <p>
+              Teach students, monitor their progress and
+              provide meaningful feedback.
+            </p>
+          </div>
+        </button>
+
+      </div>
+    </section>
+
+    <!-- SCREEN 4 -->
+    <section class="slide" data-slide="3">
+      <div class="final-icon">🌙</div>
+
+      <div class="arabic">بسم الله</div>
+
+      <h2>Your Qur'an Journey Starts Here</h2>
+
+      <p class="description">
+        Join HuffazWorld and become part of a community
+        dedicated to learning, memorizing and living the Qur'an.
+      </p>
+
+      <div class="cta-stack">
+
+        <button class="btn btn-primary" id="createBtn">
+          🚀 Create Free Account
+        </button>
+
+        <button class="btn btn-secondary" id="loginBtn">
+          🔐 Sign In
+        </button>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM -->
+  <div class="bottom-bar">
+
+    <div class="dots">
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+
+    <button class="next-btn" id="nextBtn">
+      Continue →
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+  // ── HUFFAZWORLD ONBOARDING ──
+
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.dot');
+  const nextBtn = document.getElementById('nextBtn');
+  const skipBtn = document.getElementById('skipBtn');
+  const createBtn = document.getElementById('createBtn');
+  const loginBtn = document.getElementById('loginBtn');
+
+  let currentSlide = 0;
+
+  function showSlide(index) {
+    currentSlide = index;
+
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('active', i === index);
+    });
+
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+    });
+
+    if (index === slides.length - 1) {
+      nextBtn.style.display = 'none';
+      skipBtn.style.display = 'none';
+    } else {
+      nextBtn.style.display = 'block';
+      skipBtn.style.display = 'block';
+    }
+  }
+
+  function finishOnboarding() {
+    localStorage.setItem('huffazworld_onboarding_seen', 'true');
+    window.location.href = 'login.html';
+  }
+
+  function nextSlide() {
+    if (currentSlide < slides.length - 1) {
+      showSlide(currentSlide + 1);
+    }
+  }
+
+  window.chooseRole = function(role) {
+    localStorage.setItem('huffazworld_onboarding_role', role);
+
+    // Move to the final onboarding screen.
+    showSlide(3);
+  };
+
+  nextBtn.addEventListener('click', nextSlide);
+
+  skipBtn.addEventListener('click', finishOnboarding);
+
+  createBtn.addEventListener('click', () => {
+    localStorage.setItem('huffazworld_onboarding_seen', 'true');
+    window.location.href = 'signup.html';
+  });
+
+  loginBtn.addEventListener('click', () => {
+    localStorage.setItem('huffazworld_onboarding_seen', 'true');
+    window.location.href = 'login.html';
+  });
+
+  // Start from the first screen.
+  showSlide(0);
+</script>
+
+<!-- Android Back Button -->
+<script src="js/android-navigation.js"></script>
+
+</body>
+</html>

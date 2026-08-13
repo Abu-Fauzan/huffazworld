@@ -256,9 +256,27 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
-  // If already logged in → go straight to dashboard
+    // ── HUFFAZWORLD ENTRY ROUTING ──
   onAuthStateChanged(auth, user => {
-    if (user) window.location.href = 'dashboard.html';
+
+    // Already authenticated → go straight to dashboard
+    if (user) {
+      window.location.href = 'dashboard.html';
+      return;
+    }
+
+    // Not authenticated → check whether onboarding was completed
+    const onboardingSeen = localStorage.getItem(
+      'huffazworld_onboarding_seen'
+    );
+
+    if (onboardingSeen === 'true') {
+      // Returning visitor → go to login
+      window.location.href = 'login.html';
+    } else {
+      // First-time visitor → show onboarding
+      window.location.href = 'onboarding.html';
+    }
   });
 
 </script>
