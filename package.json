@@ -20,6 +20,7 @@
   "homepage": "https://github.com/Abu-Fauzan/huffazworld#readme",
   "dependencies": {
     "@capacitor/android": "^8.4.2",
+    "@capacitor/app": "^8.1.1",
     "@capacitor/cli": "^8.4.2",
     "@capacitor/core": "^8.4.2"
   }
