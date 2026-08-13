@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HuffazWorld</string>
+    <string name="title_activity_main">HuffazWorld</string>
+    <string name="package_name">com.huffazworld.app</string>
+    <string name="custom_url_scheme">com.huffazworld.app</string>
+</resources>

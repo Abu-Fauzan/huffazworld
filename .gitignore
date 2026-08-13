@@ -1,0 +1,24 @@
+# Node dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Android/Gradle generated files
+.gradle/
+**/build/
+**/.gradle/
+local.properties
+
+# Generated ZIP backup
+android.zip
+
+# IDE files
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Search – HuffazWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F0D98A;
+    --emerald: #1A6B4A; --emerald-light: #E6F5EE; --emerald-dark: #0D3D29;
+    --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+
+  nav { background: var(--emerald-dark); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .nav-logo { font-family: 'Amiri', serif; font-size: 1.5rem; font-weight: 700; color: white; text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-link { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.88rem; font-weight: 500; }
+  .nav-link:hover { color: white; }
+  .nav-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-decoration: none; }
+  .logout-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 0.4rem 0.9rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .search-hero { text-align: center; margin-bottom: 2.5rem; }
+  .search-hero h1 { font-family: 'Amiri', serif; font-size: 2.5rem; color: var(--emerald-dark); margin-bottom: 0.5rem; }
+  .search-hero p { color: var(--muted); font-size: 1rem; margin-bottom: 1.5rem; }
+
+  .search-box { position: relative; max-width: 600px; margin: 0 auto; }
+  .search-input { width: 100%; padding: 1rem 1rem 1rem 3rem; border: 2px solid rgba(201,168,76,0.3); border-radius: 16px; font-size: 1rem; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); background: var(--white); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+  .search-input:focus { border-color: var(--emerald); box-shadow: 0 0 0 4px rgba(26,107,74,0.1); }
+  .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.1rem; pointer-events: none; }
+
+  .filters { display: flex; gap: 0.6rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
+  .filter-btn { padding: 0.45rem 1rem; border-radius: 50px; border: 1.5px solid rgba(201,168,76,0.25); background: var(--white); font-size: 0.82rem; font-weight: 600; color: var(--muted); cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s; }
+  .filter-btn.active { background: var(--emerald); color: white; border-color: var(--emerald); }
+  .filter-btn:hover { border-color: var(--emerald); color: var(--emerald); }
+  .filter-btn.active:hover { color: white; }
+
+  .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+  .results-count { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+
+  .users-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+
+  .user-card { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 18px; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden; }
+  .user-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg, var(--emerald), var(--gold)); opacity:0; transition: opacity 0.2s; }
+  .user-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(15,26,20,0.1); }
+  .user-card:hover::before { opacity: 1; }
+
+  .user-card-top { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+  .user-card-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Amiri', serif; font-size: 1.2rem; font-weight: 700; flex-shrink: 0; }
+  .user-card-name { font-size: 1rem; font-weight: 700; color: var(--emerald-dark); }
+  .user-card-role { display: inline-block; font-size: 0.72rem; background: var(--emerald-light); color: var(--emerald); padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 600; margin-top: 0.2rem; }
+  .user-card-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .user-card-meta span { display: flex; align-items: center; gap: 0.35rem; }
+  .user-card-actions { display: flex; gap: 0.5rem; }
+  .btn-follow { flex: 1; background: var(--emerald); color: white; border: none; border-radius: 10px; padding: 0.55rem; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.2s; }
+  .btn-follow:hover { background: var(--emerald-dark); }
+  .btn-follow.following { background: var(--emerald-light); color: var(--emerald-dark); border: 1.5px solid var(--emerald); }
+  .btn-follow.pending { background: #fff8e1; color: #856404; border: 1.5px solid #ffc107; cursor: pointer; }
+  .btn-follow.following { background: var(--emerald-light); color: var(--emerald-dark); }
+  .btn-msg { background: var(--cream); color: var(--emerald); border: 1.5px solid rgba(26,107,74,0.2); border-radius: 10px; padding: 0.55rem 0.8rem; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+  .empty-state { text-align: center; padding: 4rem 1rem; color: var(--muted); }
+  .empty-state .icon { font-size: 3.5rem; margin-bottom: 1rem; }
+  .empty-state h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 0.5rem; }
+
+  .loading-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 1rem; }
+  .skeleton { background: var(--white); border-radius: 18px; padding: 1.5rem; border: 1px solid rgba(201,168,76,0.1); }
+  .skel-line { background: linear-gradient(90deg, #f0ebe0 25%, #e8e0d0 50%, #f0ebe0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; margin-bottom: 0.6rem; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  #loading { position: fixed; inset: 0; background: var(--cream); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
+  #loading .logo { font-family: 'Amiri', serif; font-size: 2.5rem; font-weight: 700; color: var(--emerald-dark); }
+  #loading .logo span { color: var(--gold); }
+  .loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); display: inline-block; animation: bounce 1.2s infinite; margin: 0 3px; }
+  .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100%{transform:scale(0.6)} 40%{transform:scale(1)} }
+
+  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--emerald-dark); color: white; padding: 0.75rem 1.5rem; border-radius: 12px; font-size: 0.88rem; font-weight: 600; z-index: 9999; transition: transform 0.3s; pointer-events: none; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 768px) {
+    .users-grid { grid-template-columns: 1fr; }
+    .container { padding: 1rem; }
+    .search-hero h1 { font-size: 1.8rem; }
+    .filters { gap: 0.4rem; }
+    .filter-btn { font-size: 0.75rem; padding: 0.35rem 0.75rem; }
+    body { padding-bottom: 70px; }
+  }
+  @media (max-width: 480px) {
+    .search-hero h1 { font-size: 1.5rem; }
+    .user-card { padding: 1rem; }
+  }
+
+  /* MOBILE BOTTOM NAV */
+  .mobile-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--emerald-dark);
+    border-top: 1px solid rgba(201,168,76,0.2);
+    padding: 0.5rem 0 0.75rem;
+    z-index: 200;
+  }
+  .mobile-nav-inner {
+    display: flex; justify-content: space-around; align-items: center;
+  }
+  .mobile-nav-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.2rem; text-decoration: none; cursor: pointer;
+    flex: 1; padding: 0.3rem 0;
+    border: none; background: none; font-family: "Plus Jakarta Sans", sans-serif;
+  }
+  .mobile-nav-item .m-icon { font-size: 1.3rem; }
+  .mobile-nav-item .m-label { font-size: 0.62rem; font-weight: 600; color: rgba(255,255,255,0.55); }
+  .mobile-nav-item.active .m-label { color: var(--gold); }
+  .mobile-nav-item.active .m-icon { filter: drop-shadow(0 0 4px rgba(201,168,76,0.6)); }
+  .mobile-nav-post {
+    background: var(--gold); border-radius: 50%;
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; margin-top: -1.2rem;
+    border: 3px solid var(--emerald-dark);
+    box-shadow: 0 4px 16px rgba(201,168,76,0.4);
+    cursor: pointer; text-decoration: none;
+    flex-shrink: 0;
+  }
+  @media (max-width: 768px) {
+    .mobile-nav { display: block; }
+    body { padding-bottom: 70px; }
+    .nav-links-desktop { display: none !important; }
+    nav { padding: 0.85rem 1.25rem; }
+  }
+
+
+  /* HIDE TOP NAV LINKS ON MOBILE */
+  @media (max-width: 768px) {
+    .nav-right .nav-link,
+    .nav-right .logout-btn,
+    .nav-right .nav-avatar {
+      display: none !important;
+    }
+    .nav-right .nav-avatar { display: none !important; }
+    .nav-right .msg-nav-link { display: inline-flex !important; }
+    .nav-right .group-nav-link { display: inline-flex !important; }
+    nav { justify-content: space-between; }
+  }
+
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="logo">Huffaz<span>World</span></div>
+  <div style="margin-top:1rem;"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="app" style="display:none;">
+  <nav>
+    <a href="dashboard.html" class="nav-logo">Huffaz<span>World</span></a>
+    <div class="nav-right">
+      <a href="messages.html" class="nav-link msg-nav-link" style="font-size:1.2rem;">💬</a>
+      <a href="dashboard.html" class="nav-link">🏠 Feed</a>
+      <a href="profile.html" class="nav-avatar" id="nav-avatar">?</a>
+      <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="search-hero">
+      <h1>Find Huffaz Worldwide 🌍</h1>
+      <p>Search for Huffaz, students, and teachers from across the globe</p>
+
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="search-input" type="text" placeholder="Search by name, country, or role..." oninput="handleSearch()" />
+      </div>
+
+      <div class="filters">
+        <button class="filter-btn active" onclick="setFilter('all', this)">🌍 All</button>
+        <button class="filter-btn" onclick="setFilter('Hafiz', this)">🏅 Huffaz</button>
+        <button class="filter-btn" onclick="setFilter('Teacher', this)">🎓 Teachers</button>
+        <button class="filter-btn" onclick="setFilter('Student', this)">📖 Students</button>
+        <button class="filter-btn" onclick="setFilter('Nigeria', this)">🇳🇬 Nigeria</button>
+        <button class="filter-btn" onclick="setFilter('Saudi Arabia', this)">🇸🇦 Saudi Arabia</button>
+        <button class="filter-btn" onclick="setFilter('Pakistan', this)">🇵🇰 Pakistan</button>
+      </div>
+    </div>
+
+    <div class="results-header">
+      <div class="results-count" id="results-count">Loading members...</div>
+    </div>
+
+    <div id="users-container">
+      <div class="loading-grid">
+        <div class="skeleton"><div class="skel-line" style="width:52px;height:52px;border-radius:50%;margin-bottom:1rem;"></div><div class="skel-line" style="width:70%;height:16px;"></div><div class="skel-line" style="width:50%;height:12px;"></div></div>
+        <div class="skeleton"><div class="skel-line" style="width:52px;height:52px;border-radius:50%;margin-bottom:1rem;"></div><div class="skel-line" style="width:70%;height:16px;"></div><div class="skel-line" style="width:50%;height:12px;"></div></div>
+        <div class="skeleton"><div class="skel-line" style="width:52px;height:52px;border-radius:50%;margin-bottom:1rem;"></div><div class="skel-line" style="width:70%;height:16px;"></div><div class="skel-line" style="width:50%;height:12px;"></div></div>
+        <div class="skeleton"><div class="skel-line" style="width:52px;height:52px;border-radius:50%;margin-bottom:1rem;"></div><div class="skel-line" style="width:70%;height:16px;"></div><div class="skel-line" style="width:50%;height:12px;"></div></div>
+        <div class="skeleton"><div class="skel-line" style="width:52px;height:52px;border-radius:50%;margin-bottom:1rem;"></div><div class="skel-line" style="width:70%;height:16px;"></div><div class="skel-line" style="width:50%;height:12px;"></div></div>
+        <div class="skeleton"><div class="skel-line" style="width:52px;height:52px;border-radius:50%;margin-bottom:1rem;"></div><div class="skel-line" style="width:70%;height:16px;"></div><div class="skel-line" style="width:50%;height:12px;"></div></div>
+      </div>
+      </div>
+    </div>
+  </div>
+  <!-- MOBILE BOTTOM NAV -->
+  <div class="mobile-nav">
+    <div class="mobile-nav-inner">
+      <a href="dashboard.html" class="mobile-nav-item"><span class="m-icon">🏠</span><span class="m-label">Home</span></a>
+      <a href="search.html" class="mobile-nav-item"><span class="m-icon">🔍</span><span class="m-label">Search</span></a>
+      <a href="messages.html" class="mobile-nav-item"><span class="m-icon">💬</span><span class="m-label">Chat</span></a>
+      <a href="notifications.html" class="mobile-nav-item"><span class="m-icon">🔔</span><span class="m-label">Alerts</span></a>
+      <a href="profile.html" class="mobile-nav-item"><span class="m-icon">👤</span><span class="m-label">Profile</span></a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "69769070061",
+    appId: "1:69769070061:web:469c095c061654b4d013e4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let allUsers = [];
+  let activeFilter = 'all';
+  let searchQuery = '';
+  let followStates = {}; // uid -> 'none' | 'pending' | 'following'
+
+  async function loadFollowStates(currentUid) {
+    try {
+      // Load sent requests
+      const reqSnap = await getDocs(query(collection(db,'followRequests'), where('fromUid','==',currentUid)));
+      reqSnap.forEach(d => { followStates[d.data().toUid] = 'pending'; });
+      // Load accepted follows
+      const userDoc = await getDoc(doc(db,'users',currentUid));
+      const following = userDoc.data()?.following || [];
+      following.forEach(uid => { followStates[uid] = 'following'; });
+    } catch(e) { console.error(e); }
+  }
+
+  function getFollowBtnText(uid) {
+    const state = followStates[uid] || 'none';
+    if (state === 'following') return '✓ Following';
+    if (state === 'pending') return '⏳ Pending';
+    return '+ Follow';
+  }
+
+  function applyFollowBtnStyle(btn, state) {
+    btn.classList.remove('following','pending');
+    if (state === 'following') { btn.classList.add('following'); btn.textContent = '✓ Following'; }
+    else if (state === 'pending') { btn.classList.add('pending'); btn.textContent = '⏳ Pending'; }
+    else { btn.textContent = '+ Follow'; }
+  }
+
+  function getFollowBtn(uid) {
+    const state = followStates[uid] || 'none';
+    if (state === 'following') return { text: '✓ Following', cls: 'following' };
+    if (state === 'pending') return { text: '⏳ Pending', cls: 'pending' };
+    return { text: '+ Follow', cls: '' };
+  }
+
+  const avatarColors = [
+    ['#C9A84C','#0D3D29'],['#5DCAA5','#04342C'],['#AFA9EC','#26215C'],
+    ['#1A6B4A','#fff'],['#F4A261','#3D1A00'],['#E76F51','#fff'],['#457B9D','#fff']
+  ];
+  function getColor(uid) {
+    let h = 0; for (let c of (uid||'')) h = c.charCodeAt(0) + ((h<<5)-h);
+    return avatarColors[Math.abs(h) % avatarColors.length];
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function getRoleIcon(role) {
+    if (role === 'Hafiz') return '🏅';
+    if (role === 'Teacher') return '🎓';
+    return '📖';
+  }
+
+  function getCountryFlag(country) {
+    const flags = { 'Nigeria':'🇳🇬','Saudi Arabia':'🇸🇦','Egypt':'🇪🇬','Pakistan':'🇵🇰','Bangladesh':'🇧🇩','Indonesia':'🇮🇩','United Kingdom':'🇬🇧','United States':'🇺🇸','Malaysia':'🇲🇾','Turkey':'🇹🇷' };
+    return flags[country] || '🌍';
+  }
+
+  function renderUsers(users) {
+    const container = document.getElementById('users-container');
+    document.getElementById('results-count').textContent = users.length + ' member' + (users.length !== 1 ? 's' : '') + ' found';
+
+    if (users.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><h3>No members found</h3><p>Try a different search or filter</p></div>`;
+      return;
+    }
+
+    container.innerHTML = '<div class="users-grid" id="users-grid"></div>';
+    const grid = document.getElementById('users-grid');
+
+    users.forEach((u, i) => {
+      if (u.uid === currentUser?.uid) return;
+      const [bg, fg] = getColor(u.uid);
+      const initials = (u.fullname||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+      const card = document.createElement('a');
+      card.href = 'user.html?uid=' + u.uid;
+      card.style.textDecoration = 'none';
+      card.className = 'user-card';
+      card.style.animationDelay = (i * 0.05) + 's';
+      card.innerHTML = `
+        <div class="user-card-top">
+          <div class="user-card-avatar" style="background:${bg};color:${fg};overflow:hidden;">${u.photoURL ? `<img src="${u.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />` : initials}</div>
+          <div>
+            <a href="user.html?uid=${u.uid}" style="text-decoration:none;"><div class="user-card-name">${u.fullname || 'Anonymous'}</div></a>
+            <span class="user-card-role">${getRoleIcon(u.role)} ${u.role || 'Member'}</span>
+          </div>
+        </div>
+        <div class="user-card-meta">
+          <span>${getCountryFlag(u.country)} ${u.country || 'Unknown'}</span>
+          <span>📅 Joined ${new Date(u.createdAt).toLocaleDateString('en-US',{month:'short',year:'numeric'})}</span>
+          ${u.bio ? '<span style="font-style:italic;color:var(--text);">💬 ' + u.bio.slice(0,60) + (u.bio.length>60?'...':'') + '</span>' : ''}
+        </div>
+        <div class="user-card-actions">
+          <button class="btn-follow" id="follow-${u.uid}" data-uid="${u.uid}" data-name="${(u.fullname||'User').replace(/'/g,'')}" onclick="handleFollow(this)" class="btn-follow ${getFollowBtn(u.uid).cls}">${getFollowBtnText(u.uid)}</button>
+          <a href="chat.html?uid=${u.uid}&name=${encodeURIComponent(u.fullname||'User')}" class="btn-msg" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">✉️</a>
+        </div>`;
+      grid.appendChild(card);
+    });
+  }
+
+  function filterAndSearch() {
+    let filtered = allUsers.filter(u => u.uid !== currentUser?.uid);
+    if (activeFilter !== 'all') {
+      filtered = filtered.filter(u => u.role === activeFilter || u.country === activeFilter);
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(u =>
+        (u.fullname||'').toLowerCase().includes(q) ||
+        (u.country||'').toLowerCase().includes(q) ||
+        (u.role||'').toLowerCase().includes(q) ||
+        (u.bio||'').toLowerCase().includes(q)
+      );
+    }
+    renderUsers(filtered);
+  }
+
+  window.handleSearch = function() {
+    searchQuery = document.getElementById('search-input').value.trim();
+    filterAndSearch();
+  }
+
+  window.setFilter = function(filter, btn) {
+    activeFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterAndSearch();
+  }
+
+  window.handleFollow = async function(btn) {
+    const uid = btn.dataset.uid;
+    const name = btn.dataset.name;
+    if (!currentUser) return;
+    const state = followStates[uid] || 'none';
+
+    if (state === 'following') {
+      // Unfollow
+      try {
+        // Remove from MY following list
+        const myDoc = await getDoc(doc(db,'users',currentUser.uid));
+        const following = (myDoc.data()?.following || []).filter(f => f !== uid);
+        await updateDoc(doc(db,'users',currentUser.uid), { following });
+        // Remove from THEIR followers list
+        const theirDoc = await getDoc(doc(db,'users',uid));
+        const followers = (theirDoc.data()?.followers || []).filter(f => f !== currentUser.uid);
+        await updateDoc(doc(db,'users',uid), { followers });
+        followStates[uid] = 'none';
+        applyFollowBtnStyle(btn, 'none');
+        showToast('Unfollowed.');
+      } catch(e) { showToast('Could not unfollow. Try again.'); }
+
+    } else if (state === 'pending') {
+      // Cancel request
+      try {
+        await deleteDoc(doc(db,'followRequests', currentUser.uid + '_' + uid));
+        followStates[uid] = 'none';
+        applyFollowBtnStyle(btn, 'none');
+        showToast('Follow request cancelled.');
+      } catch(e) { showToast('Could not cancel. Try again.'); }
+
+    } else {
+      // Send follow request
+      try {
+        btn.textContent = 'Sending...';
+        btn.disabled = true;
+        const myDoc = await getDoc(doc(db,'users',currentUser.uid));
+        const myName = myDoc.data()?.fullname || 'Someone';
+
+        // Save request
+        await setDoc(doc(db,'followRequests', currentUser.uid + '_' + uid), {
+          fromUid: currentUser.uid,
+          fromName: myName,
+          toUid: uid,
+          toName: name,
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        });
+
+        // Send notification
+        await setDoc(doc(db,'notifications', 'follow_' + currentUser.uid + '_' + uid), {
+          toUid: uid,
+          type: 'follow_request',
+          message: '<strong>' + myName + '</strong> wants to follow you.',
+          fromUid: currentUser.uid,
+          fromName: myName,
+          read: false,
+          createdAt: new Date().toISOString()
+        });
+
+        followStates[uid] = 'pending';
+        applyFollowBtnStyle(btn, 'pending');
+        btn.disabled = false;
+        showToast('✅ Follow request sent! Waiting for acceptance 🤲');
+      } catch(e) {
+        console.error(e);
+        btn.textContent = '+ Follow';
+        btn.disabled = false;
+        showToast('Could not send request. Try again.');
+      }
+    }
+  }
+
+  window.handleLogout = async function() { await signOut(auth); window.location.href = 'login.html'; }
+
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+      try {
+        const userDoc = await getDoc(doc(db,'users',user.uid));
+        const userData = userDoc.exists() ? userDoc.data() : {};
+        const name = userData.fullname || user.displayName || 'Friend';
+        const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        const navAvatar = document.getElementById('nav-avatar');
+        if (userData.photoURL) { navAvatar.innerHTML = `<img src="${userData.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`; }
+        else { navAvatar.textContent = initials; }
+
+        const snap = await getDocs(collection(db,'users'));
+        allUsers = [];
+        snap.forEach(d => allUsers.push({ uid: d.id, ...d.data() }));
+        await loadFollowStates(user.uid);
+        filterAndSearch();
+      } catch(e) { console.error('Search error:', e); }
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else { window.location.href = 'login.html'; }
+  });
+</script>
+</body>
+</html>
