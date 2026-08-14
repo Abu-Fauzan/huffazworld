@@ -530,6 +530,17 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+    // ── PREFILL ROLE FROM ONBOARDING ──
+  const onboardingRole = localStorage.getItem('huffazworld_onboarding_role');
+
+  if (onboardingRole === 'Student') {
+    document.getElementById('role-student').checked = true;
+  }
+
+  if (onboardingRole === 'Teacher') {
+    document.getElementById('role-teacher').checked = true;
+  }
+
   // Update Hafiz/Hafizah label when gender changes
   document.querySelectorAll('input[name="gender"]').forEach(el => {
     el.addEventListener('change', () => {
