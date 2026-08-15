@@ -530,15 +530,21 @@
   <div class="bottom-bar">
 
     <div class="dots">
-      <div class="dot active"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-    </div>
+  <div class="dot active"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+</div>
 
-    <button class="next-btn" id="nextBtn">
-      Continue →
-    </button>
+<div style="display:flex;gap:0.75rem;max-width:500px;margin:0 auto;">
+  <button class="next-btn" id="backBtn" style="display:none;background:transparent;color:var(--emerald);border:1.5px solid rgba(26,107,74,0.2);box-shadow:none;">
+    ← Back
+  </button>
+
+  <button class="next-btn" id="nextBtn" style="flex:1;">
+    Continue →
+  </button>
+</div>
 
   </div>
 
@@ -550,6 +556,7 @@
   const slides = document.querySelectorAll('.slide');
   const dots = document.querySelectorAll('.dot');
   const nextBtn = document.getElementById('nextBtn');
+  const backBtn = document.getElementById('backBtn');
   const skipBtn = document.getElementById('skipBtn');
   const createBtn = document.getElementById('createBtn');
   const loginBtn = document.getElementById('loginBtn');
@@ -567,13 +574,17 @@
       dot.classList.toggle('active', i === index);
     });
 
-    if (index === slides.length - 1) {
-      nextBtn.style.display = 'none';
-      skipBtn.style.display = 'none';
-    } else {
-      nextBtn.style.display = 'block';
-      skipBtn.style.display = 'block';
-    }
+    // Back button
+backBtn.style.display = index === 0 ? 'none' : 'block';
+
+// Continue/Skip controls
+if (index === slides.length - 1) {
+  nextBtn.style.display = 'none';
+  skipBtn.style.display = 'none';
+} else {
+  nextBtn.style.display = 'block';
+  skipBtn.style.display = 'block';
+}
   }
 
   function finishOnboarding() {
@@ -587,6 +598,12 @@
     }
   }
 
+  function previousSlide() {
+  if (currentSlide > 0) {
+    showSlide(currentSlide - 1);
+  }
+}
+
   window.chooseRole = function(role) {
     localStorage.setItem('huffazworld_onboarding_role', role);
 
@@ -595,6 +612,8 @@
   };
 
   nextBtn.addEventListener('click', nextSlide);
+
+  backBtn.addEventListener('click', previousSlide);
 
   skipBtn.addEventListener('click', finishOnboarding);
 
