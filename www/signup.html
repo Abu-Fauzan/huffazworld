@@ -593,6 +593,8 @@
         uid: user.uid
       });
 
+      localStorage.removeItem('huffazworld_onboarding_role');
+
       msg.className = 'message success';
       msg.textContent = '✅ Account created! Redirecting to your dashboard...';
 
