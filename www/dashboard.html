@@ -776,7 +776,11 @@
       reqSnap.forEach(d => pending.push(d.data().toUid));
 
       // Load all users excluding self, already following, and pending
-      const snap = await getDocs(collection(db,'users'));
+      const snap = await getDocs(query(
+        collection(db,'users'),
+        orderBy('createdAt','desc'),
+        limit(20)
+      ));
       const suggestions = [];
       snap.forEach(d => {
         if (d.id === currentUser.uid) return;
