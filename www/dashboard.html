@@ -600,7 +600,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, orderBy, query, onSnapshot, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, getCountFromServer, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, orderBy, query, onSnapshot, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
@@ -1833,8 +1833,8 @@
         }
         document.getElementById('welcome-name').textContent = 'Welcome back, ' + name.split(' ')[0] + '! 🤲';
         document.getElementById('welcome-role').textContent = role + ' · Continue your blessed journey today.';
-        const usersSnap = await getDocs(collection(db,'users'));
-        document.getElementById('stat-members').textContent = usersSnap.size;
+        const usersCountSnap = await getCountFromServer(collection(db,'users'));
+        document.getElementById('stat-members').textContent = usersCountSnap.data().count;
 
         // ── Real streak from hifzProgress ──
         try {
