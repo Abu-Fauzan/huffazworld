@@ -879,7 +879,9 @@
       const now = new Date().toISOString();
       const snap = await getDocs(query(
         collection(db, 'stories'),
-        where('expiresAt', '>', now)
+        where('expiresAt', '>', now),
+        orderBy('createdAt', 'desc'),
+        limit(30)
       ));
       // Group by uid
       const grouped = {};
