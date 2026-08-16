@@ -22,3 +22,7 @@ android.zip
 # OS files
 .DS_Store
 Thumbs.db
+
+# Android release signing files
+*.jks
+*.keystore
