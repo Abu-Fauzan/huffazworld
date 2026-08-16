@@ -1811,8 +1811,8 @@
   async function loadUnreadCount(uid) {
     try {
       const q = query(collection(db,'notifications'), where('toUid','==',uid), where('read','==',false));
-      const snap = await getDocs(q);
-      const count = snap.size;
+      const countSnap = await getCountFromServer(q);
+      const count = countSnap.data().count;
       const badge = document.getElementById('notif-badge');
       const mbadge = document.getElementById('m-notif-badge');
       if (count > 0) {
