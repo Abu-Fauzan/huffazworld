@@ -1838,7 +1838,7 @@
         document.getElementById('welcome-name').textContent = 'Welcome back, ' + name.split(' ')[0] + '! 🤲';
         document.getElementById('welcome-role').textContent = role + ' · Continue your blessed journey today.';
         // ── Load dashboard stats in parallel ──
-        await Promise.all([
+        Promise.all([
           (async () => {
             try {
               const usersCountSnap = await getCountFromServer(collection(db,'users'));
@@ -1883,6 +1883,10 @@
           if (classLink) { classLink.href = classPage; classLink.querySelector('.di-icon').textContent = '📖'; classLink.querySelector('.di-label').textContent = 'My Class'; }
           if (desktopClassLink) { desktopClassLink.href = classPage; desktopClassLink.textContent = '📖 My Class'; }
         }
+
+        // Show dashboard as soon as essential profile/navigation is ready.
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
       } catch(e) { console.error(e); }
       loadFeed();
       loadStories();
@@ -1904,8 +1908,6 @@
       }
       loadUnreadCount(user.uid);
       loadUnreadMessages(user.uid);
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
     } else { window.location.href = 'login.html'; }
   });
 </script>
