@@ -16,9 +16,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+        signingConfigs {
+        release {
+            storeFile file(HUFFAZWORLD_UPLOAD_STORE_FILE)
+            storePassword HUFFAZWORLD_UPLOAD_STORE_PASSWORD
+            keyAlias HUFFAZWORLD_UPLOAD_KEY_ALIAS
+            keyPassword HUFFAZWORLD_UPLOAD_KEY_PASSWORD
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
