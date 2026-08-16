@@ -1837,27 +1837,37 @@
         }
         document.getElementById('welcome-name').textContent = 'Welcome back, ' + name.split(' ')[0] + '! 🤲';
         document.getElementById('welcome-role').textContent = role + ' · Continue your blessed journey today.';
-        const usersCountSnap = await getCountFromServer(collection(db,'users'));
-        document.getElementById('stat-members').textContent = usersCountSnap.data().count;
+        // ── Load dashboard stats in parallel ──
+        await Promise.all([
+          (async () => {
+            try {
+              const usersCountSnap = await getCountFromServer(collection(db,'users'));
+              const membersEl = document.getElementById('stat-members');
+              if (membersEl) membersEl.textContent = usersCountSnap.data().count;
+            } catch(e) { console.error('Member count error:', e); }
+          })(),
 
-        // ── Real streak from hifzProgress ──
-        try {
-          const progSnap = await getDoc(doc(db, 'hifzProgress', user.uid));
-          const streak = progSnap.exists() ? (progSnap.data().streak || 0) : 0;
-          const streakEl = document.getElementById('stat-streak');
-          if (streakEl) streakEl.textContent = streak;
-        } catch(e) {}
+          (async () => {
+            try {
+              const progSnap = await getDoc(doc(db, 'hifzProgress', user.uid));
+              const streak = progSnap.exists() ? (progSnap.data().streak || 0) : 0;
+              const streakEl = document.getElementById('stat-streak');
+              if (streakEl) streakEl.textContent = streak;
+            } catch(e) { console.error('Streak error:', e); }
+          })(),
 
-        // ── Real badge count from badges collection ──
-        try {
-          const badgeSnap = await getDoc(doc(db, 'badges', user.uid));
-          let badgeCount = 0;
-          if (badgeSnap.exists() && badgeSnap.data().earned) {
-            badgeCount = Object.values(badgeSnap.data().earned).filter(Boolean).length;
-          }
-          const badgeEl = document.getElementById('stat-badges');
-          if (badgeEl) badgeEl.textContent = badgeCount;
-        } catch(e) {}
+          (async () => {
+            try {
+              const badgeSnap = await getDoc(doc(db, 'badges', user.uid));
+              let badgeCount = 0;
+              if (badgeSnap.exists() && badgeSnap.data().earned) {
+                badgeCount = Object.values(badgeSnap.data().earned).filter(Boolean).length;
+              }
+              const badgeEl = document.getElementById('stat-badges');
+              if (badgeEl) badgeEl.textContent = badgeCount;
+            } catch(e) { console.error('Badge count error:', e); }
+          })()
+        ]);
 
         // Set classroom nav link based on role (mobile + desktop)
         const classLink = document.getElementById('more-class-link');
