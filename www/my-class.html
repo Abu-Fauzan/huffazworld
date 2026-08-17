@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Class – HuffazWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F0D98A;
+    --emerald: #1A6B4A; --emerald-light: #E6F5EE; --emerald-dark: #0D3D29;
+    --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; padding-bottom: 90px; }
+  nav { background: var(--emerald-dark); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; }
+  .nav-logo { font-family: 'Amiri', serif; font-size: 1.4rem; font-weight: 700; color: white; text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; text-decoration: none; overflow: hidden; }
+  .container { max-width: 750px; margin: 0 auto; padding: 1.25rem 1rem; padding-top: calc(56px + 1.25rem); }
+
+  /* CLASS HEADER */
+  .class-header { background: linear-gradient(135deg, var(--emerald-dark), var(--emerald)); border-radius: 20px; padding: 1.4rem; margin-bottom: 1.25rem; color: white; }
+  .class-header-name { font-family: 'Amiri', serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .class-header-teacher { font-size: 0.82rem; color: rgba(255,255,255,0.7); margin-bottom: 0.75rem; }
+  .class-header-stats { display: flex; gap: 1.5rem; }
+  .ch-stat-val { font-size: 1.1rem; font-weight: 700; }
+  .ch-stat-label { font-size: 0.65rem; color: rgba(255,255,255,0.65); }
+
+  /* SECTION */
+  .section { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .section-title { font-size: 0.95rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 1rem; }
+
+  /* TASK CARD */
+  .task-card { border: 1.5px solid rgba(201,168,76,0.2); border-radius: 14px; padding: 1rem; margin-bottom: 0.75rem; position: relative; overflow: hidden; }
+  .task-card.completed { border-color: rgba(26,107,74,0.3); background: rgba(26,107,74,0.03); }
+  .task-card.overdue { border-color: rgba(229,57,53,0.3); background: rgba(229,57,53,0.03); }
+  .task-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--gold); border-radius:4px 0 0 4px; }
+  .task-card.completed::before { background: var(--emerald); }
+  .task-card.overdue::before { background: #e53935; }
+  .task-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.4rem; }
+  .task-title { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+  .task-badge { font-size: 0.68rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 99px; flex-shrink: 0; }
+  .task-badge.pending { background: #FFF3CD; color: #856404; }
+  .task-badge.completed { background: var(--emerald-light); color: var(--emerald-dark); }
+  .task-badge.overdue { background: #FFEBEE; color: #c62828; }
+  .task-desc { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem; white-space: pre-wrap; }
+  .task-meta { font-size: 0.73rem; color: var(--muted); margin-bottom: 0.6rem; }
+  .complete-btn { background: var(--emerald); color: white; border: none; border-radius: 8px; padding: 0.45rem 0.85rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .complete-btn:disabled { background: #aab8af; cursor: not-allowed; }
+  .completed-tag { font-size: 0.78rem; font-weight: 700; color: var(--emerald); }
+
+  /* RECITATION RECORDER */
+  .recorder-wrap { margin-top: 0.75rem; background: var(--emerald-light); border-radius: 12px; padding: 0.85rem; }
+  .recorder-title { font-size: 0.78rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.65rem; }
+  .recorder-controls { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .rec-btn { width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s; flex-shrink: 0; }
+  .rec-btn.start { background: #e53935; color: white; box-shadow: 0 2px 8px rgba(229,57,53,0.35); }
+  .rec-btn.start:hover { background: #c62828; transform: scale(1.05); }
+  .rec-btn.start.recording { animation: pulse-red 1s infinite; }
+  @keyframes pulse-red { 0%{box-shadow:0 0 0 0 rgba(229,57,53,0.5)} 70%{box-shadow:0 0 0 10px rgba(229,57,53,0)} 100%{box-shadow:0 0 0 0 rgba(229,57,53,0)} }
+  .rec-btn.stop { background: #555; color: white; }
+  .rec-timer { font-size: 0.85rem; font-weight: 700; color: #e53935; font-variant-numeric: tabular-nums; min-width: 36px; }
+  .rec-status { font-size: 0.75rem; color: var(--muted); flex: 1; }
+  .rec-preview { margin-top: 0.65rem; width: 100%; border-radius: 8px; background: white; display: none; }
+  .rec-preview.show { display: block; }
+  .rec-submit-btn { width: 100%; margin-top: 0.6rem; background: var(--emerald); color: white; border: none; border-radius: 8px; padding: 0.55rem; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .rec-submit-btn:disabled { background: #aab8af; cursor: not-allowed; }
+  .rec-submitted { font-size: 0.78rem; font-weight: 700; color: var(--emerald); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
+  .rec-clear-btn { background: none; border: none; color: #e53935; font-size: 0.72rem; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; margin-left: auto; }
+  .feedback-item { background: var(--emerald-light); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.6rem; border-left: 3px solid var(--emerald); }
+  .feedback-from { font-size: 0.75rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.3rem; }
+  .feedback-text { font-size: 0.83rem; color: var(--text); white-space: pre-wrap; }
+  .feedback-date { font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem; }
+
+  /* EMPTY */
+  .empty-state { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; }
+
+  #toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--emerald-dark); color: white; padding: 0.65rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 9999; pointer-events: none; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--cream); position: fixed; inset: 0; z-index: 999; }
+  .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid rgba(201,168,76,0.18); padding: 0.5rem 0; z-index: 200; }
+  .mobile-nav-inner { display: flex; justify-content: space-around; }
+  .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; text-decoration: none; color: var(--muted); font-size: 0.6rem; font-weight: 600; padding: 0.3rem 0.5rem; }
+  .mobile-nav-item span:first-child { font-size: 1.2rem; }
+  .mobile-nav-item.active { color: var(--emerald); }
+  @media (max-width: 768px) { .mobile-nav { display: block; } }
+</style>
+</head>
+<body>
+<div id="loading"><div style="font-family:'Amiri',serif;font-size:1.5rem;color:#1A6B4A;">Loading... 🤲</div></div>
+<nav>
+  <a href="dashboard.html" class="nav-logo">Huffaz<span>World</span></a>
+  <a href="profile.html" class="nav-avatar" id="nav-avatar">?</a>
+</nav>
+<div id="toast"></div>
+<div class="container" id="app" style="display:none;">
+
+  <!-- NO CLASS -->
+  <div id="no-class-msg" style="display:none;">
+    <div class="section" style="text-align:center;padding:2.5rem 1rem;">
+      <div style="font-size:3rem;margin-bottom:1rem;">📖</div>
+      <div style="font-size:1rem;font-weight:700;color:var(--emerald-dark);margin-bottom:0.5rem;">You're not in a class yet</div>
+      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem;">Ask your teacher for their class code and join below</div>
+      <a href="join-class.html" style="display:inline-block;background:var(--emerald);color:white;padding:0.7rem 1.5rem;border-radius:12px;text-decoration:none;font-weight:700;font-size:0.9rem;">Join a Class 🤲</a>
+    </div>
+  </div>
+
+  <!-- CLASS CONTENT -->
+  <div id="class-content" style="display:none;">
+
+    <!-- CLASS HEADER -->
+    <div class="class-header">
+      <div class="class-header-name" id="ch-name">Loading...</div>
+      <div class="class-header-teacher" id="ch-teacher"></div>
+      <div id="ch-school" style="display:none;margin-bottom:0.6rem;font-size:0.75rem;font-weight:700;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);padding:0.25rem 0.7rem;border-radius:50px;width:fit-content;"></div>
+      <div class="class-header-stats">
+        <div>
+          <div class="ch-stat-val" id="ch-tasks-total">0</div>
+          <div class="ch-stat-label">Total Tasks</div>
+        </div>
+        <div>
+          <div class="ch-stat-val" id="ch-tasks-done">0</div>
+          <div class="ch-stat-label">Completed</div>
+        </div>
+        <div>
+          <div class="ch-stat-val" id="ch-tasks-pct">0%</div>
+          <div class="ch-stat-label">Progress</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASKS -->
+    <div class="section">
+      <div class="section-title">📋 My Tasks</div>
+      <div id="tasks-list"><div class="empty-state">No tasks yet. Your teacher will assign tasks soon! 🤲</div></div>
+    </div>
+
+    <!-- FEEDBACK FROM TEACHER -->
+    <div class="section">
+      <div class="section-title">💬 Teacher Feedback</div>
+      <div id="feedback-list"><div class="empty-state">No feedback yet.</div></div>
+    </div>
+
+    <!-- LEAVE CLASS -->
+    <div style="text-align:center;margin-top:0.5rem;">
+      <a href="join-class.html" style="font-size:0.8rem;color:var(--muted);text-decoration:underline;">Leave this class</a>
+    </div>
+
+  </div>
+</div>
+
+<nav class="mobile-nav">
+    <div class="mobile-nav-inner">
+      <a href="dashboard.html" class="mobile-nav-item"><span>🏠</span><span>Home</span></a>
+      <a href="search.html" class="mobile-nav-item"><span>🔍</span><span>Search</span></a>
+      <a href="messages.html" class="mobile-nav-item"><span>💬</span><span>Chat</span></a>
+      <a href="notifications.html" class="mobile-nav-item"><span>🔔</span><span>Alerts</span></a>
+      <a href="profile.html" class="mobile-nav-item"><span>👤</span><span>Profile</span></a>
+    </div>
+  </nav>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, getDocs, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "1071311461394",
+    appId: "1:1071311461394:web:2218e814e9a3a40f5b9c74"
+  };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  let currentUser = null;
+  let currentUserData = null;
+  let myClassData = null;
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  async function loadTasks() {
+    const list = document.getElementById('tasks-list');
+    try {
+      const snap = await getDocs(query(collection(db,'tasks'), where('classId','==',myClassData.id)));
+      if (snap.empty) { list.innerHTML = '<div class="empty-state">No tasks yet. Your teacher will assign tasks soon! 🤲</div>'; return; }
+      const typeIcons = { memorize:'📖', revise:'🔄', recite:'🎙️', listen:'🎧' };
+      // Filter: only tasks assigned to this student
+      const myDocs = snap.docs.filter(d => (d.data().assignedTo||[]).includes(currentUser.uid));
+      if (!myDocs.length) { list.innerHTML = '<div class="empty-state">No tasks assigned to you yet. 🤲</div>'; return; }
+      // Sort newest first in JS
+      const docs = myDocs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
+      let total = 0, done = 0;
+      const html = docs.map(d => {
+        const t = d.data();
+        const isCompleted = (t.completedBy||[]).includes(currentUser.uid);
+        const today = new Date().toISOString().split('T')[0];
+        const isOverdue = !isCompleted && t.due < today;
+        const status = isCompleted ? 'completed' : isOverdue ? 'overdue' : 'pending';
+        const badge = isCompleted ? '✅ Completed' : isOverdue ? '⏰ Overdue' : '⏳ Pending';
+        total++;
+        if (isCompleted) done++;
+        return `<div class="task-card ${status}">
+          <div class="task-header">
+            <div class="task-title">${typeIcons[t.type]||'📋'} ${t.title}</div>
+            <span class="task-badge ${status}">${badge}</span>
+          </div>
+          ${t.desc ? `<div class="task-desc">${t.desc}</div>` : ''}
+          <div class="task-meta">📅 Due: ${t.due} · 👨‍🏫 ${t.teacherName||'Teacher'}</div>
+          ${!isCompleted ? `
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.4rem;">
+              <button class="complete-btn" id="cbtn-${d.id}" onclick="markComplete('${d.id}','${t.title.replace(/'/g,'')}','${t.teacherUid}')">✅ Mark as Complete</button>
+              <button class="complete-btn" style="background:var(--gold);color:var(--emerald-dark);" onclick="toggleRecorder('${d.id}')">🎙️ Record Recitation</button>
+            </div>
+            <div class="recorder-wrap" id="recorder-${d.id}" style="display:none;">
+              <div class="recorder-title">🎙️ Record Your Recitation — Send to Teacher</div>
+              <div class="recorder-controls">
+                <button class="rec-btn start" id="rec-start-${d.id}" onclick="startRecording('${d.id}')">🎙️</button>
+                <span class="rec-timer" id="rec-timer-${d.id}">0:00</span>
+                <span class="rec-status" id="rec-status-${d.id}">Tap 🎙️ to start recording</span>
+                <button class="rec-clear-btn" id="rec-clear-${d.id}" onclick="clearRecording('${d.id}')" style="display:none;">✕ Clear</button>
+              </div>
+              <audio class="rec-preview" id="rec-preview-${d.id}" controls></audio>
+              <button class="rec-submit-btn" id="rec-submit-${d.id}" onclick="submitRecitation('${d.id}','${t.title.replace(/'/g,'')}','${t.teacherUid}')" style="display:none;">📤 Submit Recitation to Teacher</button>
+            </div>
+          ` : `<div class="completed-tag">✅ You completed this task</div>`}
+        </div>`;
+      }).join('');
+      list.innerHTML = html;
+      // Update stats
+      document.getElementById('ch-tasks-total').textContent = total;
+      document.getElementById('ch-tasks-done').textContent = done;
+      document.getElementById('ch-tasks-pct').textContent = total ? Math.round((done/total)*100)+'%' : '0%';
+    } catch(e) { list.innerHTML = '<div class="empty-state">Could not load tasks.</div>'; }
+  }
+
+  // ── RECITATION RECORDER ──────────────────────────────────────────
+  const CLOUDINARY_CLOUD = 'dl1rabt4f';
+  const CLOUDINARY_PRESET = 'huffazworld';
+  let recorders = {}; // Store recorder state per task
+
+  window.toggleRecorder = function(taskId) {
+    const wrap = document.getElementById('recorder-' + taskId);
+    if (wrap) wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+  }
+
+  window.startRecording = async function(taskId) {
+    const state = recorders[taskId] || {};
+    // If already recording — stop
+    if (state.isRecording) {
+      stopRecording(taskId);
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      const chunks = [];
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      mediaRecorder.onstop = () => handleRecordingStop(taskId, chunks, mimeType);
+      mediaRecorder.start(100);
+
+      recorders[taskId] = { mediaRecorder, stream, chunks, isRecording: true, seconds: 0 };
+
+      // UI
+      const startBtn = document.getElementById('rec-start-' + taskId);
+      const status = document.getElementById('rec-status-' + taskId);
+      startBtn.textContent = '⏹️';
+      startBtn.classList.add('recording');
+      status.textContent = 'Recording... tap ⏹️ to stop';
+      status.style.color = '#e53935';
+
+      // Timer
+      recorders[taskId].timer = setInterval(() => {
+        recorders[taskId].seconds++;
+        const s = recorders[taskId].seconds;
+        const m = Math.floor(s / 60);
+        document.getElementById('rec-timer-' + taskId).textContent = m + ':' + String(s % 60).padStart(2, '0');
+        // Max 5 minutes
+        if (s >= 300) stopRecording(taskId);
+      }, 1000);
+
+    } catch(e) {
+      showToast('⚠️ Microphone access denied. Please allow microphone.');
+    }
+  }
+
+  function stopRecording(taskId) {
+    const state = recorders[taskId];
+    if (!state || !state.isRecording) return;
+    state.mediaRecorder.stop();
+    state.stream.getTracks().forEach(t => t.stop());
+    clearInterval(state.timer);
+    state.isRecording = false;
+    // UI
+    const startBtn = document.getElementById('rec-start-' + taskId);
+    startBtn.textContent = '🎙️';
+    startBtn.classList.remove('recording');
+    document.getElementById('rec-status-' + taskId).textContent = 'Processing...';
+    document.getElementById('rec-status-' + taskId).style.color = 'var(--muted)';
+  }
+
+  function handleRecordingStop(taskId, chunks, mimeType) {
+    const blob = new Blob(chunks, { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    // Show preview player
+    const preview = document.getElementById('rec-preview-' + taskId);
+    preview.src = url;
+    preview.classList.add('show');
+    // Show submit + clear buttons
+    document.getElementById('rec-submit-' + taskId).style.display = 'block';
+    document.getElementById('rec-clear-' + taskId).style.display = 'block';
+    document.getElementById('rec-status-' + taskId).textContent = '✅ Recording ready — preview and submit!';
+    // Store blob for upload
+    recorders[taskId].blob = blob;
+  }
+
+  window.clearRecording = function(taskId) {
+    const preview = document.getElementById('rec-preview-' + taskId);
+    preview.src = '';
+    preview.classList.remove('show');
+    document.getElementById('rec-submit-' + taskId).style.display = 'none';
+    document.getElementById('rec-clear-' + taskId).style.display = 'none';
+    document.getElementById('rec-timer-' + taskId).textContent = '0:00';
+    document.getElementById('rec-status-' + taskId).textContent = 'Tap 🎙️ to start recording';
+    if (recorders[taskId]) recorders[taskId].blob = null;
+  }
+
+  window.submitRecitation = async function(taskId, taskTitle, teacherUid) {
+    const state = recorders[taskId];
+    if (!state || !state.blob) { showToast('⚠️ No recording found. Record first.'); return; }
+    const btn = document.getElementById('rec-submit-' + taskId);
+    btn.disabled = true; btn.textContent = '☁️ Uploading...';
+    try {
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('file', state.blob, 'recitation.webm');
+      formData.append('upload_preset', CLOUDINARY_PRESET);
+      formData.append('resource_type', 'video'); // Cloudinary uses video for audio
+      formData.append('folder', 'recitations');
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/video/upload`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!data.secure_url) throw new Error('Upload failed');
+      const audioUrl = data.secure_url;
+
+      // Save recitation to Firebase
+      await addDoc(collection(db, 'recitations'), {
+        taskId,
+        taskTitle,
+        studentUid: currentUser.uid,
+        studentName: currentUserData.fullname || 'Student',
+        teacherUid,
+        classId: myClassData.id,
+        audioUrl,
+        duration: recorders[taskId].seconds || 0,
+        status: 'pending', // pending | reviewed
+        createdAt: new Date().toISOString()
+      });
+
+      // Notify teacher
+      await setDoc(doc(db, 'notifications', 'recitation_' + taskId + '_' + currentUser.uid), {
+        toUid: teacherUid, type: 'recitation_submitted',
+        message: '<strong>' + (currentUserData.fullname || 'A student') + '</strong> submitted a recitation for: <strong>' + taskTitle + '</strong> 🎙️',
+        fromUid: currentUser.uid,
+        fromName: currentUserData.fullname || 'Student',
+        read: false, createdAt: new Date().toISOString()
+      });
+
+      btn.textContent = '✅ Submitted!';
+      btn.style.background = 'var(--emerald-dark)';
+      showToast('🎙️ Recitation submitted to teacher! Alhamdulillah 🤲');
+
+      // Hide recorder after submit
+      setTimeout(() => {
+        document.getElementById('recorder-' + taskId).style.display = 'none';
+      }, 2000);
+
+    } catch(e) {
+      console.error(e);
+      btn.disabled = false;
+      btn.textContent = '📤 Submit Recitation to Teacher';
+      showToast('❌ Upload failed. Check your connection.');
+    }
+  }
+  // ────────────────────────────────────────────────────────────────
+
+  window.markComplete = async function(taskId, taskTitle, teacherUid) {
+    const btn = document.getElementById('cbtn-' + taskId);
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+    try {
+      await updateDoc(doc(db,'tasks',taskId), { completedBy: arrayUnion(currentUser.uid) });
+      // Notify teacher
+      await setDoc(doc(db,'notifications','completed_'+taskId+'_'+currentUser.uid), {
+        toUid: teacherUid, type: 'task_completed',
+        message: '<strong>'+(currentUserData.fullname||'A student')+'</strong> completed the task: <strong>'+taskTitle+'</strong> ✅',
+        fromUid: currentUser.uid, fromName: currentUserData.fullname||'Student',
+        read: false, createdAt: new Date().toISOString()
+      });
+      showToast('✅ Task marked as complete! Alhamdulillah 🤲');
+      loadTasks();
+    } catch(e) { showToast('Could not update. Try again.'); if (btn) { btn.disabled=false; btn.textContent='✅ Mark as Complete'; } }
+  }
+
+  async function loadFeedback() {
+    const list = document.getElementById('feedback-list');
+    try {
+      // Load both written notes and voice feedback
+      const [notesSnap, feedbackSnap] = await Promise.all([
+        getDocs(query(collection(db,'teacherNotes',myClassData.teacherUid,'notes'), where('studentUid','==',currentUser.uid))),
+        getDocs(query(collection(db,'feedback'), where('studentUid','==',currentUser.uid), where('classId','==',myClassData.teacherUid)))
+      ]);
+      const allDocs = [
+        ...notesSnap.docs.map(d => ({ id: d.id, ...d.data(), _type: 'written' })),
+        ...feedbackSnap.docs.map(d => ({ id: d.id, ...d.data(), _type: d.data().type || 'written' }))
+      ].sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+      if (!allDocs.length) { list.innerHTML = '<div class="empty-state">No feedback yet from your teacher.</div>'; return; }
+      list.innerHTML = allDocs.map(n => {
+        const isVoice = n._type === 'voice' && n.audioUrl;
+        return `<div class="feedback-item">
+          <div class="feedback-from">👨‍🏫 ${myClassData.teacherName} · ${isVoice ? '🎙️ Voice' : '✍️ Written'}</div>
+          ${isVoice
+            ? `<audio src="${n.audioUrl}" controls style="width:100%;margin-top:0.4rem;border-radius:8px;"></audio>`
+            : `<div class="feedback-text">${n.note || n.text || ''}</div>`
+          }
+          <div class="feedback-date">${n.createdAt ? n.createdAt.split('T')[0] : ''}</div>
+        </div>`;
+      }).join('');
+    } catch(e) { list.innerHTML = '<div class="empty-state">Could not load feedback.</div>'; }
+  }
+
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+      try {
+        const userDoc = await getDoc(doc(db,'users',user.uid));
+        currentUserData = userDoc.exists() ? userDoc.data() : {};
+        const name = currentUserData.fullname || 'Student';
+        const navAvatar = document.getElementById('nav-avatar');
+        if (currentUserData.photoURL) { navAvatar.innerHTML = `<img src="${currentUserData.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`; }
+        else { navAvatar.textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
+
+        if (!currentUserData.classId) {
+          document.getElementById('no-class-msg').style.display = 'block';
+        } else {
+          const classSnap = await getDoc(doc(db,'classes',currentUserData.classId));
+          if (!classSnap.exists()) {
+            document.getElementById('no-class-msg').style.display = 'block';
+          } else {
+            myClassData = { id: classSnap.id, ...classSnap.data() };
+            document.getElementById('ch-name').textContent = myClassData.name;
+            document.getElementById('ch-teacher').textContent = '👨‍🏫 ' + myClassData.teacherName + ' · ' + (myClassData.level||'');
+
+            // Show school name if teacher belongs to a school
+            const teacherSnap = await getDoc(doc(db, 'users', myClassData.teacherUid));
+            if (teacherSnap.exists() && teacherSnap.data().schoolId) {
+              const schoolSnap = await getDoc(doc(db, 'schools', teacherSnap.data().schoolId));
+              if (schoolSnap.exists()) {
+                const schoolEl = document.getElementById('ch-school');
+                if (schoolEl) {
+                  schoolEl.textContent = '🏫 ' + schoolSnap.data().name;
+                  schoolEl.style.display = 'inline-flex';
+                }
+              }
+            }
+
+            document.getElementById('class-content').style.display = 'block';
+            await loadTasks();
+            await loadFeedback();
+          }
+        }
+      } catch(e) { console.error(e); }
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else { window.location.href = 'login.html'; }
+  });
+</script>
+</body>
+</html>

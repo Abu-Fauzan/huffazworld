@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hifz Tracker – HuffazWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F0D98A;
+    --emerald: #1A6B4A; --emerald-light: #E6F5EE; --emerald-dark: #0D3D29;
+    --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; padding-bottom: 90px; }
+
+  /* NAV */
+  nav { background: var(--emerald-dark); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; }
+  .nav-logo { font-family: 'Amiri', serif; font-size: 1.4rem; font-weight: 700; color: white; text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 0.75rem; }
+  .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; cursor: pointer; text-decoration: none; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; background: var(--white); border-bottom: 2px solid rgba(201,168,76,0.15); position: fixed; top: 56px; left: 0; right: 0; z-index: 90; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { padding: 0.7rem 1rem; font-size: 0.78rem; font-weight: 700; color: var(--muted); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; margin-bottom: -2px; transition: all 0.2s; flex-shrink: 0; }
+  .tab-btn.active { color: var(--emerald); border-bottom-color: var(--emerald); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* CONTAINER — pushed below fixed nav + tabs */
+  .container { max-width: 750px; margin: 0 auto; padding: 1.25rem 1rem; padding-top: calc(56px + 44px + 1.25rem); }
+
+  /* BANNER */
+  .tracker-banner { background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 100%); border-radius: 20px; padding: 1.4rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .banner-left h1 { font-family: 'Amiri', serif; font-size: 1.5rem; color: white; margin-bottom: 0.2rem; }
+  .banner-left p { font-size: 0.8rem; color: rgba(255,255,255,0.65); }
+  .banner-arabic { font-family: 'Amiri', serif; font-size: 1.2rem; color: var(--gold-light); direction: rtl; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.65rem; margin-bottom: 1.25rem; }
+  .stat-card { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 14px; padding: 0.85rem 0.75rem; text-align: center; }
+  .stat-icon { font-size: 1.2rem; margin-bottom: 0.2rem; }
+  .stat-value { font-family: 'Amiri', serif; font-size: 1.5rem; font-weight: 700; color: var(--emerald-dark); line-height: 1; }
+  .stat-label { font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; }
+
+  /* STREAK */
+  .streak-card { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 14px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 1rem; }
+  .streak-flame { font-size: 1.8rem; }
+  .streak-info h3 { font-size: 0.95rem; font-weight: 700; color: var(--emerald-dark); }
+  .streak-info p { font-size: 0.78rem; color: var(--muted); margin-top: 0.1rem; }
+  .streak-days { margin-left: auto; font-family: 'Amiri', serif; font-size: 2rem; font-weight: 700; color: var(--gold); }
+
+  /* SECTION */
+  .section { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+  .section-title { font-size: 0.95rem; font-weight: 700; color: var(--emerald-dark); }
+
+  /* SEARCH */
+  .search-bar { width: 100%; border: 1.5px solid rgba(201,168,76,0.25); border-radius: 10px; padding: 0.55rem 0.85rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--cream); outline: none; margin-bottom: 0.85rem; }
+  .search-bar:focus { border-color: var(--emerald); background: white; }
+
+  /* FILTER TABS */
+  .filter-tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .filter-btn { padding: 0.3rem 0.7rem; border-radius: 20px; border: 1.5px solid rgba(201,168,76,0.25); background: var(--cream); color: var(--muted); font-size: 0.75rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s; }
+  .filter-btn.active { background: var(--emerald); color: white; border-color: var(--emerald); }
+
+  /* SURAH LIST */
+  .surah-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: 12px; cursor: pointer; transition: background 0.15s; border: 1.5px solid transparent; margin-bottom: 0.4rem; }
+  .surah-item:hover { background: var(--emerald-light); }
+  .surah-item.completed { border-color: rgba(26,107,74,0.2); background: rgba(26,107,74,0.04); }
+  .surah-item.in-progress { border-color: rgba(255,193,7,0.3); background: rgba(255,243,205,0.5); }
+  .surah-num { width: 32px; height: 32px; border-radius: 8px; background: var(--emerald-light); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+  .surah-num.completed { background: var(--emerald); color: white; }
+  .surah-num.in-progress { background: #FFF3CD; color: #856404; }
+  .surah-info { flex: 1; min-width: 0; }
+  .surah-name { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+  .surah-arabic { font-family: 'Amiri', serif; font-size: 1rem; color: var(--emerald-dark); }
+  .surah-meta { font-size: 0.7rem; color: var(--muted); margin-top: 0.1rem; }
+  .surah-right { text-align: right; flex-shrink: 0; }
+  .surah-pct { font-size: 0.8rem; font-weight: 700; color: var(--emerald); }
+  .surah-bar { width: 60px; height: 4px; background: var(--emerald-light); border-radius: 99px; margin-top: 0.3rem; overflow: hidden; }
+  .surah-bar-fill { height: 100%; background: var(--emerald); border-radius: 99px; transition: width 0.4s; }
+  .surah-status-icon { font-size: 1rem; margin-left: 0.3rem; }
+
+  /* SURAH MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; align-items: flex-end; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: white; border-radius: 24px 24px 0 0; padding: 1.5rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+  .modal-handle { width: 40px; height: 4px; background: #ddd; border-radius: 99px; margin: 0 auto 1.25rem; }
+  .modal h3 { font-size: 1.1rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.2rem; }
+  .modal-arabic { font-family: 'Amiri', serif; font-size: 1.3rem; color: var(--emerald); direction: rtl; margin-bottom: 0.75rem; }
+  .modal-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.25rem; }
+  .modal-section { margin-bottom: 1rem; }
+  .modal-section label { font-size: 0.78rem; font-weight: 700; color: var(--muted); display: block; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .status-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .status-btn { padding: 0.6rem 0.4rem; border-radius: 10px; border: 2px solid transparent; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.78rem; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.2s; }
+  .status-btn.not-started { background: var(--emerald-light); color: var(--emerald-dark); }
+  .status-btn.in-progress { background: #FFF3CD; color: #856404; }
+  .status-btn.completed { background: var(--emerald); color: white; }
+  .status-btn.selected { border-color: var(--gold); transform: scale(1.04); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .pct-slider { width: 100%; accent-color: var(--emerald); }
+  .pct-display { text-align: center; font-size: 1.2rem; font-weight: 700; color: var(--emerald-dark); margin-top: 0.3rem; }
+  .notes-input { width: 100%; border: 1.5px solid rgba(201,168,76,0.25); border-radius: 8px; padding: 0.55rem 0.75rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--cream); outline: none; resize: none; }
+  .notes-input:focus { border-color: var(--emerald); }
+  .save-btn { background: var(--emerald); color: white; border: none; border-radius: 12px; padding: 0.75rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%; margin-top: 0.5rem; }
+  .save-btn:hover { background: var(--emerald-dark); }
+  .close-modal-btn { background: var(--cream); color: var(--muted); border: none; border-radius: 12px; padding: 0.6rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%; margin-top: 0.4rem; }
+
+  /* LOG FORM */
+  .log-form { display: grid; gap: 0.75rem; }
+  .log-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+  .form-group label { font-size: 0.75rem; font-weight: 600; color: var(--muted); }
+  .form-group select, .form-group input { border: 1.5px solid rgba(201,168,76,0.25); border-radius: 8px; padding: 0.55rem 0.75rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--cream); outline: none; width: 100%; }
+  .form-group select:focus, .form-group input:focus { border-color: var(--emerald); background: white; }
+  .log-submit { background: var(--emerald); color: white; border: none; border-radius: 10px; padding: 0.65rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%; }
+  .log-submit:hover { background: var(--emerald-dark); }
+  .log-submit:disabled { background: #aab8af; cursor: not-allowed; }
+
+  /* SESSION LIST */
+  .session-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid rgba(201,168,76,0.1); }
+  .session-item:last-child { border-bottom: none; }
+  .session-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--emerald-light); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+  .session-info { flex: 1; }
+  .session-title { font-size: 0.85rem; font-weight: 600; }
+  .session-meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.1rem; }
+  .session-pages { font-size: 0.82rem; font-weight: 700; color: var(--emerald); }
+  .empty-state { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; }
+
+  /* TOAST */
+  #toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--emerald-dark); color: white; padding: 0.65rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 9999; pointer-events: none; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* TEACHER VIEW */
+  .teacher-banner { background: linear-gradient(135deg, #0D3D29 0%, #1A6B4A 100%); border-radius: 20px; padding: 1.4rem; margin-bottom: 1.25rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; }
+  .teacher-banner h1 { font-family:'Amiri',serif; font-size:1.5rem; color:white; margin-bottom:0.2rem; }
+  .teacher-banner p { font-size:0.8rem; color:rgba(255,255,255,0.65); }
+  .teacher-not-allowed { text-align:center; padding:3rem 1rem; }
+  .teacher-not-allowed .icon { font-size:3rem; margin-bottom:0.75rem; }
+  .teacher-not-allowed h3 { font-size:1rem; font-weight:700; color:var(--emerald-dark); margin-bottom:0.4rem; }
+  .teacher-not-allowed p { font-size:0.82rem; color:var(--muted); }
+  .student-search { display:flex; gap:0.5rem; margin-bottom:1rem; }
+  .student-search input { flex:1; border:1.5px solid rgba(201,168,76,0.25); border-radius:10px; padding:0.55rem 0.85rem; font-family:'Plus Jakarta Sans',sans-serif; font-size:0.85rem; color:var(--text); background:var(--cream); outline:none; }
+  .student-search input:focus { border-color:var(--emerald); background:white; }
+  .student-search button { background:var(--emerald); color:white; border:none; border-radius:10px; padding:0.55rem 1rem; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
+  .student-card { background:var(--white); border:1px solid rgba(201,168,76,0.18); border-radius:14px; padding:1rem 1.1rem; margin-bottom:0.75rem; cursor:pointer; transition:all 0.2s; }
+  .student-card:hover { border-color:var(--emerald); background:var(--emerald-light); }
+  .student-card-header { display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem; }
+  .student-avatar { width:40px; height:40px; border-radius:50%; background:var(--emerald); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; flex-shrink:0; }
+  .student-name { font-size:0.9rem; font-weight:700; color:var(--text); }
+  .student-meta { font-size:0.73rem; color:var(--muted); margin-top:0.1rem; }
+  .student-stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:0.5rem; margin-bottom:0.5rem; }
+  .student-stat { background:var(--cream); border-radius:8px; padding:0.45rem 0.5rem; text-align:center; }
+  .student-stat-val { font-size:0.9rem; font-weight:700; color:var(--emerald-dark); }
+  .student-stat-label { font-size:0.62rem; color:var(--muted); }
+  .student-progress-bar { height:6px; background:var(--emerald-light); border-radius:99px; overflow:hidden; margin-top:0.4rem; }
+  .student-progress-fill { height:100%; background:linear-gradient(90deg,var(--emerald),var(--gold)); border-radius:99px; }
+  .student-detail { background:var(--white); border:1px solid rgba(201,168,76,0.18); border-radius:16px; padding:1.25rem; margin-bottom:1rem; display:none; }
+  .student-detail.show { display:block; }
+  .back-btn { background:none; border:none; color:var(--emerald); font-size:0.85rem; font-weight:700; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; margin-bottom:1rem; display:flex; align-items:center; gap:0.3rem; padding:0; }
+  .detail-section-title { font-size:0.82rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin:1rem 0 0.5rem; }
+  .note-form { display:grid; gap:0.5rem; margin-top:0.75rem; }
+  .note-input { border:1.5px solid rgba(201,168,76,0.25); border-radius:8px; padding:0.55rem 0.75rem; font-family:'Plus Jakarta Sans',sans-serif; font-size:0.85rem; color:var(--text); background:var(--cream); outline:none; width:100%; resize:none; }
+  .note-input:focus { border-color:var(--emerald); background:white; }
+  .save-note-btn { background:var(--emerald); color:white; border:none; border-radius:8px; padding:0.55rem 1rem; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
+  .note-item { background:var(--cream); border-radius:8px; padding:0.65rem 0.75rem; margin-bottom:0.4rem; border-left:3px solid var(--gold); }
+  .note-text { font-size:0.82rem; color:var(--text); }
+  .note-date { font-size:0.7rem; color:var(--muted); margin-top:0.2rem; }
+  .tab-locked { opacity:0.4; cursor:not-allowed !important; }
+
+  /* GOALS */
+  .goals-banner { background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 100%); border-radius: 20px; padding: 1.4rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .goals-banner h1 { font-family: 'Amiri', serif; font-size: 1.5rem; color: white; margin-bottom: 0.2rem; }
+  .goals-banner p { font-size: 0.8rem; color: rgba(255,255,255,0.65); }
+  .goal-card { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.1rem 1.25rem; margin-bottom: 0.85rem; position: relative; overflow: hidden; }
+  .goal-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background: var(--emerald); border-radius:4px 0 0 4px; }
+  .goal-card.completed::before { background: var(--gold); }
+  .goal-card.overdue::before { background: #e53935; }
+  .goal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.6rem; gap: 0.5rem; }
+  .goal-title { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+  .goal-badge { font-size: 0.68rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 99px; flex-shrink: 0; }
+  .goal-badge.active { background: var(--emerald-light); color: var(--emerald-dark); }
+  .goal-badge.completed { background: #FFF3CD; color: #856404; }
+  .goal-badge.overdue { background: #FFEBEE; color: #c62828; }
+  .goal-meta { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.6rem; }
+  .goal-progress-row { display: flex; align-items: center; gap: 0.75rem; }
+  .goal-bar { flex: 1; height: 8px; background: var(--emerald-light); border-radius: 99px; overflow: hidden; }
+  .goal-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--emerald), var(--gold)); transition: width 0.5s; }
+  .goal-pct { font-size: 0.8rem; font-weight: 700; color: var(--emerald); flex-shrink: 0; }
+  .goal-actions { display: flex; gap: 0.4rem; margin-top: 0.75rem; }
+  .goal-action-btn { padding: 0.3rem 0.65rem; border-radius: 7px; border: 1.5px solid rgba(201,168,76,0.25); background: var(--cream); color: var(--muted); font-size: 0.72rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s; }
+  .goal-action-btn:hover { background: var(--emerald-light); color: var(--emerald-dark); border-color: var(--emerald); }
+  .goal-action-btn.danger:hover { background: #FFEBEE; color: #c62828; border-color: #e53935; }
+  .add-goal-btn { width: 100%; padding: 0.75rem; border-radius: 12px; border: 2px dashed rgba(201,168,76,0.35); background: transparent; color: var(--emerald); font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s; margin-bottom: 1.25rem; }
+  .add-goal-btn:hover { background: var(--emerald-light); border-color: var(--emerald); }
+  /* Goal Form */
+  .goal-form { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; display: none; }
+  .goal-form.show { display: block; }
+  .goal-form-title { font-size: 0.95rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 1rem; }
+  .goal-type-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.5rem; margin-bottom: 0.75rem; }
+  .goal-type-btn { padding: 0.65rem 0.5rem; border-radius: 10px; border: 2px solid rgba(201,168,76,0.2); background: var(--cream); color: var(--text); font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; text-align: center; transition: all 0.2s; }
+  .goal-type-btn.selected { border-color: var(--emerald); background: var(--emerald-light); color: var(--emerald-dark); }
+  /* Suggested Goals */
+  .suggested-goals { margin-bottom: 1.25rem; }
+  .suggested-title { font-size: 0.82rem; font-weight: 700; color: var(--muted); margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .suggested-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .suggested-btn { padding: 0.65rem 0.75rem; border-radius: 10px; border: 1.5px solid rgba(201,168,76,0.2); background: var(--cream); color: var(--text); font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; text-align: left; transition: all 0.2s; }
+  .suggested-btn:hover { background: var(--emerald-light); border-color: var(--emerald); color: var(--emerald-dark); }
+  .suggested-btn .sg-icon { font-size: 1.1rem; display: block; margin-bottom: 0.2rem; }
+  .empty-goals { text-align: center; padding: 2.5rem 1rem; color: var(--muted); }
+  .empty-goals .eg-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+  .empty-goals p { font-size: 0.85rem; }
+  .chart-card { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .chart-title { font-size: 0.92rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.25rem; }
+  .chart-sub { font-size: 0.75rem; color: var(--muted); margin-bottom: 1rem; }
+  .chart-wrap { width: 100%; overflow-x: auto; }
+  canvas { max-width: 100%; }
+  .chart-banner { background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 100%); border-radius: 20px; padding: 1.4rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .chart-banner h1 { font-family: 'Amiri', serif; font-size: 1.5rem; color: white; margin-bottom: 0.2rem; }
+  .chart-banner p { font-size: 0.8rem; color: rgba(255,255,255,0.65); }
+  .mini-stats { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.65rem; margin-bottom: 1.25rem; }
+  .mini-stat { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 14px; padding: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+  .mini-stat-icon { font-size: 1.5rem; }
+  .mini-stat-val { font-family: 'Amiri', serif; font-size: 1.4rem; font-weight: 700; color: var(--emerald-dark); line-height: 1; }
+  .mini-stat-label { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
+  .pages-banner { background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 100%); border-radius: 20px; padding: 1.4rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .pages-banner h1 { font-family: 'Amiri', serif; font-size: 1.5rem; color: white; margin-bottom: 0.2rem; }
+  .pages-banner p { font-size: 0.8rem; color: rgba(255,255,255,0.65); }
+  .pages-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.65rem; margin-bottom: 1.25rem; }
+  .pages-stat { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 14px; padding: 0.85rem 0.75rem; text-align: center; }
+  .pages-stat .sv { font-family: 'Amiri', serif; font-size: 1.5rem; font-weight: 700; color: var(--emerald-dark); }
+  .pages-stat .sl { font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; }
+  .juz-section { margin-bottom: 1rem; }
+  .juz-header { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.75rem; background: var(--emerald-light); border-radius: 10px; margin-bottom: 0.5rem; cursor: pointer; user-select: none; }
+  .juz-header-left { font-size: 0.85rem; font-weight: 700; color: var(--emerald-dark); }
+  .juz-header-right { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 0.5rem; }
+  .juz-header-pct { font-weight: 700; color: var(--emerald); }
+  .juz-pages-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; padding: 0.5rem 0; }
+  .page-cell { aspect-ratio: 1; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.55rem; font-weight: 700; cursor: pointer; transition: all 0.15s; border: 1.5px solid transparent; position: relative; }
+  .page-cell.not-done { background: var(--emerald-light); color: var(--muted); }
+  .page-cell.done { background: var(--emerald); color: white; }
+  .page-cell.not-done:hover { background: #c8e6d8; transform: scale(1.1); }
+  .page-cell.done:hover { background: var(--emerald-dark); transform: scale(1.1); }
+  .pages-legend { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .pages-legend-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: var(--muted); }
+  .pages-legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+  .juz-collapsed .juz-pages-grid { display: none; }
+  .collapse-icon { font-size: 0.7rem; transition: transform 0.2s; }
+  .juz-collapsed .collapse-icon { transform: rotate(-90deg); }
+  .pages-overall-bar { margin-bottom: 1.25rem; background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 14px; padding: 1rem 1.25rem; }
+  .mark-all-btn { background: var(--emerald-light); color: var(--emerald-dark); border: 1.5px solid rgba(26,107,74,0.2); border-radius: 8px; padding: 0.3rem 0.7rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .mark-all-btn:hover { background: var(--emerald); color: white; }
+
+  /* MOBILE NAV */
+  .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid rgba(201,168,76,0.18); padding: 0.5rem 0; z-index: 200; }
+  .mobile-nav-inner { display: flex; justify-content: space-around; align-items: center; }
+  .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; text-decoration: none; color: var(--muted); font-size: 0.6rem; font-weight: 600; padding: 0.3rem 0.5rem; }
+  .mobile-nav-item span:first-child { font-size: 1.2rem; }
+  .mobile-nav-item.active, .mobile-nav-item:hover { color: var(--emerald); }
+  @media (max-width: 768px) {
+    .mobile-nav { display: block; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .juz-pages-grid { grid-template-columns: repeat(8, 1fr); }
+    .container { padding: 1rem 0.75rem; padding-top: calc(56px + 44px + 1rem); }
+  }
+  @media (max-width: 400px) { .juz-pages-grid { grid-template-columns: repeat(6, 1fr); } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="dashboard.html" class="nav-logo">Huffaz<span>World</span></a>
+  <div class="nav-right">
+    <a href="profile.html" class="nav-avatar" id="nav-avatar">?</a>
+  </div>
+</nav>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('surahs', this)">📖 Surahs</button>
+  <button class="tab-btn" onclick="switchTab('pages', this)">📄 604 Pages</button>
+  <button class="tab-btn" onclick="switchTab('charts', this)">📊 Charts</button>
+  <button class="tab-btn" onclick="switchTab('goals', this)">🎯 Goals</button>
+  <button class="tab-btn" onclick="switchTab('teacher', this)">👨‍🏫 Teacher</button>
+  <button class="tab-btn" onclick="switchTab('log', this)">📝 Log Session</button>
+  <button class="tab-btn" onclick="switchTab('sessions', this)">🕐 History</button>
+</div>
+
+<div id="toast"></div>
+
+<!-- SURAH MODAL -->
+<div class="modal-overlay" id="surah-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="modal-name">Surah</h3>
+    <div class="modal-arabic" id="modal-arabic"></div>
+    <div class="modal-meta" id="modal-meta"></div>
+    <div class="modal-section">
+      <label>Memorization Status</label>
+      <div class="status-btns">
+        <button class="status-btn not-started" onclick="selectStatus('not_started')">⬜ Not Started</button>
+        <button class="status-btn in-progress" onclick="selectStatus('in_progress')">🟡 In Progress</button>
+        <button class="status-btn completed" onclick="selectStatus('completed')">✅ Completed</button>
+      </div>
+    </div>
+    <div class="modal-section" id="pct-section">
+      <label>Progress — <span id="pct-display">0%</span></label>
+      <input type="range" class="pct-slider" id="pct-slider" min="0" max="100" value="0" oninput="document.getElementById('pct-display').textContent=this.value+'%'"/>
+    </div>
+    <div class="modal-section">
+      <label>Notes</label>
+      <textarea class="notes-input" id="modal-notes" rows="2" placeholder="e.g. Completed up to verse 50..."></textarea>
+    </div>
+    <button class="save-btn" onclick="saveSurahProgress()">💾 Save Progress</button>
+    <button class="close-modal-btn" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ── TAB 1: SURAHS ── -->
+  <div class="tab-content active" id="tab-surahs">
+
+    <!-- BANNER -->
+    <div class="tracker-banner">
+      <div class="banner-left">
+        <h1>📖 Surah Tracker</h1>
+        <p>Track all 114 Surahs of the Quran</p>
+      </div>
+      <div class="banner-arabic">حَافِظُوا عَلَى الصَّلَوَاتِ</div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" id="stat-completed">0</div>
+        <div class="stat-label">Surahs Done</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🟡</div>
+        <div class="stat-value" id="stat-inprogress">0</div>
+        <div class="stat-label">In Progress</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📄</div>
+        <div class="stat-value" id="stat-pages">0</div>
+        <div class="stat-label">Pages Done</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-value" id="streak-days">0</div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+    </div>
+
+    <!-- OVERALL PROGRESS BAR -->
+    <div class="section" style="padding:1rem 1.25rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+        <span style="font-size:0.85rem;font-weight:700;color:var(--emerald-dark);">Overall Quran Progress</span>
+        <span style="font-size:0.85rem;font-weight:700;color:var(--emerald);" id="overall-pct">0%</span>
+      </div>
+      <div style="height:10px;background:var(--emerald-light);border-radius:99px;overflow:hidden;">
+        <div id="overall-fill" style="height:100%;background:linear-gradient(90deg,var(--emerald),var(--gold));border-radius:99px;width:0%;transition:width 0.6s;"></div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:0.4rem;" id="overall-sub">0 of 114 Surahs completed</div>
+    </div>
+
+    <!-- SURAH LIST -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">All 114 Surahs</div>
+      </div>
+      <input type="text" class="search-bar" placeholder="🔍 Search Surah name..." oninput="filterSurahs(this.value)"/>
+      <div class="filter-tabs">
+        <button class="filter-btn active" onclick="setFilter('all', this)">All (114)</button>
+        <button class="filter-btn" onclick="setFilter('completed', this)">✅ Completed</button>
+        <button class="filter-btn" onclick="setFilter('in_progress', this)">🟡 In Progress</button>
+        <button class="filter-btn" onclick="setFilter('not_started', this)">⬜ Not Started</button>
+      </div>
+      <div id="surah-list"></div>
+    </div>
+  </div>
+
+  <!-- ── TAB 2: 604 PAGES ── -->
+  <div class="tab-content" id="tab-pages">
+    <div style="height:1.25rem;"></div>
+
+    <!-- BANNER -->
+    <div class="pages-banner">
+      <div>
+        <h1>📄 Page Tracker</h1>
+        <p>Track all 604 pages of the Quran</p>
+      </div>
+      <div style="font-family:'Amiri',serif;font-size:1.2rem;color:var(--gold-light);direction:rtl;">وَنُنَزِّلُ مِنَ الْقُرْآنِ</div>
+    </div>
+
+    <!-- STATS -->
+    <div class="pages-stats">
+      <div class="pages-stat">
+        <div class="stat-icon">📄</div>
+        <div class="sv" id="pages-done-count">0</div>
+        <div class="sl">Pages Done</div>
+      </div>
+      <div class="pages-stat">
+        <div class="stat-icon">⏳</div>
+        <div class="sv" id="pages-remaining">604</div>
+        <div class="sl">Remaining</div>
+      </div>
+      <div class="pages-stat">
+        <div class="stat-icon">📊</div>
+        <div class="sv" id="pages-pct-stat">0%</div>
+        <div class="sl">Complete</div>
+      </div>
+    </div>
+
+    <!-- OVERALL PROGRESS -->
+    <div class="pages-overall-bar">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+        <span style="font-size:0.85rem;font-weight:700;color:var(--emerald-dark);">Total Progress</span>
+        <span style="font-size:0.85rem;font-weight:700;color:var(--emerald);" id="pages-overall-pct">0 / 604 pages</span>
+      </div>
+      <div style="height:12px;background:var(--emerald-light);border-radius:99px;overflow:hidden;">
+        <div id="pages-overall-fill" style="height:100%;background:linear-gradient(90deg,var(--emerald),var(--gold));border-radius:99px;width:0%;transition:width 0.5s;"></div>
+      </div>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="pages-legend">
+      <div class="pages-legend-item"><div class="pages-legend-dot" style="background:var(--emerald-light);"></div> Not done</div>
+      <div class="pages-legend-item"><div class="pages-legend-dot" style="background:var(--emerald);"></div> ✅ Done</div>
+      <div style="font-size:0.75rem;color:var(--muted);">Tap any page to mark done/undone</div>
+    </div>
+
+    <!-- JUZ SECTIONS -->
+    <div id="pages-grid-container"></div>
+  </div>
+
+  <!-- ── TAB 3: CHARTS ── -->
+  <div class="tab-content" id="tab-charts">
+    <div style="height:1.25rem;"></div>
+
+    <div class="chart-banner">
+      <div>
+        <h1>📊 Progress Charts</h1>
+        <p>Visualize your Hifz journey</p>
+      </div>
+      <div style="font-family:'Amiri',serif;font-size:1.2rem;color:var(--gold-light);">بِسْمِ اللَّهِ</div>
+    </div>
+
+    <!-- MINI STATS -->
+    <div class="mini-stats">
+      <div class="mini-stat">
+        <div class="mini-stat-icon">📅</div>
+        <div>
+          <div class="mini-stat-val" id="chart-total-sessions">0</div>
+          <div class="mini-stat-label">Total Sessions</div>
+        </div>
+      </div>
+      <div class="mini-stat">
+        <div class="mini-stat-icon">⏱️</div>
+        <div>
+          <div class="mini-stat-val" id="chart-total-mins">0</div>
+          <div class="mini-stat-label">Total Minutes</div>
+        </div>
+      </div>
+      <div class="mini-stat">
+        <div class="mini-stat-icon">📄</div>
+        <div>
+          <div class="mini-stat-val" id="chart-total-pages">0</div>
+          <div class="mini-stat-label">Total Pages</div>
+        </div>
+      </div>
+      <div class="mini-stat">
+        <div class="mini-stat-icon">⭐</div>
+        <div>
+          <div class="mini-stat-val" id="chart-avg-quality">0</div>
+          <div class="mini-stat-label">Avg Quality</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHART 1: Last 7 Days Activity -->
+    <div class="chart-card">
+      <div class="chart-title">📅 Last 7 Days — Pages Memorized</div>
+      <div class="chart-sub">Daily pages logged this week</div>
+      <div class="chart-wrap"><canvas id="chart-weekly" height="180"></canvas></div>
+    </div>
+
+    <!-- CHART 2: Session Types -->
+    <div class="chart-card">
+      <div class="chart-title">🎯 Session Types Breakdown</div>
+      <div class="chart-sub">How you spend your study time</div>
+      <div class="chart-wrap" style="display:flex;justify-content:center;">
+        <canvas id="chart-types" height="220" width="220"></canvas>
+      </div>
+      <div id="chart-types-legend" style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:0.75rem;justify-content:center;"></div>
+    </div>
+
+    <!-- CHART 3: Juz Progress -->
+    <div class="chart-card">
+      <div class="chart-title">📖 Juz Completion Overview</div>
+      <div class="chart-sub">Progress across all 30 Juz</div>
+      <div class="chart-wrap"><canvas id="chart-juz" height="200"></canvas></div>
+    </div>
+
+    <!-- CHART 4: Quality Trend -->
+    <div class="chart-card">
+      <div class="chart-title">⭐ Session Quality Trend</div>
+      <div class="chart-sub">Your last 10 session quality ratings</div>
+      <div class="chart-wrap"><canvas id="chart-quality" height="160"></canvas></div>
+    </div>
+
+  </div>
+
+  <!-- ── TAB 4: GOALS ── -->
+  <div class="tab-content" id="tab-goals">
+    <div style="height:1.25rem;"></div>
+
+    <div class="goals-banner">
+      <div>
+        <h1>🎯 Personal Goals</h1>
+        <p>Set targets and track your commitment</p>
+      </div>
+      <div style="font-family:'Amiri',serif;font-size:1.2rem;color:var(--gold-light);">وَمَن يَتَّقِ اللَّهَ</div>
+    </div>
+
+    <!-- ADD GOAL BUTTON -->
+    <button class="add-goal-btn" onclick="toggleGoalForm()">＋ Set New Goal</button>
+
+    <!-- GOAL FORM -->
+    <div class="goal-form" id="goal-form">
+      <div class="goal-form-title">🎯 Create New Goal</div>
+
+      <!-- SUGGESTED QUICK GOALS -->
+      <div class="suggested-goals">
+        <div class="suggested-title">⚡ Quick Goals</div>
+        <div class="suggested-grid">
+          <button class="suggested-btn" onclick="quickGoal('Complete Juz 30 in 30 days','pages',20,'30')"><span class="sg-icon">📖</span>Finish Juz 30 in 30 days</button>
+          <button class="suggested-btn" onclick="quickGoal('Memorize 1 page daily','pages',7,'7')"><span class="sg-icon">📄</span>1 page every day</button>
+          <button class="suggested-btn" onclick="quickGoal('Log sessions 5 days this week','sessions',5,'7')"><span class="sg-icon">🔥</span>5 sessions this week</button>
+          <button class="suggested-btn" onclick="quickGoal('Study 30 mins daily for a month','minutes',900,'30')"><span class="sg-icon">⏱️</span>30 mins daily (1 month)</button>
+          <button class="suggested-btn" onclick="quickGoal('Complete Surah Al-Baqarah','pages',48,'90')"><span class="sg-icon">🌟</span>Complete Al-Baqarah</button>
+          <button class="suggested-btn" onclick="quickGoal('Finish the entire Quran','pages',604,'365')"><span class="sg-icon">🤲</span>Complete full Quran</button>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid rgba(201,168,76,0.15);margin-bottom:0.85rem;"></div>
+      <div class="goal-form-title" style="font-size:0.85rem;">Or create custom goal:</div>
+
+      <div class="log-form">
+        <div class="form-group">
+          <label>Goal Title</label>
+          <input type="text" id="goal-title-input" placeholder="e.g. Memorize Surah Al-Mulk by Ramadan"/>
+        </div>
+        <div class="log-row">
+          <div class="form-group">
+            <label>Goal Type</label>
+            <select id="goal-type-input">
+              <option value="pages">📄 Pages to memorize</option>
+              <option value="sessions">📅 Sessions to complete</option>
+              <option value="minutes">⏱️ Minutes to study</option>
+              <option value="surahs">📖 Surahs to complete</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Target Amount</label>
+            <input type="number" id="goal-target-input" min="1" placeholder="e.g. 20" value="10"/>
+          </div>
+        </div>
+        <div class="log-row">
+          <div class="form-group">
+            <label>Deadline (days from today)</label>
+            <input type="number" id="goal-days-input" min="1" placeholder="e.g. 30" value="30"/>
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select id="goal-priority-input">
+              <option value="high">🔴 High</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+          <button class="log-submit" onclick="saveGoal()">✅ Save Goal</button>
+          <button class="log-submit" style="background:var(--cream);color:var(--muted);" onclick="toggleGoalForm()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVE GOALS -->
+    <div class="section-title" style="margin-bottom:0.75rem;" id="goals-section-title">My Goals</div>
+    <div id="goals-list"><div class="empty-goals"><div class="eg-icon">🎯</div><p>No goals yet.<br>Set your first goal above!</p></div></div>
+
+  </div>
+
+  <!-- ── TAB 5: TEACHER VIEW ── -->
+  <div class="tab-content" id="tab-teacher">
+    <div style="height:1.25rem;"></div>
+
+    <!-- NOT A TEACHER MESSAGE (shown if user is not Teacher role) -->
+    <div id="teacher-locked" style="display:none;">
+      <div class="section teacher-not-allowed">
+        <div class="icon">👨‍🏫</div>
+        <h3>Teacher View</h3>
+        <p>This section is only available for users with the <strong>Teacher</strong> role.<br><br>If you are a teacher, please update your profile role to access student progress tracking.</p>
+        <a href="profile.html" style="display:inline-block;margin-top:1rem;background:var(--emerald);color:white;padding:0.6rem 1.25rem;border-radius:10px;text-decoration:none;font-weight:700;font-size:0.85rem;">Go to Profile</a>
+      </div>
+    </div>
+
+    <!-- TEACHER DASHBOARD (shown if user is Teacher) -->
+    <div id="teacher-dashboard" style="display:none;">
+
+      <div class="teacher-banner">
+        <div>
+          <h1>👨‍🏫 Teacher View</h1>
+          <p>Monitor your students' Hifz progress</p>
+        </div>
+        <div style="font-family:'Amiri',serif;font-size:1.2rem;color:var(--gold-light);">عَلَّمَ الْقُرْآنَ</div>
+      </div>
+
+      <!-- TEACHER STATS -->
+      <div class="stats-row" style="margin-bottom:1.25rem;">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value" id="t-total-students">0</div>
+          <div class="stat-label">Students</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value" id="t-active-students">0</div>
+          <div class="stat-label">Active Today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📄</div>
+          <div class="stat-value" id="t-avg-pages">0</div>
+          <div class="stat-label">Avg Pages</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-value" id="t-avg-streak">0</div>
+          <div class="stat-label">Avg Streak</div>
+        </div>
+      </div>
+
+      <!-- STUDENT LIST -->
+      <div class="section" id="students-list-section">
+        <div class="section-header">
+          <div class="section-title">My Students</div>
+          <button class="add-btn" onclick="refreshStudents()">🔄 Refresh</button>
+        </div>
+        <div class="student-search">
+          <input type="text" id="student-search-input" placeholder="🔍 Search student name..." oninput="filterStudents(this.value)"/>
+        </div>
+        <div id="students-list"><div class="empty-state">Loading students...</div></div>
+      </div>
+
+      <!-- STUDENT DETAIL VIEW -->
+      <div class="student-detail" id="student-detail">
+        <button class="back-btn" onclick="closeStudentDetail()">← Back to Students</button>
+        <div class="student-card-header">
+          <div class="student-avatar" id="detail-avatar">?</div>
+          <div>
+            <div class="student-name" id="detail-name">Student</div>
+            <div class="student-meta" id="detail-meta">Loading...</div>
+          </div>
+        </div>
+
+        <!-- STUDENT STATS -->
+        <div class="student-stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:1rem;">
+          <div class="student-stat"><div class="student-stat-val" id="d-surahs">0</div><div class="student-stat-label">Surahs Done</div></div>
+          <div class="student-stat"><div class="student-stat-val" id="d-pages">0</div><div class="student-stat-label">Pages Done</div></div>
+          <div class="student-stat"><div class="student-stat-val" id="d-streak">0</div><div class="student-stat-label">Streak 🔥</div></div>
+          <div class="student-stat"><div class="student-stat-val" id="d-sessions">0</div><div class="student-stat-label">Sessions</div></div>
+        </div>
+
+        <!-- STUDENT PROGRESS BAR -->
+        <div style="margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:0.3rem;">
+            <span style="font-weight:700;color:var(--emerald-dark);">Quran Progress</span>
+            <span style="font-weight:700;color:var(--emerald);" id="d-pct">0%</span>
+          </div>
+          <div style="height:8px;background:var(--emerald-light);border-radius:99px;overflow:hidden;">
+            <div id="d-progress-fill" style="height:100%;background:linear-gradient(90deg,var(--emerald),var(--gold));border-radius:99px;width:0%;transition:width 0.5s;"></div>
+          </div>
+        </div>
+
+        <!-- SURAH PROGRESS -->
+        <div class="detail-section-title">📖 Surah Progress</div>
+        <div id="d-surah-list" style="max-height:200px;overflow-y:auto;"></div>
+
+        <!-- RECENT SESSIONS -->
+        <div class="detail-section-title">🕐 Recent Sessions</div>
+        <div id="d-sessions-list"></div>
+
+        <!-- TEACHER NOTES -->
+        <div class="detail-section-title">📝 Teacher Notes</div>
+        <div id="d-notes-list"></div>
+        <div class="note-form">
+          <textarea class="note-input" id="teacher-note-input" rows="2" placeholder="Add a note for this student e.g. 'Needs to work on tajweed in Surah Al-Baqarah'..."></textarea>
+          <button class="save-note-btn" onclick="saveTeacherNote()">💾 Save Note</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── TAB 6: LOG SESSION ── -->
+
+  <div class="tab-content" id="tab-log">
+    <div style="height:1.25rem;"></div>
+
+    <!-- STREAK -->
+    <div class="streak-card">
+      <div class="streak-flame">🔥</div>
+      <div class="streak-info">
+        <h3>Daily Streak</h3>
+        <p id="streak-msg">Log today to start your streak!</p>
+      </div>
+      <div class="streak-days" id="streak-days-2">0</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" style="margin-bottom:1rem;">📝 Log Today's Session</div>
+      <div class="log-form">
+        <div class="log-row">
+          <div class="form-group">
+            <label>Session Type</label>
+            <select id="log-type">
+              <option value="new">🆕 New Memorization</option>
+              <option value="revision">🔄 Revision (Muraja'ah)</option>
+              <option value="listening">🎧 Listening (Sama')</option>
+              <option value="teacher">👨‍🏫 With Teacher</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Surah</label>
+            <select id="log-surah-select"></select>
+          </div>
+        </div>
+        <div class="log-row">
+          <div class="form-group">
+            <label>Pages</label>
+            <input type="number" id="log-pages" min="0" max="20" value="1" placeholder="e.g. 2"/>
+          </div>
+          <div class="form-group">
+            <label>Minutes</label>
+            <input type="number" id="log-mins" min="1" max="300" value="30" placeholder="e.g. 30"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Quality (1-5 ⭐)</label>
+          <select id="log-quality">
+            <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+            <option value="4">⭐⭐⭐⭐ Good</option>
+            <option value="3">⭐⭐⭐ Average</option>
+            <option value="2">⭐⭐ Needs Work</option>
+            <option value="1">⭐ Difficult</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes (optional)</label>
+          <input type="text" id="log-notes" placeholder="e.g. Completed Al-Mulk today 🤲"/>
+        </div>
+        <button class="log-submit" id="log-btn" onclick="logSession()">✅ Log Session</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB 5: HISTORY ── -->
+  <div class="tab-content" id="tab-sessions">
+    <div style="height:1.25rem;"></div>
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">🕐 Session History</div>
+      </div>
+      <div id="sessions-list"><div class="empty-state">No sessions yet. Start logging! 📖</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+    <div class="mobile-nav-inner">
+      <a href="dashboard.html" class="mobile-nav-item"><span>🏠</span><span>Home</span></a>
+      <a href="search.html" class="mobile-nav-item"><span>🔍</span><span>Search</span></a>
+      <a href="messages.html" class="mobile-nav-item"><span>💬</span><span>Chat</span></a>
+      <a href="notifications.html" class="mobile-nav-item"><span>🔔</span><span>Alerts</span></a>
+      <a href="profile.html" class="mobile-nav-item"><span>👤</span><span>Profile</span></a>
+    </div>
+  </nav>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, limit, onSnapshot, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "1071311461394",
+    appId: "1:1071311461394:web:2218e814e9a3a40f5b9c74"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let surahProgress = {};
+  let selectedSurahId = null;
+  let selectedStatus = 'not_started';
+  let currentFilter = 'all';
+  let searchQuery = '';
+
+  // ── ALL 114 SURAHS ──
+  const SURAHS = [
+    {id:1,name:"Al-Fatihah",arabic:"الفاتحة",pages:0.5,verses:7,juz:1},
+    {id:2,name:"Al-Baqarah",arabic:"البقرة",pages:48,verses:286,juz:1},
+    {id:3,name:"Al-Imran",arabic:"آل عمران",pages:20,verses:200,juz:3},
+    {id:4,name:"An-Nisa",arabic:"النساء",pages:23,verses:176,juz:4},
+    {id:5,name:"Al-Maidah",arabic:"المائدة",pages:16,verses:120,juz:6},
+    {id:6,name:"Al-Anam",arabic:"الأنعام",pages:20,verses:165,juz:7},
+    {id:7,name:"Al-Araf",arabic:"الأعراف",pages:24,verses:206,juz:8},
+    {id:8,name:"Al-Anfal",arabic:"الأنفال",pages:9,verses:75,juz:9},
+    {id:9,name:"At-Tawbah",arabic:"التوبة",pages:16,verses:129,juz:10},
+    {id:10,name:"Yunus",arabic:"يونس",pages:11,verses:109,juz:11},
+    {id:11,name:"Hud",arabic:"هود",pages:10,verses:123,juz:11},
+    {id:12,name:"Yusuf",arabic:"يوسف",pages:12,verses:111,juz:12},
+    {id:13,name:"Ar-Rad",arabic:"الرعد",pages:6,verses:43,juz:13},
+    {id:14,name:"Ibrahim",arabic:"إبراهيم",pages:6,verses:52,juz:13},
+    {id:15,name:"Al-Hijr",arabic:"الحجر",pages:6,verses:99,juz:14},
+    {id:16,name:"An-Nahl",arabic:"النحل",pages:13,verses:128,juz:14},
+    {id:17,name:"Al-Isra",arabic:"الإسراء",pages:12,verses:111,juz:15},
+    {id:18,name:"Al-Kahf",arabic:"الكهف",pages:12,verses:110,juz:15},
+    {id:19,name:"Maryam",arabic:"مريم",pages:7,verses:98,juz:16},
+    {id:20,name:"Ta-Ha",arabic:"طه",pages:8,verses:135,juz:16},
+    {id:21,name:"Al-Anbiya",arabic:"الأنبياء",pages:9,verses:112,juz:17},
+    {id:22,name:"Al-Hajj",arabic:"الحج",pages:10,verses:78,juz:17},
+    {id:23,name:"Al-Muminun",arabic:"المؤمنون",pages:9,verses:118,juz:18},
+    {id:24,name:"An-Nur",arabic:"النور",pages:9,verses:64,juz:18},
+    {id:25,name:"Al-Furqan",arabic:"الفرقان",pages:7,verses:77,juz:18},
+    {id:26,name:"Ash-Shuara",arabic:"الشعراء",pages:11,verses:227,juz:19},
+    {id:27,name:"An-Naml",arabic:"النمل",pages:9,verses:93,juz:19},
+    {id:28,name:"Al-Qasas",arabic:"القصص",pages:10,verses:88,juz:20},
+    {id:29,name:"Al-Ankabut",arabic:"العنكبوت",pages:7,verses:69,juz:20},
+    {id:30,name:"Ar-Rum",arabic:"الروم",pages:6,verses:60,juz:21},
+    {id:31,name:"Luqman",arabic:"لقمان",pages:4,verses:34,juz:21},
+    {id:32,name:"As-Sajdah",arabic:"السجدة",pages:3,verses:30,juz:21},
+    {id:33,name:"Al-Ahzab",arabic:"الأحزاب",pages:9,verses:73,juz:21},
+    {id:34,name:"Saba",arabic:"سبأ",pages:6,verses:54,juz:22},
+    {id:35,name:"Fatir",arabic:"فاطر",pages:6,verses:45,juz:22},
+    {id:36,name:"Ya-Sin",arabic:"يس",pages:4,verses:83,juz:22},
+    {id:37,name:"As-Saffat",arabic:"الصافات",pages:7,verses:182,juz:23},
+    {id:38,name:"Sad",arabic:"ص",pages:6,verses:88,juz:23},
+    {id:39,name:"Az-Zumar",arabic:"الزمر",pages:8,verses:75,juz:23},
+    {id:40,name:"Ghafir",arabic:"غافر",pages:8,verses:85,juz:24},
+    {id:41,name:"Fussilat",arabic:"فصلت",pages:7,verses:54,juz:24},
+    {id:42,name:"Ash-Shura",arabic:"الشورى",pages:7,verses:53,juz:25},
+    {id:43,name:"Az-Zukhruf",arabic:"الزخرف",pages:7,verses:89,juz:25},
+    {id:44,name:"Ad-Dukhan",arabic:"الدخان",pages:3,verses:59,juz:25},
+    {id:45,name:"Al-Jathiyah",arabic:"الجاثية",pages:4,verses:37,juz:25},
+    {id:46,name:"Al-Ahqaf",arabic:"الأحقاف",pages:5,verses:35,juz:26},
+    {id:47,name:"Muhammad",arabic:"محمد",pages:5,verses:38,juz:26},
+    {id:48,name:"Al-Fath",arabic:"الفتح",pages:5,verses:29,juz:26},
+    {id:49,name:"Al-Hujurat",arabic:"الحجرات",pages:3,verses:18,juz:26},
+    {id:50,name:"Qaf",arabic:"ق",pages:3,verses:45,juz:26},
+    {id:51,name:"Adh-Dhariyat",arabic:"الذاريات",pages:4,verses:60,juz:26},
+    {id:52,name:"At-Tur",arabic:"الطور",pages:3,verses:49,juz:27},
+    {id:53,name:"An-Najm",arabic:"النجم",pages:3,verses:62,juz:27},
+    {id:54,name:"Al-Qamar",arabic:"القمر",pages:3,verses:55,juz:27},
+    {id:55,name:"Ar-Rahman",arabic:"الرحمن",pages:4,verses:78,juz:27},
+    {id:56,name:"Al-Waqiah",arabic:"الواقعة",pages:4,verses:96,juz:27},
+    {id:57,name:"Al-Hadid",arabic:"الحديد",pages:5,verses:29,juz:27},
+    {id:58,name:"Al-Mujadila",arabic:"المجادلة",pages:4,verses:22,juz:28},
+    {id:59,name:"Al-Hashr",arabic:"الحشر",pages:4,verses:24,juz:28},
+    {id:60,name:"Al-Mumtahanah",arabic:"الممتحنة",pages:3,verses:13,juz:28},
+    {id:61,name:"As-Saf",arabic:"الصف",pages:2,verses:14,juz:28},
+    {id:62,name:"Al-Jumuah",arabic:"الجمعة",pages:2,verses:11,juz:28},
+    {id:63,name:"Al-Munafiqun",arabic:"المنافقون",pages:2,verses:11,juz:28},
+    {id:64,name:"At-Taghabun",arabic:"التغابن",pages:2,verses:18,juz:28},
+    {id:65,name:"At-Talaq",arabic:"الطلاق",pages:3,verses:12,juz:28},
+    {id:66,name:"At-Tahrim",arabic:"التحريم",pages:2,verses:12,juz:28},
+    {id:67,name:"Al-Mulk",arabic:"الملك",pages:3,verses:30,juz:29},
+    {id:68,name:"Al-Qalam",arabic:"القلم",pages:3,verses:52,juz:29},
+    {id:69,name:"Al-Haqqah",arabic:"الحاقة",pages:2,verses:52,juz:29},
+    {id:70,name:"Al-Maarij",arabic:"المعارج",pages:2,verses:44,juz:29},
+    {id:71,name:"Nuh",arabic:"نوح",pages:2,verses:28,juz:29},
+    {id:72,name:"Al-Jinn",arabic:"الجن",pages:2,verses:28,juz:29},
+    {id:73,name:"Al-Muzzammil",arabic:"المزمل",pages:2,verses:20,juz:29},
+    {id:74,name:"Al-Muddaththir",arabic:"المدثر",pages:2,verses:56,juz:29},
+    {id:75,name:"Al-Qiyamah",arabic:"القيامة",pages:2,verses:40,juz:29},
+    {id:76,name:"Al-Insan",arabic:"الإنسان",pages:2,verses:31,juz:29},
+    {id:77,name:"Al-Mursalat",arabic:"المرسلات",pages:2,verses:50,juz:29},
+    {id:78,name:"An-Naba",arabic:"النبأ",pages:2,verses:40,juz:30},
+    {id:79,name:"An-Naziat",arabic:"النازعات",pages:2,verses:46,juz:30},
+    {id:80,name:"Abasa",arabic:"عبس",pages:1,verses:42,juz:30},
+    {id:81,name:"At-Takwir",arabic:"التكوير",pages:1,verses:29,juz:30},
+    {id:82,name:"Al-Infitar",arabic:"الانفطار",pages:1,verses:19,juz:30},
+    {id:83,name:"Al-Mutaffifin",arabic:"المطففين",pages:2,verses:36,juz:30},
+    {id:84,name:"Al-Inshiqaq",arabic:"الانشقاق",pages:1,verses:25,juz:30},
+    {id:85,name:"Al-Buruj",arabic:"البروج",pages:1,verses:22,juz:30},
+    {id:86,name:"At-Tariq",arabic:"الطارق",pages:1,verses:17,juz:30},
+    {id:87,name:"Al-Ala",arabic:"الأعلى",pages:1,verses:19,juz:30},
+    {id:88,name:"Al-Ghashiyah",arabic:"الغاشية",pages:1,verses:26,juz:30},
+    {id:89,name:"Al-Fajr",arabic:"الفجر",pages:2,verses:30,juz:30},
+    {id:90,name:"Al-Balad",arabic:"البلد",pages:1,verses:20,juz:30},
+    {id:91,name:"Ash-Shams",arabic:"الشمس",pages:1,verses:15,juz:30},
+    {id:92,name:"Al-Layl",arabic:"الليل",pages:1,verses:21,juz:30},
+    {id:93,name:"Ad-Duha",arabic:"الضحى",pages:1,verses:11,juz:30},
+    {id:94,name:"Ash-Sharh",arabic:"الشرح",pages:0.5,verses:8,juz:30},
+    {id:95,name:"At-Tin",arabic:"التين",pages:0.5,verses:8,juz:30},
+    {id:96,name:"Al-Alaq",arabic:"العلق",pages:1,verses:19,juz:30},
+    {id:97,name:"Al-Qadr",arabic:"القدر",pages:0.5,verses:5,juz:30},
+    {id:98,name:"Al-Bayyinah",arabic:"البينة",pages:1,verses:8,juz:30},
+    {id:99,name:"Az-Zalzalah",arabic:"الزلزلة",pages:0.5,verses:8,juz:30},
+    {id:100,name:"Al-Adiyat",arabic:"العاديات",pages:0.5,verses:11,juz:30},
+    {id:101,name:"Al-Qariah",arabic:"القارعة",pages:0.5,verses:11,juz:30},
+    {id:102,name:"At-Takathur",arabic:"التكاثر",pages:0.5,verses:8,juz:30},
+    {id:103,name:"Al-Asr",arabic:"العصر",pages:0.5,verses:3,juz:30},
+    {id:104,name:"Al-Humazah",arabic:"الهمزة",pages:0.5,verses:9,juz:30},
+    {id:105,name:"Al-Fil",arabic:"الفيل",pages:0.5,verses:5,juz:30},
+    {id:106,name:"Quraysh",arabic:"قريش",pages:0.5,verses:4,juz:30},
+    {id:107,name:"Al-Maun",arabic:"الماعون",pages:0.5,verses:7,juz:30},
+    {id:108,name:"Al-Kawthar",arabic:"الكوثر",pages:0.5,verses:3,juz:30},
+    {id:109,name:"Al-Kafirun",arabic:"الكافرون",pages:0.5,verses:6,juz:30},
+    {id:110,name:"An-Nasr",arabic:"النصر",pages:0.5,verses:3,juz:30},
+    {id:111,name:"Al-Masad",arabic:"المسد",pages:0.5,verses:5,juz:30},
+    {id:112,name:"Al-Ikhlas",arabic:"الإخلاص",pages:0.5,verses:4,juz:30},
+    {id:113,name:"Al-Falaq",arabic:"الفلق",pages:0.5,verses:5,juz:30},
+    {id:114,name:"An-Nas",arabic:"الناس",pages:0.5,verses:6,juz:30}
+  ];
+
+  // ── TOAST ──
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── 604 PAGES DATA (pages per Juz) ──
+  // Each Juz has ~20 pages. Total = 604
+  const JUZ_PAGES = [
+    {juz:1,  start:1,   end:21},
+    {juz:2,  start:22,  end:41},
+    {juz:3,  start:42,  end:61},
+    {juz:4,  start:62,  end:81},
+    {juz:5,  start:82,  end:101},
+    {juz:6,  start:102, end:121},
+    {juz:7,  start:122, end:141},
+    {juz:8,  start:142, end:161},
+    {juz:9,  start:162, end:181},
+    {juz:10, start:182, end:201},
+    {juz:11, start:202, end:221},
+    {juz:12, start:222, end:241},
+    {juz:13, start:242, end:261},
+    {juz:14, start:262, end:281},
+    {juz:15, start:282, end:301},
+    {juz:16, start:302, end:321},
+    {juz:17, start:322, end:341},
+    {juz:18, start:342, end:361},
+    {juz:19, start:362, end:381},
+    {juz:20, start:382, end:401},
+    {juz:21, start:402, end:421},
+    {juz:22, start:422, end:441},
+    {juz:23, start:442, end:461},
+    {juz:24, start:462, end:481},
+    {juz:25, start:482, end:501},
+    {juz:26, start:502, end:521},
+    {juz:27, start:522, end:541},
+    {juz:28, start:542, end:561},
+    {juz:29, start:562, end:581},
+    {juz:30, start:582, end:604}
+  ];
+
+  let pagesDone = {}; // { pageNum: true }
+  let pagesSaveTimeout = null;
+
+  function buildPagesGrid() {
+    const container = document.getElementById('pages-grid-container');
+    container.innerHTML = '';
+    JUZ_PAGES.forEach(j => {
+      const section = document.createElement('div');
+      section.className = 'section juz-section';
+      section.style.padding = '0.85rem';
+
+      const doneInJuz = Array.from({length: j.end - j.start + 1}, (_,i) => j.start + i).filter(p => pagesDone[p]).length;
+      const totalInJuz = j.end - j.start + 1;
+      const juzPct = Math.round((doneInJuz / totalInJuz) * 100);
+
+      section.innerHTML = `
+        <div class="juz-header" onclick="toggleJuz(this)">
+          <div class="juz-header-left">📖 Juz ${j.juz} <span style="font-size:0.72rem;color:var(--muted);font-weight:500;">· pages ${j.start}–${j.end}</span></div>
+          <div class="juz-header-right">
+            <span class="juz-header-pct">${doneInJuz}/${totalInJuz}</span>
+            <span style="font-size:0.7rem;">${juzPct}%</span>
+            <button class="mark-all-btn" onclick="event.stopPropagation();markAllJuz(${j.juz},${j.start},${j.end})">${doneInJuz===totalInJuz?'Unmark All':'Mark All ✅'}</button>
+            <span class="collapse-icon">▼</span>
+          </div>
+        </div>
+        <div class="juz-pages-grid" id="juz-grid-${j.juz}">
+          ${Array.from({length: j.end - j.start + 1}, (_,i) => {
+            const p = j.start + i;
+            const done = pagesDone[p] ? 'done' : 'not-done';
+            return `<div class="page-cell ${done}" data-page="${p}" onclick="togglePage(${p})" title="Page ${p}">${p}</div>`;
+          }).join('')}
+        </div>
+      `;
+      container.appendChild(section);
+    });
+    updatePagesStats();
+  }
+
+  window.toggleJuz = function(header) {
+    header.parentElement.classList.toggle('juz-collapsed');
+  }
+
+  window.togglePage = function(pageNum) {
+    if (pagesDone[pageNum]) {
+      delete pagesDone[pageNum];
+    } else {
+      pagesDone[pageNum] = true;
+    }
+    // Update cell UI
+    const cell = document.querySelector(`.page-cell[data-page="${pageNum}"]`);
+    if (cell) {
+      cell.classList.toggle('done', !!pagesDone[pageNum]);
+      cell.classList.toggle('not-done', !pagesDone[pageNum]);
+    }
+    updatePagesStats();
+    updateJuzHeader(pageNum);
+    scheduleSavePages();
+  }
+
+  window.markAllJuz = function(juz, start, end) {
+    const allDone = Array.from({length: end-start+1}, (_,i) => start+i).every(p => pagesDone[p]);
+    for (let p = start; p <= end; p++) {
+      if (allDone) delete pagesDone[p];
+      else pagesDone[p] = true;
+      const cell = document.querySelector(`.page-cell[data-page="${p}"]`);
+      if (cell) {
+        cell.classList.toggle('done', !allDone);
+        cell.classList.toggle('not-done', allDone);
+      }
+    }
+    updatePagesStats();
+    updateJuzHeader(start);
+    scheduleSavePages();
+  }
+
+  function updateJuzHeader(pageNum) {
+    // Find which juz this page belongs to
+    const j = JUZ_PAGES.find(j => pageNum >= j.start && pageNum <= j.end);
+    if (!j) return;
+    const doneInJuz = Array.from({length: j.end-j.start+1}, (_,i) => j.start+i).filter(p => pagesDone[p]).length;
+    const totalInJuz = j.end - j.start + 1;
+    const juzPct = Math.round((doneInJuz / totalInJuz) * 100);
+    const header = document.querySelector(`#juz-grid-${j.juz}`)?.previousElementSibling;
+    if (header) {
+      header.querySelector('.juz-header-pct').textContent = doneInJuz + '/' + totalInJuz;
+      header.querySelectorAll('.juz-header-right span')[1].textContent = juzPct + '%';
+      const markBtn = header.querySelector('.mark-all-btn');
+      if (markBtn) markBtn.textContent = doneInJuz === totalInJuz ? 'Unmark All' : 'Mark All ✅';
+    }
+  }
+
+  function updatePagesStats() {
+    const done = Object.keys(pagesDone).length;
+    const remaining = 604 - done;
+    const pct = Math.round((done / 604) * 100);
+    document.getElementById('pages-done-count').textContent = done;
+    document.getElementById('pages-remaining').textContent = remaining;
+    document.getElementById('pages-pct-stat').textContent = pct + '%';
+    document.getElementById('pages-overall-pct').textContent = done + ' / 604 pages';
+    document.getElementById('pages-overall-fill').style.width = pct + '%';
+  }
+
+  function scheduleSavePages() {
+    clearTimeout(pagesSaveTimeout);
+    pagesSaveTimeout = setTimeout(savePages, 1500);
+  }
+
+  async function savePages() {
+    if (!currentUser) return;
+    try {
+      await setDoc(doc(db, 'hifzProgress', currentUser.uid), { pages: pagesDone }, { merge: true });
+    } catch(e) {}
+  }
+
+  function loadPages(data) {
+    if (data && data.pages) pagesDone = data.pages;
+    buildPagesGrid();
+  }
+
+  // ── TEACHER VIEW ─────────────────────────────────────────────────
+  let allStudents = [];
+  let selectedStudentUid = null;
+
+  async function initTeacherView() {
+    const isTeacher = currentUserData && currentUserData.role === 'Teacher';
+    document.getElementById('teacher-locked').style.display = isTeacher ? 'none' : 'block';
+    document.getElementById('teacher-dashboard').style.display = isTeacher ? 'block' : 'none';
+    if (isTeacher) await loadStudents();
+  }
+
+  async function loadStudents() {
+    const listEl = document.getElementById('students-list');
+    listEl.innerHTML = '<div class="empty-state">Loading students...</div>';
+    try {
+      // Find all users who follow this teacher OR all students
+      const { getDocs, collection, query, where } = await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
+      const snap = await getDocs(query(collection(db, 'users'), where('role', 'in', ['Student', 'Hafiz'])));
+      allStudents = [];
+      snap.forEach(d => { if (d.id !== currentUser.uid) allStudents.push({ uid: d.id, ...d.data() }); });
+
+      // Load their progress
+      await Promise.all(allStudents.map(async s => {
+        try {
+          const progSnap = await getDoc(doc(db, 'hifzProgress', s.uid));
+          if (progSnap.exists()) s.progress = progSnap.data();
+          // Count sessions
+          const sessSnap = await getDocs(collection(db, 'hifzSessions', s.uid, 'sessions'));
+          s.sessionCount = sessSnap.size;
+          s.totalPages = sessSnap.docs.reduce((a,d) => a + (d.data().pages||0), 0);
+        } catch(e) { s.progress = {}; s.sessionCount = 0; s.totalPages = 0; }
+      }));
+
+      updateTeacherStats();
+      renderStudents(allStudents);
+    } catch(e) {
+      listEl.innerHTML = '<div class="empty-state">Could not load students. Check Firebase rules allow teacher reads.</div>';
+    }
+  }
+
+  function updateTeacherStats() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('t-total-students').textContent = allStudents.length;
+    const activeToday = allStudents.filter(s => s.progress && s.progress.lastLogDate === today).length;
+    document.getElementById('t-active-students').textContent = activeToday;
+    const avgPages = allStudents.length ? Math.round(allStudents.reduce((a,s) => a + (s.totalPages||0), 0) / allStudents.length) : 0;
+    document.getElementById('t-avg-pages').textContent = avgPages;
+    const avgStreak = allStudents.length ? Math.round(allStudents.reduce((a,s) => a + ((s.progress&&s.progress.streak)||0), 0) / allStudents.length) : 0;
+    document.getElementById('t-avg-streak').textContent = avgStreak;
+  }
+
+  function getStudentSurahsCompleted(student) {
+    if (!student.progress || !student.progress.surahs) return 0;
+    return Object.values(student.progress.surahs).filter(s => s.status === 'completed').length;
+  }
+
+  function getStudentPagesDone(student) {
+    if (!student.progress || !student.progress.pages) return 0;
+    return Object.keys(student.progress.pages).length;
+  }
+
+  function renderStudents(students) {
+    const listEl = document.getElementById('students-list');
+    if (!students.length) { listEl.innerHTML = '<div class="empty-state">No students found on HuffazWorld yet.</div>'; return; }
+    listEl.innerHTML = students.map(s => {
+      const initials = (s.fullname||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+      const surahs = getStudentSurahsCompleted(s);
+      const pages = getStudentPagesDone(s);
+      const streak = (s.progress && s.progress.streak) || 0;
+      const pct = Math.round((surahs / 114) * 100);
+      const today = new Date().toISOString().split('T')[0];
+      const activeToday = s.progress && s.progress.lastLogDate === today;
+      return `<div class="student-card" onclick="openStudentDetail('${s.uid}')">
+        <div class="student-card-header">
+          <div class="student-avatar">${initials}</div>
+          <div style="flex:1;">
+            <div class="student-name">${s.fullname||'Student'} ${activeToday ? '🟢' : ''}</div>
+            <div class="student-meta">${s.role||'Student'} · ${s.country||''} ${streak ? '· 🔥'+streak+' streak' : ''}</div>
+          </div>
+          <div style="font-size:0.8rem;font-weight:700;color:var(--emerald);">${pct}%</div>
+        </div>
+        <div class="student-stats-row">
+          <div class="student-stat"><div class="student-stat-val">${surahs}</div><div class="student-stat-label">Surahs ✅</div></div>
+          <div class="student-stat"><div class="student-stat-val">${pages}</div><div class="student-stat-label">Pages ✅</div></div>
+          <div class="student-stat"><div class="student-stat-val">${s.sessionCount||0}</div><div class="student-stat-label">Sessions</div></div>
+        </div>
+        <div class="student-progress-bar"><div class="student-progress-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+
+  window.filterStudents = function(val) {
+    const q = val.toLowerCase();
+    const filtered = allStudents.filter(s => (s.fullname||'').toLowerCase().includes(q) || (s.country||'').toLowerCase().includes(q));
+    renderStudents(filtered);
+  }
+
+  window.refreshStudents = function() { loadStudents(); }
+
+  window.openStudentDetail = async function(uid) {
+    selectedStudentUid = uid;
+    const student = allStudents.find(s => s.uid === uid);
+    if (!student) return;
+    document.getElementById('students-list-section').style.display = 'none';
+    const detail = document.getElementById('student-detail');
+    detail.classList.add('show');
+    const initials = (student.fullname||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('detail-avatar').textContent = initials;
+    document.getElementById('detail-name').textContent = student.fullname || 'Student';
+    document.getElementById('detail-meta').textContent = (student.role||'Student') + ' · ' + (student.country||'') + ' · ' + (student.email||'');
+    const surahs = getStudentSurahsCompleted(student);
+    const pages = getStudentPagesDone(student);
+    const streak = (student.progress && student.progress.streak) || 0;
+    const pct = Math.round((surahs/114)*100);
+    document.getElementById('d-surahs').textContent = surahs;
+    document.getElementById('d-pages').textContent = pages;
+    document.getElementById('d-streak').textContent = streak;
+    document.getElementById('d-sessions').textContent = student.sessionCount || 0;
+    document.getElementById('d-pct').textContent = pct + '%';
+    document.getElementById('d-progress-fill').style.width = pct + '%';
+    // Surah list
+    const surahList = document.getElementById('d-surah-list');
+    if (student.progress && student.progress.surahs) {
+      const completed = Object.entries(student.progress.surahs).filter(([,v]) => v.status === 'completed').map(([k]) => {
+        const s = SURAHS.find(x => x.id === parseInt(k));
+        return s ? s.name : '';
+      }).filter(Boolean);
+      surahList.innerHTML = completed.length ? completed.map(n => `<span style="display:inline-block;background:var(--emerald-light);color:var(--emerald-dark);border-radius:6px;padding:0.2rem 0.5rem;font-size:0.75rem;font-weight:600;margin:0.2rem;">${n} ✅</span>`).join('') : '<div style="font-size:0.82rem;color:var(--muted);">No completed Surahs yet.</div>';
+    } else { surahList.innerHTML = '<div style="font-size:0.82rem;color:var(--muted);">No data available.</div>'; }
+    // Recent sessions
+    try {
+      const sessSnap = await getDocs(query(collection(db, 'hifzSessions', uid, 'sessions'), orderBy('createdAt','desc'), limit(5)));
+      const sessList = document.getElementById('d-sessions-list');
+      if (sessSnap.empty) { sessList.innerHTML = '<div style="font-size:0.82rem;color:var(--muted);">No sessions logged yet.</div>'; }
+      else {
+        const icons = { new:'🆕', revision:'🔄', listening:'🎧', teacher:'👨‍🏫' };
+        sessList.innerHTML = sessSnap.docs.map(d => {
+          const s = d.data();
+          return `<div class="session-item"><div class="session-icon">${icons[s.type]||'📖'}</div><div class="session-info"><div class="session-title">${s.surah}</div><div class="session-meta">${s.date}${s.notes?' · '+s.notes:''}</div></div><div class="session-pages">${s.pages}p · ${s.mins}m</div></div>`;
+        }).join('');
+      }
+    } catch(e) { document.getElementById('d-sessions-list').innerHTML = '<div style="font-size:0.82rem;color:var(--muted);">Could not load sessions.</div>'; }
+    // Teacher notes
+    loadTeacherNotes(uid);
+    detail.scrollIntoView({ behavior:'smooth' });
+  }
+
+  window.closeStudentDetail = function() {
+    document.getElementById('student-detail').classList.remove('show');
+    document.getElementById('students-list-section').style.display = 'block';
+    selectedStudentUid = null;
+    document.getElementById('teacher-note-input').value = '';
+  }
+
+  async function loadTeacherNotes(studentUid) {
+    const notesList = document.getElementById('d-notes-list');
+    try {
+      const snap = await getDocs(query(collection(db, 'teacherNotes', currentUser.uid, 'notes'), where('studentUid','==',studentUid), orderBy('createdAt','desc'), limit(10)));
+      if (snap.empty) { notesList.innerHTML = '<div style="font-size:0.82rem;color:var(--muted);margin-bottom:0.5rem;">No notes yet.</div>'; return; }
+      notesList.innerHTML = snap.docs.map(d => {
+        const n = d.data();
+        return `<div class="note-item"><div class="note-text">${n.note}</div><div class="note-date">${n.createdAt ? n.createdAt.split('T')[0] : ''}</div></div>`;
+      }).join('');
+    } catch(e) { notesList.innerHTML = '<div style="font-size:0.82rem;color:var(--muted);margin-bottom:0.5rem;">Could not load notes.</div>'; }
+  }
+
+  window.saveTeacherNote = async function() {
+    if (!selectedStudentUid || !currentUser) return;
+    const note = document.getElementById('teacher-note-input').value.trim();
+    if (!note) { showToast('⚠️ Please write a note first.'); return; }
+    try {
+      await addDoc(collection(db, 'teacherNotes', currentUser.uid, 'notes'), {
+        studentUid: selectedStudentUid, note, createdAt: new Date().toISOString()
+      });
+      document.getElementById('teacher-note-input').value = '';
+      loadTeacherNotes(selectedStudentUid);
+      showToast('✅ Note saved!');
+    } catch(e) { showToast('Could not save note.'); }
+  }
+  // ────────────────────────────────────────────────────────────────
+
+  // ── GOALS ────────────────────────────────────────────────────────
+  let userGoals = [];
+
+  window.toggleGoalForm = function() {
+    const form = document.getElementById('goal-form');
+    form.classList.toggle('show');
+    if (form.classList.contains('show')) form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  window.quickGoal = function(title, type, target, days) {
+    document.getElementById('goal-title-input').value = title;
+    document.getElementById('goal-type-input').value = type;
+    document.getElementById('goal-target-input').value = target;
+    document.getElementById('goal-days-input').value = days;
+    document.getElementById('goal-priority-input').value = 'high';
+  }
+
+  window.saveGoal = async function() {
+    if (!currentUser) return;
+    const title = document.getElementById('goal-title-input').value.trim();
+    const type = document.getElementById('goal-type-input').value;
+    const target = parseInt(document.getElementById('goal-target-input').value) || 0;
+    const days = parseInt(document.getElementById('goal-days-input').value) || 30;
+    const priority = document.getElementById('goal-priority-input').value;
+    if (!title) { showToast('⚠️ Please enter a goal title.'); return; }
+    if (!target) { showToast('⚠️ Please enter a target amount.'); return; }
+    const deadline = new Date();
+    deadline.setDate(deadline.getDate() + days);
+    const goal = {
+      id: Date.now().toString(),
+      title, type, target, priority,
+      deadline: deadline.toISOString().split('T')[0],
+      createdAt: new Date().toISOString(),
+      achieved: 0,
+      completed: false
+    };
+    userGoals.unshift(goal);
+    await saveGoals();
+    toggleGoalForm();
+    document.getElementById('goal-title-input').value = '';
+    renderGoals();
+    showToast('🎯 Goal set! Bismillah! 🤲');
+  }
+
+  window.updateGoalProgress = async function(goalId, amount) {
+    const goal = userGoals.find(g => g.id === goalId);
+    if (!goal) return;
+    const newVal = Math.max(0, Math.min(goal.target, (goal.achieved || 0) + amount));
+    goal.achieved = newVal;
+    if (newVal >= goal.target) { goal.completed = true; showToast('🎉 Goal completed! Alhamdulillah! 🤲'); }
+    await saveGoals();
+    renderGoals();
+  }
+
+  window.deleteGoal = async function(goalId) {
+    if (!confirm('Delete this goal?')) return;
+    userGoals = userGoals.filter(g => g.id !== goalId);
+    await saveGoals();
+    renderGoals();
+    showToast('Goal deleted.');
+  }
+
+  window.resetGoal = async function(goalId) {
+    const goal = userGoals.find(g => g.id === goalId);
+    if (!goal) return;
+    goal.achieved = 0; goal.completed = false;
+    await saveGoals();
+    renderGoals();
+    showToast('Goal reset.');
+  }
+
+  async function saveGoals() {
+    if (!currentUser) return;
+    try {
+      await setDoc(doc(db, 'hifzProgress', currentUser.uid), { goals: userGoals }, { merge: true });
+    } catch(e) { showToast('Could not save goal.'); }
+  }
+
+  function getGoalStatus(goal) {
+    if (goal.completed) return 'completed';
+    const today = new Date().toISOString().split('T')[0];
+    if (goal.deadline < today) return 'overdue';
+    return 'active';
+  }
+
+  function getDaysLeft(deadline) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const end = new Date(deadline); end.setHours(0,0,0,0);
+    const diff = Math.round((end - today) / (1000*60*60*24));
+    if (diff < 0) return Math.abs(diff) + ' days overdue';
+    if (diff === 0) return 'Due today!';
+    return diff + ' days left';
+  }
+
+  function getTypeLabel(type, target) {
+    const labels = { pages: `${target} pages`, sessions: `${target} sessions`, minutes: `${target} minutes`, surahs: `${target} surahs` };
+    return labels[type] || target;
+  }
+
+  function getPriorityIcon(priority) {
+    return { high: '🔴', medium: '🟡', low: '🟢' }[priority] || '🟡';
+  }
+
+  function renderGoals() {
+    const list = document.getElementById('goals-list');
+    if (!userGoals.length) {
+      list.innerHTML = '<div class="empty-goals"><div class="eg-icon">🎯</div><p>No goals yet.<br>Set your first goal above!</p></div>';
+      return;
+    }
+    // Sort: active first, then completed, then overdue
+    const sorted = [...userGoals].sort((a,b) => {
+      const order = { active: 0, overdue: 1, completed: 2 };
+      return order[getGoalStatus(a)] - order[getGoalStatus(b)];
+    });
+    list.innerHTML = sorted.map(goal => {
+      const status = getGoalStatus(goal);
+      const pct = Math.min(100, Math.round(((goal.achieved||0) / goal.target) * 100));
+      const daysLeft = getDaysLeft(goal.deadline);
+      const statusLabel = status === 'completed' ? '✅ Completed' : status === 'overdue' ? '⏰ Overdue' : '🔄 Active';
+      return `<div class="goal-card ${status}">
+        <div class="goal-header">
+          <div class="goal-title">${getPriorityIcon(goal.priority)} ${goal.title}</div>
+          <span class="goal-badge ${status}">${statusLabel}</span>
+        </div>
+        <div class="goal-meta">
+          🎯 ${getTypeLabel(goal.type, goal.target)} &nbsp;·&nbsp; 📅 ${daysLeft} &nbsp;·&nbsp; Deadline: ${goal.deadline}
+        </div>
+        <div class="goal-progress-row">
+          <div class="goal-bar"><div class="goal-bar-fill" style="width:${pct}%"></div></div>
+          <div class="goal-pct">${goal.achieved||0}/${goal.target} (${pct}%)</div>
+        </div>
+        ${status !== 'completed' ? `
+        <div class="goal-actions">
+          <button class="goal-action-btn" onclick="updateGoalProgress('${goal.id}', 1)">＋1</button>
+          <button class="goal-action-btn" onclick="updateGoalProgress('${goal.id}', 5)">＋5</button>
+          <button class="goal-action-btn" onclick="updateGoalProgress('${goal.id}', 10)">＋10</button>
+          <button class="goal-action-btn" onclick="updateGoalProgress('${goal.id}', -1)">－1</button>
+          <button class="goal-action-btn danger" onclick="deleteGoal('${goal.id}')">🗑️</button>
+        </div>` : `
+        <div class="goal-actions">
+          <button class="goal-action-btn" onclick="resetGoal('${goal.id}')">🔄 Reset</button>
+          <button class="goal-action-btn danger" onclick="deleteGoal('${goal.id}')">🗑️ Delete</button>
+        </div>`}
+      </div>`;
+    }).join('');
+  }
+
+  function loadGoals(data) {
+    if (data && data.goals) userGoals = data.goals;
+    renderGoals();
+  }
+  // ────────────────────────────────────────────────────────────────
+
+  // ── CHARTS ──────────────────────────────────────────────────────
+  let chartWeekly = null, chartTypes = null, chartJuz = null, chartQuality = null;
+
+  async function buildCharts() {
+    if (!currentUser) return;
+    try {
+      // Load all sessions
+      const snap = await getDocs(collection(db, 'hifzSessions', currentUser.uid, 'sessions'));
+      const sessions = snap.docs.map(d => d.data());
+
+      // ── MINI STATS ──
+      const totalMins = sessions.reduce((a,s) => a + (s.mins||0), 0);
+      const totalPages = sessions.reduce((a,s) => a + (s.pages||0), 0);
+      const qualities = sessions.filter(s => s.quality).map(s => s.quality);
+      const avgQuality = qualities.length ? (qualities.reduce((a,b)=>a+b,0)/qualities.length).toFixed(1) : 0;
+      document.getElementById('chart-total-sessions').textContent = sessions.length;
+      document.getElementById('chart-total-mins').textContent = totalMins;
+      document.getElementById('chart-total-pages').textContent = totalPages;
+      document.getElementById('chart-avg-quality').textContent = avgQuality;
+
+      // ── CHART 1: Last 7 days pages ──
+      const last7 = [];
+      const last7Labels = [];
+      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const str = d.toISOString().split('T')[0];
+        last7Labels.push(days[d.getDay()]);
+        const dayPages = sessions.filter(s => s.date === str).reduce((a,s) => a + (s.pages||0), 0);
+        last7.push(dayPages);
+      }
+      if (chartWeekly) chartWeekly.destroy();
+      chartWeekly = new Chart(document.getElementById('chart-weekly'), {
+        type: 'bar',
+        data: {
+          labels: last7Labels,
+          datasets: [{
+            label: 'Pages',
+            data: last7,
+            backgroundColor: last7.map((v,i) => i === 6 ? '#C9A84C' : '#1A6B4A'),
+            borderRadius: 8,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1, color: '#5A7060', font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { ticks: { color: '#5A7060', font: { size: 11 } }, grid: { display: false } }
+          }
+        }
+      });
+
+      // ── CHART 2: Session types doughnut ──
+      const typeCount = { new: 0, revision: 0, listening: 0, teacher: 0 };
+      sessions.forEach(s => { if (typeCount[s.type] !== undefined) typeCount[s.type]++; });
+      const typeLabels = ['New Memorization', 'Revision', 'Listening', 'With Teacher'];
+      const typeData = [typeCount.new, typeCount.revision, typeCount.listening, typeCount.teacher];
+      const typeColors = ['#1A6B4A', '#C9A84C', '#4CAF50', '#0D3D29'];
+      if (chartTypes) chartTypes.destroy();
+      chartTypes = new Chart(document.getElementById('chart-types'), {
+        type: 'doughnut',
+        data: {
+          labels: typeLabels,
+          datasets: [{ data: typeData, backgroundColor: typeColors, borderWidth: 2, borderColor: '#fff' }]
+        },
+        options: {
+          responsive: false,
+          cutout: '65%',
+          plugins: { legend: { display: false } }
+        }
+      });
+      // Custom legend
+      const legend = document.getElementById('chart-types-legend');
+      legend.innerHTML = typeLabels.map((l,i) => `
+        <div style="display:flex;align-items:center;gap:0.3rem;font-size:0.75rem;color:var(--muted);">
+          <div style="width:10px;height:10px;border-radius:3px;background:${typeColors[i]};flex-shrink:0;"></div>
+          ${l} (${typeData[i]})
+        </div>`).join('');
+
+      // ── CHART 3: Juz progress bar chart ──
+      const juzLabels = Array.from({length:30}, (_,i) => 'J'+(i+1));
+      const juzData = JUZ_PAGES.map(j => {
+        const total = j.end - j.start + 1;
+        const done = Array.from({length:total},(_,i)=>j.start+i).filter(p=>pagesDone[p]).length;
+        return Math.round((done/total)*100);
+      });
+      if (chartJuz) chartJuz.destroy();
+      chartJuz = new Chart(document.getElementById('chart-juz'), {
+        type: 'bar',
+        data: {
+          labels: juzLabels,
+          datasets: [{
+            label: '% Complete',
+            data: juzData,
+            backgroundColor: juzData.map(v => v === 100 ? '#C9A84C' : v > 0 ? '#1A6B4A' : '#E6F5EE'),
+            borderRadius: 4,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, max: 100, ticks: { callback: v => v+'%', color: '#5A7060', font:{size:10} }, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { ticks: { color: '#5A7060', font: { size: 9 } }, grid: { display: false } }
+          }
+        }
+      });
+
+      // ── CHART 4: Quality trend (last 10 sessions) ──
+      const last10 = sessions.filter(s => s.quality).slice(-10);
+      const qualityLabels = last10.map(s => s.surah ? s.surah.split(' ')[0] : s.date);
+      const qualityData = last10.map(s => s.quality);
+      if (chartQuality) chartQuality.destroy();
+      chartQuality = new Chart(document.getElementById('chart-quality'), {
+        type: 'line',
+        data: {
+          labels: qualityLabels.length ? qualityLabels : ['No data'],
+          datasets: [{
+            label: 'Quality',
+            data: qualityData.length ? qualityData : [0],
+            borderColor: '#C9A84C',
+            backgroundColor: 'rgba(201,168,76,0.1)',
+            pointBackgroundColor: '#C9A84C',
+            pointRadius: 5,
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: false, min: 1, max: 5, ticks: { stepSize: 1, callback: v => '⭐'.repeat(v), color: '#5A7060', font:{size:10} }, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { ticks: { color: '#5A7060', font:{size:10}, maxRotation: 30 }, grid: { display: false } }
+          }
+        }
+      });
+
+    } catch(e) { console.error('Charts error:', e); }
+  }
+  // ────────────────────────────────────────────────────────────────
+
+  // ── TABS ──
+  window.switchTab = function(tab, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    btn.classList.add('active');
+    if (tab === 'charts') buildCharts();
+    if (tab === 'goals') renderGoals();
+    if (tab === 'teacher') initTeacherView();
+  }
+
+  // ── FILTER ──
+  window.setFilter = function(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderSurahList();
+  }
+
+  window.filterSurahs = function(val) {
+    searchQuery = val.toLowerCase();
+    renderSurahList();
+  }
+
+  // ── RENDER SURAH LIST ──
+  function renderSurahList() {
+    const list = document.getElementById('surah-list');
+    let filtered = SURAHS.filter(s => {
+      const matchSearch = !searchQuery || s.name.toLowerCase().includes(searchQuery) || s.arabic.includes(searchQuery);
+      const prog = surahProgress[s.id] || {};
+      const status = prog.status || 'not_started';
+      const matchFilter = currentFilter === 'all' || status === currentFilter;
+      return matchSearch && matchFilter;
+    });
+    if (!filtered.length) { list.innerHTML = '<div class="empty-state">No Surahs found.</div>'; return; }
+    list.innerHTML = filtered.map(s => {
+      const prog = surahProgress[s.id] || {};
+      const status = prog.status || 'not_started';
+      const pct = prog.pct || 0;
+      const icon = status === 'completed' ? '✅' : status === 'in_progress' ? '🟡' : '';
+      return `<div class="surah-item ${status === 'completed' ? 'completed' : status === 'in_progress' ? 'in-progress' : ''}" onclick="openSurahModal(${s.id})">
+        <div class="surah-num ${status === 'completed' ? 'completed' : status === 'in_progress' ? 'in-progress' : ''}">${s.id}</div>
+        <div class="surah-info">
+          <div class="surah-name">${s.name} <span class="surah-arabic">${s.arabic}</span></div>
+          <div class="surah-meta">Juz ${s.juz} · ${s.verses} verses · ~${s.pages} pages</div>
+        </div>
+        <div class="surah-right">
+          <div class="surah-pct">${icon} ${pct}%</div>
+          <div class="surah-bar"><div class="surah-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── UPDATE STATS ──
+  function updateStats() {
+    let completed = 0, inProgress = 0, totalPages = 0;
+    SURAHS.forEach(s => {
+      const prog = surahProgress[s.id] || {};
+      const status = prog.status || 'not_started';
+      if (status === 'completed') { completed++; totalPages += s.pages; }
+      if (status === 'in_progress') { inProgress++; totalPages += s.pages * (prog.pct || 0) / 100; }
+    });
+    document.getElementById('stat-completed').textContent = completed;
+    document.getElementById('stat-inprogress').textContent = inProgress;
+    document.getElementById('stat-pages').textContent = Math.round(totalPages);
+    const pct = Math.round((completed / 114) * 100);
+    document.getElementById('overall-pct').textContent = pct + '%';
+    document.getElementById('overall-fill').style.width = pct + '%';
+    document.getElementById('overall-sub').textContent = completed + ' of 114 Surahs completed';
+  }
+
+  // ── OPEN SURAH MODAL ──
+  window.openSurahModal = function(id) {
+    const s = SURAHS.find(x => x.id === id);
+    if (!s) return;
+    selectedSurahId = id;
+    const prog = surahProgress[id] || {};
+    selectedStatus = prog.status || 'not_started';
+    document.getElementById('modal-name').textContent = 'Surah ' + s.name;
+    document.getElementById('modal-arabic').textContent = s.arabic;
+    document.getElementById('modal-meta').textContent = `Surah ${s.id} · Juz ${s.juz} · ${s.verses} verses · ~${s.pages} pages`;
+    document.getElementById('pct-slider').value = prog.pct || 0;
+    document.getElementById('pct-display').textContent = (prog.pct || 0) + '%';
+    document.getElementById('modal-notes').value = prog.notes || '';
+    highlightStatus(selectedStatus);
+    document.getElementById('surah-modal').classList.add('show');
+  }
+
+  window.closeModal = function() {
+    document.getElementById('surah-modal').classList.remove('show');
+    selectedSurahId = null;
+  }
+
+  window.selectStatus = function(status) {
+    selectedStatus = status;
+    highlightStatus(status);
+    if (status === 'completed') { document.getElementById('pct-slider').value = 100; document.getElementById('pct-display').textContent = '100%'; }
+    if (status === 'not_started') { document.getElementById('pct-slider').value = 0; document.getElementById('pct-display').textContent = '0%'; }
+  }
+
+  function highlightStatus(status) {
+    document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('selected'));
+    const map = { not_started: 0, in_progress: 1, completed: 2 };
+    const btns = document.querySelectorAll('.status-btn');
+    if (btns[map[status]]) btns[map[status]].classList.add('selected');
+  }
+
+  window.saveSurahProgress = async function() {
+    if (!selectedSurahId || !currentUser) return;
+    const pct = parseInt(document.getElementById('pct-slider').value);
+    const notes = document.getElementById('modal-notes').value.trim();
+    surahProgress[selectedSurahId] = { status: selectedStatus, pct, notes, updatedAt: new Date().toISOString() };
+    closeModal();
+    renderSurahList();
+    updateStats();
+    try {
+      await setDoc(doc(db, 'hifzProgress', currentUser.uid), { surahs: surahProgress }, { merge: true });
+      showToast('✅ Progress saved! Alhamdulillah 🤲');
+    } catch(e) { showToast('Could not save. Try again.'); }
+  }
+
+  // ── POPULATE SURAH SELECT IN LOG FORM ──
+  function populateSurahSelect() {
+    const sel = document.getElementById('log-surah-select');
+    sel.innerHTML = SURAHS.map(s => `<option value="${s.name}">${s.id}. ${s.name}</option>`).join('');
+  }
+
+  // ── LOG SESSION ──
+  window.logSession = async function() {
+    if (!currentUser) return;
+    const type = document.getElementById('log-type').value;
+    const surah = document.getElementById('log-surah-select').value;
+    const pages = parseInt(document.getElementById('log-pages').value) || 0;
+    const mins = parseInt(document.getElementById('log-mins').value) || 0;
+    const quality = document.getElementById('log-quality').value;
+    const notes = document.getElementById('log-notes').value.trim();
+    if (!pages && !mins) { showToast('⚠️ Enter pages or minutes.'); return; }
+    const btn = document.getElementById('log-btn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await addDoc(collection(db, 'hifzSessions', currentUser.uid, 'sessions'), {
+        type, surah, pages, mins, quality: parseInt(quality), notes, date: today, createdAt: new Date().toISOString()
+      });
+      await updateStreak(today);
+      document.getElementById('log-notes').value = '';
+      showToast('Alhamdulillah! Session logged 🤲');
+      loadSessions();
+    } catch(e) { showToast('Could not save. Try again.'); }
+    btn.disabled = false; btn.textContent = '✅ Log Session';
+  }
+
+  // ── STREAK ──
+  async function updateStreak(today) {
+    try {
+      const ref = doc(db, 'hifzProgress', currentUser.uid);
+      const snap = await getDoc(ref);
+      const data = snap.exists() ? snap.data() : {};
+      let streak = data.streak || 0;
+      const lastDate = data.lastLogDate || '';
+      const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+      const yStr = yesterday.toISOString().split('T')[0];
+      if (lastDate === today) { /* already logged */ }
+      else if (lastDate === yStr) streak++;
+      else streak = 1;
+      await setDoc(ref, { streak, lastLogDate: today }, { merge: true });
+      displayStreak(streak);
+    } catch(e) {}
+  }
+
+  function displayStreak(n) {
+    ['streak-days', 'streak-days-2'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = n; });
+    const msg = n === 0 ? 'Log today to start your streak!' : n < 3 ? 'Good start! Keep going! 💪' : n < 7 ? 'MashaAllah! ' + n + ' days strong! 🔥' : 'SubhanAllah! ' + n + ' day streak! 🌟';
+    const el = document.getElementById('streak-msg'); if (el) el.textContent = msg;
+  }
+
+  // ── LOAD SESSIONS ──
+  function loadSessions() {
+    const list = document.getElementById('sessions-list');
+    try {
+      const q = query(collection(db, 'hifzSessions', currentUser.uid, 'sessions'), orderBy('createdAt', 'desc'), limit(20));
+      onSnapshot(q, snap => {
+        if (snap.empty) { list.innerHTML = '<div class="empty-state">No sessions yet. Start logging! 📖</div>'; return; }
+        const icons = { new: '🆕', revision: '🔄', listening: '🎧', teacher: '👨‍🏫' };
+        const stars = n => '⭐'.repeat(n||0);
+        list.innerHTML = snap.docs.map(d => {
+          const s = d.data();
+          return `<div class="session-item">
+            <div class="session-icon">${icons[s.type]||'📖'}</div>
+            <div class="session-info">
+              <div class="session-title">${s.surah} ${s.quality ? stars(s.quality) : ''}</div>
+              <div class="session-meta">${s.date}${s.notes ? ' · ' + s.notes : ''}</div>
+            </div>
+            <div class="session-pages">${s.pages}p · ${s.mins}m</div>
+          </div>`;
+        }).join('');
+      });
+    } catch(e) {}
+  }
+
+  // ── AUTH ──
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const d = userDoc.data();
+          document.getElementById('nav-avatar').textContent = (d.fullname||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        }
+      } catch(e) {}
+      // Load progress
+      try {
+        const snap = await getDoc(doc(db, 'hifzProgress', user.uid));
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.surahs) {
+            Object.keys(data.surahs).forEach(k => surahProgress[parseInt(k)] = data.surahs[k]);
+          }
+          displayStreak(data.streak || 0);
+          loadPages(data);
+          loadGoals(data);
+        }
+      } catch(e) {}
+      renderSurahList();
+      updateStats();
+      buildPagesGrid();
+      renderGoals();
+      populateSurahSelect();
+      loadSessions();
+    } else { window.location.href = 'login.html'; }
+  });
+</script>
+</body>
+</html>

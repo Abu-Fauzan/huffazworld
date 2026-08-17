@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HuffazWorld — Connect, Learn & Memorize the Quran</title>
+<meta name="description" content="HuffazWorld is the global platform for Huffaz, students, teachers and parents. Track your Hifz, connect worldwide, and learn with a real teacher — for free."/>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F0D98A;
+    --emerald: #1A6B4A; --emerald-light: #E6F5EE; --emerald-dark: #0D3D29;
+    --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--white); color: var(--text); }
+
+  /* NAV */
+  nav { background: var(--emerald-dark); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .nav-logo { font-family: 'Amiri', serif; font-size: 1.6rem; font-weight: 700; color: white; text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-links { display: flex; align-items: center; gap: 1.5rem; }
+  .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
+  .nav-links a:hover { color: white; }
+  .nav-cta { background: var(--gold); color: var(--emerald-dark) !important; padding: 0.5rem 1.25rem; border-radius: 50px; font-weight: 700 !important; }
+  .nav-cta:hover { background: var(--gold-light) !important; }
+  @media (max-width: 640px) { .nav-links .hide-mobile { display: none; } nav { padding: 1rem; } }
+
+  /* HERO */
+  .hero { background: linear-gradient(160deg, var(--emerald-dark) 0%, #1a4a35 60%, var(--emerald) 100%); padding: 5rem 2rem 4rem; text-align: center; }
+  .hero-badge { display: inline-block; background: rgba(201,168,76,0.2); color: var(--gold-light); border: 1px solid rgba(201,168,76,0.3); border-radius: 99px; padding: 0.35rem 1rem; font-size: 0.78rem; font-weight: 700; margin-bottom: 1.5rem; letter-spacing: 0.05em; }
+  .hero h1 { font-family: 'Amiri', serif; font-size: clamp(2rem, 6vw, 3.5rem); color: white; line-height: 1.2; margin-bottom: 1rem; }
+  .hero h1 span { color: var(--gold); }
+  .hero-arabic { font-family: 'Amiri', serif; font-size: clamp(1.2rem, 3vw, 1.8rem); color: rgba(255,255,255,0.6); direction: rtl; margin-bottom: 1.5rem; }
+  .hero p { font-size: clamp(0.95rem, 2vw, 1.1rem); color: rgba(255,255,255,0.75); max-width: 600px; margin: 0 auto 2.5rem; line-height: 1.7; }
+  .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 3rem; }
+  .btn-primary { background: var(--gold); color: var(--emerald-dark); padding: 0.85rem 2rem; border-radius: 50px; font-weight: 700; text-decoration: none; font-size: 1rem; transition: all 0.2s; display: inline-block; }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(201,168,76,0.35); }
+  .btn-secondary { background: rgba(255,255,255,0.12); color: white; padding: 0.85rem 2rem; border-radius: 50px; font-weight: 600; text-decoration: none; font-size: 1rem; border: 1.5px solid rgba(255,255,255,0.25); transition: all 0.2s; display: inline-block; }
+  .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+  /* STATS */
+  .stats-row { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'Amiri', serif; font-size: 2rem; font-weight: 700; color: var(--gold); }
+  .stat-label { font-size: 0.78rem; color: rgba(255,255,255,0.6); margin-top: 0.2rem; }
+
+  /* SECTIONS */
+  .section-tag { text-align: center; font-size: 0.78rem; font-weight: 700; color: var(--emerald); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+  .section-title { text-align: center; font-family: 'Amiri', serif; font-size: clamp(1.6rem, 4vw, 2.4rem); color: var(--emerald-dark); margin-bottom: 0.75rem; }
+  .section-sub { text-align: center; font-size: 0.95rem; color: var(--muted); max-width: 500px; margin: 0 auto 3rem; line-height: 1.6; }
+
+  /* ROLES */
+  .roles { padding: 5rem 2rem; background: var(--cream); }
+  .roles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; max-width: 900px; margin: 0 auto; }
+  .role-card { background: var(--white); border: 1.5px solid rgba(201,168,76,0.18); border-radius: 20px; padding: 1.75rem 1.5rem; text-align: center; transition: all 0.2s; }
+  .role-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); border-color: var(--emerald); }
+  .role-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+  .role-title { font-size: 1.1rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.5rem; }
+  .role-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+  /* FEATURES */
+  .features { padding: 5rem 2rem; background: var(--white); }
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; max-width: 1000px; margin: 0 auto; }
+  .feature-card { background: var(--cream); border-radius: 16px; padding: 1.5rem; border: 1px solid rgba(201,168,76,0.15); transition: all 0.2s; }
+  .feature-card:hover { background: var(--emerald-light); border-color: var(--emerald); }
+  .feature-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+  .feature-title { font-size: 1rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.4rem; }
+  .feature-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+  /* CLASSROOM */
+  .classroom { padding: 5rem 2rem; background: var(--cream); }
+  .classroom-inner { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+  @media (max-width: 640px) { .classroom-inner { grid-template-columns: 1fr; } }
+  .classroom-text h2 { font-family: 'Amiri', serif; font-size: clamp(1.5rem, 3vw, 2rem); color: var(--emerald-dark); margin-bottom: 1rem; }
+  .classroom-text p { font-size: 0.9rem; color: var(--muted); line-height: 1.7; margin-bottom: 1.25rem; }
+  .classroom-points { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+  .classroom-points li { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.85rem; color: var(--text); }
+  .classroom-points li::before { content: '✅'; flex-shrink: 0; }
+  .classroom-visual { background: linear-gradient(135deg, var(--emerald-dark), var(--emerald)); border-radius: 20px; padding: 2rem; color: white; }
+  .cv-code { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 1rem; text-align: center; margin-bottom: 1.25rem; }
+  .cv-code-label { font-size: 0.72rem; color: rgba(255,255,255,0.6); margin-bottom: 0.3rem; }
+  .cv-code-val { font-size: 1.8rem; font-weight: 700; letter-spacing: 0.2em; color: var(--gold-light); font-family: monospace; }
+  .cv-steps { display: flex; flex-direction: column; gap: 0.65rem; }
+  .cv-step { display: flex; align-items: center; gap: 0.6rem; font-size: 0.82rem; color: rgba(255,255,255,0.85); }
+  .cv-step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* HOW IT WORKS */
+  .how { padding: 5rem 2rem; background: var(--emerald-dark); }
+  .how .section-title { color: white; }
+  .how .section-sub { color: rgba(255,255,255,0.55); }
+  .how .section-tag { color: var(--gold); }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; max-width: 900px; margin: 0 auto; }
+  .step { text-align: center; }
+  .step-num { width: 48px; height: 48px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+  .step-title { font-size: 0.95rem; font-weight: 700; color: white; margin-bottom: 0.4rem; }
+  .step-desc { font-size: 0.8rem; color: rgba(255,255,255,0.6); line-height: 1.5; }
+
+  /* QUOTE */
+  .quote-section { padding: 4rem 2rem; background: var(--white); text-align: center; }
+  .quote-text { font-family: 'Amiri', serif; font-size: clamp(1.1rem, 3vw, 1.6rem); color: var(--emerald-dark); max-width: 650px; margin: 0 auto 1rem; line-height: 1.6; }
+  .quote-source { font-size: 0.85rem; color: var(--muted); }
+
+  /* CTA */
+  .cta { background: linear-gradient(135deg, var(--emerald-dark), var(--emerald)); padding: 5rem 2rem; text-align: center; }
+  .cta h2 { font-family: 'Amiri', serif; font-size: clamp(1.6rem, 4vw, 2.4rem); color: white; margin-bottom: 0.75rem; }
+  .cta p { color: rgba(255,255,255,0.7); font-size: 1rem; margin-bottom: 2rem; }
+  .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  /* FOOTER */
+  footer { background: var(--emerald-dark); padding: 2rem; text-align: center; }
+  footer p { font-size: 0.82rem; color: rgba(255,255,255,0.45); }
+  footer span { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Huffaz<span>World</span></a>
+  <div class="nav-links">
+    <a href="#features" class="hide-mobile">Features</a>
+    <a href="#classroom" class="hide-mobile">Classroom</a>
+    <a href="login.html">Sign In</a>
+    <a href="signup.html" class="nav-cta">Join Free</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">Connect, Memorize, Inspire — The Global Community for Huffaz</div>
+  <h1>The Home of Every <span>Hafiz</span><br/>Worldwide</h1>
+  <div class="hero-arabic">وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا</div>
+  <p>Connect with Huffaz worldwide, track your memorization journey, learn from a real teacher, and listen to the Quran — all in one free platform.</p>
+  <div class="hero-btns">
+    <a href="signup.html" class="btn-primary">🚀 Create Free Account</a>
+    <a href="login.html" class="btn-secondary">Sign In</a>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-num">🌍</div><div class="stat-label">Global Community</div></div>
+    <div class="stat"><div class="stat-num">🎓</div><div class="stat-label">Certified Teachers</div></div>
+    <div class="stat"><div class="stat-num">114</div><div class="stat-label">Surahs Covered</div></div>
+  </div>
+</section>
+
+<!-- WHO IS IT FOR -->
+<section class="roles">
+  <div class="section-tag">Who Is It For?</div>
+  <h2 class="section-title">HuffazWorld Welcomes Everyone</h2>
+  <p class="section-sub">Whether you completed the Quran or memorizing your first Surah — this is your home.</p>
+  <div class="roles-grid">
+    <div class="role-card"><div class="role-icon">🏅</div><div class="role-title">Hafiz / Hafizah</div><div class="role-desc">You completed the Quran. Share your journey, inspire others, and stay connected with the global Huffaz community.</div></div>
+    <div class="role-card"><div class="role-icon">📖</div><div class="role-title">Student</div><div class="role-desc">You are memorizing. Track your progress, join a teacher's class, and record your recitations for review.</div></div>
+    <div class="role-card"><div class="role-icon">🎓</div><div class="role-title">Teacher</div><div class="role-desc">Manage your students virtually. Assign tasks, listen to recitations, and give feedback — from anywhere in the world.</div></div>
+    <div class="role-card"><div class="role-icon">👨‍👧</div><div class="role-title">Parent</div><div class="role-desc">Monitor your child's Hifz progress and stay connected with their teacher every step of the way.</div></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-tag">Everything You Need</div>
+  <h2 class="section-title">Built for the Hifz Journey</h2>
+  <p class="section-sub">Every tool a Hafiz, student, teacher, or parent could need — in one free platform.</p>
+  <div class="features-grid">
+    <div class="feature-card"><div class="feature-icon">📱</div><div class="feature-title">Social Feed</div><div class="feature-desc">Share posts, photos, videos and voice notes with the global Huffaz community. Like, comment, and follow.</div></div>
+    <div class="feature-card"><div class="feature-icon">📊</div><div class="feature-title">Hifz Tracker</div><div class="feature-desc">Track all 114 Surahs and 604 pages. Build your daily streak, set goals, and see your progress in charts.</div></div>
+    <div class="feature-card"><div class="feature-icon">🎧</div><div class="feature-title">Quran Audio Player</div><div class="feature-desc">Listen to any Surah verse by verse with Sheikh Mishary Al-Afasy. Loop a single ayah to memorize it perfectly.</div></div>
+    <div class="feature-card"><div class="feature-icon">🎙️</div><div class="feature-title">Recitation Recorder</div><div class="feature-desc">Record your recitation and submit it directly to your teacher. Get feedback without being in the same room.</div></div>
+    <div class="feature-card"><div class="feature-icon">💬</div><div class="feature-title">Private Chat</div><div class="feature-desc">Message teachers, students and Huffaz privately. Send voice notes — just like WhatsApp.</div></div>
+    <div class="feature-card"><div class="feature-icon">🏅</div><div class="feature-title">Badges & Achievements</div><div class="feature-desc">Earn 26 unique badges as you progress — from your first Surah to completing the full Quran.</div></div>
+    <div class="feature-card"><div class="feature-icon">👥</div><div class="feature-title">Groups & Circles</div><div class="feature-desc">Join or create groups based on your Surah, Juz, country, or school. Build your Hifz community.</div></div>
+    <div class="feature-card"><div class="feature-icon">🔔</div><div class="feature-title">Smart Notifications</div><div class="feature-desc">Never miss a like, comment, task, or teacher feedback. Stay connected with everything.</div></div>
+  </div>
+</section>
+
+<!-- CLASSROOM -->
+<section class="classroom" id="classroom">
+  <div class="classroom-inner">
+    <div class="classroom-text">
+      <div class="section-tag" style="text-align:left;">👨‍🏫 Education System</div>
+      <h2>A Real Hifz Classroom — Online</h2>
+      <p>Teachers create a virtual classroom and share a unique code with their students. Students join instantly — from anywhere in the world. No more distance barriers.</p>
+      <ul class="classroom-points">
+        <li>Teacher creates class and gets unique code</li>
+        <li>Students join with the code in seconds</li>
+        <li>Teacher assigns tasks to all or specific students</li>
+        <li>Students record recitations and submit to teacher</li>
+        <li>Teacher listens and marks as reviewed</li>
+        <li>Teacher sends personalized written feedback</li>
+        <li>Instant notifications for every action</li>
+      </ul>
+    </div>
+    <div class="classroom-visual">
+      <div class="cv-code">
+        <div class="cv-code-label">🔑 Class Code — Share with Students</div>
+        <div class="cv-code-val">HW-7X9K</div>
+      </div>
+      <div class="cv-steps">
+        <div class="cv-step"><div class="cv-step-num">1</div>Teacher creates classroom</div>
+        <div class="cv-step"><div class="cv-step-num">2</div>Shares code with students</div>
+        <div class="cv-step"><div class="cv-step-num">3</div>Students join instantly</div>
+        <div class="cv-step"><div class="cv-step-num">4</div>Tasks assigned & tracked</div>
+        <div class="cv-step"><div class="cv-step-num">5</div>Recitations submitted 🎙️</div>
+        <div class="cv-step"><div class="cv-step-num">6</div>Teacher reviews & gives feedback</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <div class="section-tag">Simple to Use</div>
+  <h2 class="section-title">Get Started in 3 Steps</h2>
+  <p class="section-sub">Join in less than 1 minute — completely free</p>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-title">Create Free Account</div><div class="step-desc">Sign up in less than 1 minute. Choose your role — Hafiz, Student, Teacher or Parent.</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-title">Set Up Your Profile</div><div class="step-desc">Add your photo, country and bio. Start tracking your Hifz journey from day one.</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-title">Connect & Learn</div><div class="step-desc">Follow Huffaz worldwide, join a class, or create your own classroom. The journey begins!</div></div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<section class="quote-section">
+  <div class="quote-text">"The best among you are those who learn the Quran and teach it."</div>
+  <div class="quote-source">— Prophet Muhammad ﷺ (Sahih Bukhari)</div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <h2>Join HuffazWorld Today</h2>
+  <p>Free forever. No credit card. No hidden fees. Just the Quran. 🤲</p>
+  <div class="cta-btns">
+    <a href="signup.html" class="btn-primary">🚀 Create Free Account</a>
+    <a href="login.html" class="btn-secondary">Already have an account? Sign In</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Made with 💚 for the Ummah · <span>HuffazWorld</span> · Free Forever · 🌍 195 Countries</p>
+</footer>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "1071311461394",
+    appId: "1:1071311461394:web:2218e814e9a3a40f5b9c74"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+    // ── HUFFAZWORLD ENTRY ROUTING ──
+  onAuthStateChanged(auth, user => {
+
+    // Already authenticated → go straight to dashboard
+    if (user) {
+      window.location.href = 'dashboard.html';
+      return;
+    }
+
+    // Not authenticated → check whether onboarding was completed
+    const onboardingSeen = localStorage.getItem(
+      'huffazworld_onboarding_seen'
+    );
+
+    if (onboardingSeen === 'true') {
+      // Returning visitor → go to login
+      window.location.href = 'login.html';
+    } else {
+      // First-time visitor → show onboarding
+      window.location.href = 'onboarding.html';
+    }
+  });
+
+</script>
+</body>
+</html>

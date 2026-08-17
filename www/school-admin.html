@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>School Dashboard – HuffazWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F0D98A;
+    --emerald: #1A6B4A; --emerald-light: #E6F5EE; --emerald-dark: #0D3D29;
+    --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; padding-bottom: 90px; }
+
+  /* NAV */
+  nav { background: var(--emerald-dark); padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; }
+  .nav-logo { font-family: 'Amiri', serif; font-size: 1.4rem; font-weight: 700; color: white; text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; text-decoration: none; overflow: hidden; }
+
+  /* CONTAINER */
+  .container { max-width: 750px; margin: 0 auto; padding: 1.25rem 1rem; padding-top: calc(56px + 1.25rem); }
+
+  /* BANNER */
+  .banner { background: linear-gradient(135deg, var(--emerald-dark), var(--emerald)); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .banner h1 { font-family: 'Amiri', serif; font-size: 1.5rem; color: white; margin-bottom: 0.2rem; }
+  .banner p { font-size: 0.82rem; color: rgba(255,255,255,0.65); }
+  .banner-arabic { font-family: 'Amiri', serif; font-size: 1.2rem; color: var(--gold-light); direction: rtl; }
+
+  /* NOT ADMIN */
+  .not-admin { text-align: center; padding: 3rem 1rem; background: var(--white); border-radius: 16px; border: 1px solid rgba(201,168,76,0.18); }
+  .not-admin .icon { font-size: 3rem; margin-bottom: 1rem; }
+  .not-admin h3 { font-size: 1rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 0.5rem; }
+  .not-admin p { font-size: 0.82rem; color: var(--muted); }
+
+  /* SECTION */
+  .section { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .section-title { font-size: 0.95rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 1rem; }
+
+  /* SCHOOL CARD */
+  .school-card { background: linear-gradient(135deg, var(--emerald-dark), var(--emerald)); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; color: white; position: relative; overflow: hidden; }
+  .school-card::after { content: '🏫'; position: absolute; right: -10px; bottom: -10px; font-size: 5rem; opacity: 0.1; }
+  .school-name { font-family: 'Amiri', serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .school-desc { font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 1rem; }
+  .school-code-wrap { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+  .school-code-label { font-size: 0.72rem; color: rgba(255,255,255,0.7); margin-bottom: 0.2rem; }
+  .school-code { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.15em; font-family: monospace; color: var(--gold-light); }
+  .copy-btn { background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; padding: 0.4rem 0.75rem; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .copy-btn:hover { background: rgba(255,255,255,0.3); }
+  .school-stats { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+  .school-stat { text-align: center; }
+  .school-stat-val { font-size: 1.2rem; font-weight: 700; }
+  .school-stat-label { font-size: 0.65rem; color: rgba(255,255,255,0.65); }
+
+  /* FORM */
+  .form-group { margin-bottom: 0.85rem; }
+  .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .form-group input, .form-group textarea, .form-group select { width: 100%; border: 1.5px solid rgba(201,168,76,0.25); border-radius: 10px; padding: 0.65rem 0.85rem; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; color: var(--text); background: var(--cream); outline: none; resize: none; }
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--emerald); background: white; }
+  .submit-btn { background: var(--emerald); color: white; border: none; border-radius: 12px; padding: 0.75rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%; transition: background 0.2s; }
+  .submit-btn:hover { background: var(--emerald-dark); }
+  .submit-btn:disabled { background: #aab8af; cursor: not-allowed; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; background: var(--white); border-bottom: 2px solid rgba(201,168,76,0.15); margin-bottom: 0; overflow-x: auto; scrollbar-width: none; border-radius: 16px 16px 0 0; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { padding: 0.75rem 1.1rem; font-size: 0.82rem; font-weight: 700; color: var(--muted); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; margin-bottom: -2px; transition: all 0.2s; }
+  .tab-btn.active { color: var(--emerald); border-bottom-color: var(--emerald); }
+  .tab-content { display: none; background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-top: none; border-radius: 0 0 16px 16px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .tab-content.active { display: block; }
+
+  /* TEACHER / STUDENT ITEMS */
+  .person-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 0; border-bottom: 1px solid rgba(201,168,76,0.1); }
+  .person-item:last-child { border-bottom: none; }
+  .person-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--emerald); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.88rem; flex-shrink: 0; overflow: hidden; }
+  .person-name { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+  .person-meta { font-size: 0.73rem; color: var(--muted); margin-top: 0.1rem; }
+  .person-actions { margin-left: auto; display: flex; gap: 0.4rem; }
+  .action-btn { padding: 0.35rem 0.7rem; border-radius: 7px; border: 1.5px solid; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; text-decoration: none; display: flex; align-items: center; }
+  .action-btn.view { border-color: var(--emerald); color: var(--emerald); background: var(--emerald-light); }
+  .action-btn.remove { border-color: #e53935; color: #e53935; background: #ffebee; }
+  .action-btn:hover { opacity: 0.85; }
+
+  /* STATS GRID */
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem; margin-bottom: 1.25rem; }
+  .stat-card { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 14px; padding: 1rem; text-align: center; }
+  .stat-card .val { font-size: 1.8rem; font-weight: 700; color: var(--emerald); }
+  .stat-card .lbl { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; font-weight: 600; }
+
+  /* ANNOUNCE */
+  .announce-item { background: var(--cream); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.6rem; border-left: 3px solid var(--gold); }
+  .announce-title { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
+  .announce-meta { font-size: 0.72rem; color: var(--muted); }
+  .announce-text { font-size: 0.83rem; color: var(--text); margin-top: 0.3rem; white-space: pre-wrap; }
+  .announce-delete { float: right; background: none; border: none; color: #e53935; font-size: 0.75rem; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; }
+
+  .empty-state { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; }
+
+  /* TOAST */
+  #toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--emerald-dark); color: white; padding: 0.65rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 9999; pointer-events: none; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* LOADING */
+  #loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--cream); position: fixed; inset: 0; z-index: 999; }
+  .loader { font-family: 'Amiri', serif; font-size: 1.5rem; color: var(--emerald); }
+
+  /* MOBILE NAV */
+  .mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); border-top: 1px solid rgba(201,168,76,0.18); padding: 0.5rem 0; z-index: 200; }
+  .mobile-nav-inner { display: flex; justify-content: space-around; align-items: center; }
+  .mobile-nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; text-decoration: none; color: var(--muted); font-size: 0.6rem; font-weight: 600; padding: 0.3rem 0.5rem; }
+  .mobile-nav-item span:first-child { font-size: 1.2rem; }
+  .mobile-nav-item.active, .mobile-nav-item:hover { color: var(--emerald); }
+  @media (max-width: 768px) { .mobile-nav { display: block; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="loader">Loading... 🤲</div></div>
+
+<nav>
+  <a href="dashboard.html" class="nav-logo">Huffaz<span>World</span></a>
+  <a href="profile.html" class="nav-avatar" id="nav-avatar">?</a>
+</nav>
+
+<div id="toast"></div>
+
+<div class="container" id="app" style="display:none;">
+
+  <div class="banner">
+    <div>
+      <h1>🏫 School Dashboard</h1>
+      <p>Manage your teachers, students, and school progress</p>
+    </div>
+    <div class="banner-arabic">نَشَرَ الْعِلْمَ</div>
+  </div>
+
+  <!-- NOT A SCHOOL ADMIN -->
+  <div id="not-admin-msg" style="display:none;">
+    <div class="not-admin">
+      <div class="icon">🏫</div>
+      <h3>School Admins Only</h3>
+      <p>This page is for School Admin accounts only.<br><br>
+      Update your profile role to School Admin to access this dashboard.</p>
+      <a href="profile.html" style="display:inline-block;margin-top:1rem;background:var(--emerald);color:white;padding:0.6rem 1.25rem;border-radius:10px;text-decoration:none;font-weight:700;font-size:0.85rem;">Update Profile</a>
+    </div>
+  </div>
+
+  <!-- SCHOOL ADMIN CONTENT -->
+  <div id="admin-content" style="display:none;">
+
+    <!-- NO SCHOOL YET -->
+    <div id="no-school-section">
+      <div class="section" style="text-align:center;padding:2rem;">
+        <div style="font-size:3rem;margin-bottom:1rem;">🏫</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--emerald-dark);margin-bottom:0.5rem;">Register Your School</div>
+        <div style="font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem;">Create a school profile and invite teachers with a unique school code</div>
+        <button class="submit-btn" style="max-width:250px;" onclick="document.getElementById('create-school-section').style.display='block';this.closest('.section').style.display='none';">🏫 Register School</button>
+      </div>
+
+      <!-- CREATE SCHOOL FORM -->
+      <div class="section" id="create-school-section" style="display:none;">
+        <div class="section-title">🏫 Register Your School</div>
+        <div class="form-group">
+          <label>School Name</label>
+          <input type="text" id="school-name-input" placeholder="e.g. Madinah Hifz Academy"/>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="school-desc-input" rows="2" placeholder="e.g. A dedicated school for Quran memorization in Lagos"></textarea>
+        </div>
+        <div class="form-group">
+          <label>City / Location</label>
+          <input type="text" id="school-city-input" placeholder="e.g. Lagos, Nigeria"/>
+        </div>
+        <div class="form-group">
+          <label>School Type</label>
+          <select id="school-type-input">
+            <option value="Hifz School">🕌 Hifz School</option>
+            <option value="Islamic School">📖 Islamic School</option>
+            <option value="Madrasa">🏛️ Madrasa</option>
+            <option value="Weekend School">🗓️ Weekend School</option>
+            <option value="Online Academy">💻 Online Academy</option>
+          </select>
+        </div>
+        <button class="submit-btn" id="create-school-btn" onclick="createSchool()">✅ Register School</button>
+      </div>
+    </div>
+
+    <!-- SCHOOL EXISTS -->
+    <div id="school-section" style="display:none;">
+
+      <!-- SCHOOL CARD -->
+      <div class="school-card">
+        <div class="school-name" id="school-name-display">Loading...</div>
+        <div class="school-desc" id="school-desc-display"></div>
+        <div class="school-code-wrap">
+          <div>
+            <div class="school-code-label">🔑 Teacher Join Code — Share with your teachers</div>
+            <div class="school-code" id="school-code-display">------</div>
+          </div>
+          <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
+        </div>
+        <div class="school-stats">
+          <div class="school-stat">
+            <div class="school-stat-val" id="stat-teachers">0</div>
+            <div class="school-stat-label">Teachers</div>
+          </div>
+          <div class="school-stat">
+            <div class="school-stat-val" id="stat-students">0</div>
+            <div class="school-stat-label">Students</div>
+          </div>
+          <div class="school-stat">
+            <div class="school-stat-val" id="stat-classes">0</div>
+            <div class="school-stat-label">Classes</div>
+          </div>
+          <div class="school-stat">
+            <div class="school-stat-val" id="stat-type">-</div>
+            <div class="school-stat-label">Type</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS GRID -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="val" id="grid-teachers">0</div>
+          <div class="lbl">👨‍🏫 Teachers</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" id="grid-students">0</div>
+          <div class="lbl">👥 Total Students</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" id="grid-classes">0</div>
+          <div class="lbl">📖 Active Classes</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" id="grid-city">—</div>
+          <div class="lbl">📍 Location</div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('teachers', this)">👨‍🏫 Teachers</button>
+        <button class="tab-btn" onclick="switchTab('students', this)">👥 Students</button>
+        <button class="tab-btn" onclick="switchTab('announce', this)">📢 Announce</button>
+        <button class="tab-btn" onclick="switchTab('reports', this)">📊 Reports</button>
+        <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ Settings</button>
+      </div>
+
+      <!-- TEACHERS TAB -->
+      <div class="tab-content active" id="tab-teachers">
+        <div id="teachers-list"><div class="empty-state">No teachers yet. Share your school code with teachers to get started! 🤲</div></div>
+      </div>
+
+      <!-- STUDENTS TAB -->
+      <div class="tab-content" id="tab-students">
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.75rem;">All students across all your school's classrooms.</div>
+        <div id="students-list"><div class="empty-state">No students yet. Students enrol when a teacher adds them to a class.</div></div>
+      </div>
+
+      <!-- ANNOUNCEMENTS TAB -->
+      <div class="tab-content" id="tab-announce">
+        <div class="section-title" style="margin-bottom:0.75rem;">📢 Post an Announcement</div>
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="ann-title-input" placeholder="e.g. Hifz Competition Next Friday!"/>
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea id="ann-msg-input" rows="3" placeholder="Write your announcement here..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Send To</label>
+          <select id="ann-target-input">
+            <option value="all">👥 All Teachers & Students</option>
+            <option value="teachers">👨‍🏫 Teachers Only</option>
+            <option value="students">🎓 Students Only</option>
+          </select>
+        </div>
+        <button class="submit-btn" id="ann-btn" onclick="postAnnouncement()" style="margin-bottom:1.25rem;">📢 Post Announcement</button>
+
+        <div style="border-top:1px solid rgba(201,168,76,0.15);padding-top:1rem;">
+          <div class="section-title" style="margin-bottom:0.75rem;">📋 Past Announcements</div>
+          <div id="ann-list"><div class="empty-state">No announcements yet.</div></div>
+        </div>
+      </div>
+
+      <!-- REPORTS TAB -->
+      <div class="tab-content" id="tab-reports">
+        <div class="section-title" style="margin-bottom:0.5rem;">📊 Teacher Reports</div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;">Reports sent by your teachers about their classroom progress.</div>
+        <div id="reports-list"><div class="empty-state">No reports received yet.</div></div>
+      </div>
+
+      <!-- SETTINGS TAB -->
+      <div class="tab-content" id="tab-settings">
+        <div class="form-group">
+          <label>School Name</label>
+          <input type="text" id="edit-school-name"/>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="edit-school-desc" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>City / Location</label>
+          <input type="text" id="edit-school-city"/>
+        </div>
+        <div class="form-group">
+          <label>School Type</label>
+          <select id="edit-school-type">
+            <option value="Hifz School">🕌 Hifz School</option>
+            <option value="Islamic School">📖 Islamic School</option>
+            <option value="Madrasa">🏛️ Madrasa</option>
+            <option value="Weekend School">🗓️ Weekend School</option>
+            <option value="Online Academy">💻 Online Academy</option>
+          </select>
+        </div>
+        <button class="submit-btn" onclick="updateSchool()" style="margin-bottom:0.75rem;">💾 Save Changes</button>
+        <button onclick="deleteSchool()" style="width:100%;padding:0.65rem;border-radius:12px;border:2px solid #e53935;background:#ffebee;color:#e53935;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🗑️ Delete School Profile</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <a href="dashboard.html" class="mobile-nav-item"><span>🏠</span><span>Home</span></a>
+    <a href="search.html" class="mobile-nav-item"><span>🔍</span><span>Search</span></a>
+    <a href="messages.html" class="mobile-nav-item"><span>💬</span><span>Chat</span></a>
+    <a href="notifications.html" class="mobile-nav-item"><span>🔔</span><span>Alerts</span></a>
+    <a href="profile.html" class="mobile-nav-item"><span>👤</span><span>Profile</span></a>
+  </div>
+</nav>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "1071311461394",
+    appId: "1:1071311461394:web:2218e814e9a3a40f5b9c74"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let currentUserData = null;
+  let mySchool = null;
+
+  // ── TOAST ──
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ── TABS ──
+  window.switchTab = function(tab, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    btn.classList.add('active');
+    if (tab === 'teachers') loadTeachers();
+    if (tab === 'students') loadAllStudents();
+    if (tab === 'announce') loadAnnouncements();
+    if (tab === 'reports') loadReports();
+  }
+
+  // ── GENERATE CODE ──
+  function generateCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = 'SCH-';
+    for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
+  }
+
+  // ── COPY CODE ──
+  window.copyCode = function() {
+    const code = document.getElementById('school-code-display').textContent;
+    navigator.clipboard?.writeText(code).then(() => showToast('✅ Code copied! Share it with your teachers.'));
+  }
+
+  // ── CREATE SCHOOL ──
+  window.createSchool = async function() {
+    const name = document.getElementById('school-name-input').value.trim();
+    const desc = document.getElementById('school-desc-input').value.trim();
+    const city = document.getElementById('school-city-input').value.trim();
+    const type = document.getElementById('school-type-input').value;
+    if (!name) { showToast('⚠️ Please enter a school name.'); return; }
+    if (!city) { showToast('⚠️ Please enter a city / location.'); return; }
+    const btn = document.getElementById('create-school-btn');
+    btn.disabled = true; btn.textContent = 'Registering...';
+    try {
+      const code = generateCode();
+      const schoolData = {
+        adminUid: currentUser.uid,
+        adminName: currentUserData.fullname || 'Admin',
+        name, desc, city, type, code,
+        teachers: [],
+        createdAt: new Date().toISOString()
+      };
+      await setDoc(doc(db, 'schools', currentUser.uid), schoolData);
+      mySchool = { id: currentUser.uid, ...schoolData };
+      showSchool();
+      showToast('🎉 School registered! Share the code with your teachers.');
+    } catch(e) { console.error(e); showToast('Could not register school. Try again.'); }
+    btn.disabled = false; btn.textContent = '✅ Register School';
+  }
+
+  // ── SHOW SCHOOL ──
+  function showSchool() {
+    document.getElementById('no-school-section').style.display = 'none';
+    document.getElementById('school-section').style.display = 'block';
+    document.getElementById('school-name-display').textContent = mySchool.name;
+    document.getElementById('school-desc-display').textContent = mySchool.desc || '';
+    document.getElementById('school-code-display').textContent = mySchool.code;
+    document.getElementById('stat-type').textContent = mySchool.type ? mySchool.type.split(' ')[0] : '-';
+    document.getElementById('grid-city').textContent = mySchool.city || '—';
+    document.getElementById('edit-school-name').value = mySchool.name;
+    document.getElementById('edit-school-desc').value = mySchool.desc || '';
+    document.getElementById('edit-school-city').value = mySchool.city || '';
+    document.getElementById('edit-school-type').value = mySchool.type || 'Hifz School';
+    updateSchoolStats();
+    loadTeachers();
+  }
+
+  // ── UPDATE STATS COUNTS ──
+  async function updateSchoolStats() {
+    const teachers = mySchool.teachers || [];
+    document.getElementById('stat-teachers').textContent = teachers.length;
+    document.getElementById('grid-teachers').textContent = teachers.length;
+    document.getElementById('stat-classes').textContent = teachers.length; // 1 class per teacher
+    document.getElementById('grid-classes').textContent = teachers.length;
+
+    // Count total students across all teacher classes
+    let totalStudents = 0;
+    await Promise.all(teachers.map(async uid => {
+      try {
+        const classSnap = await getDoc(doc(db, 'classes', uid));
+        if (classSnap.exists()) {
+          totalStudents += (classSnap.data().students || []).length;
+        }
+      } catch(e) {}
+    }));
+    document.getElementById('stat-students').textContent = totalStudents;
+    document.getElementById('grid-students').textContent = totalStudents;
+  }
+
+  // ── LOAD TEACHERS ──
+  async function loadTeachers() {
+    const list = document.getElementById('teachers-list');
+    const teachers = mySchool.teachers || [];
+    if (!teachers.length) {
+      list.innerHTML = '<div class="empty-state">No teachers yet.<br>Share your school code: <strong>' + mySchool.code + '</strong> with teachers 🤲</div>';
+      return;
+    }
+    list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:0.8rem;">Loading teachers...</div>';
+    const items = await Promise.all(teachers.map(async uid => {
+      try {
+        const snap = await getDoc(doc(db, 'users', uid));
+        if (!snap.exists()) return null;
+        const d = snap.data();
+        const initials = (d.fullname||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        const avatarContent = d.photoURL ? `<img src="${d.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>` : initials;
+        // Get their class info
+        const classSnap = await getDoc(doc(db, 'classes', uid));
+        const classData = classSnap.exists() ? classSnap.data() : null;
+        const studentCount = classData ? (classData.students || []).length : 0;
+        const className = classData ? classData.name : 'No class yet';
+        return `<div class="person-item">
+          <div class="person-avatar">${avatarContent}</div>
+          <div style="flex:1;min-width:0;">
+            <div class="person-name">${d.fullname||'Teacher'}</div>
+            <div class="person-meta">📖 ${className} · 👥 ${studentCount} students · ${d.country||''}</div>
+          </div>
+          <div class="person-actions">
+            <a href="user.html?uid=${uid}" class="action-btn view" style="text-decoration:none;">👁️ View</a>
+            <button class="action-btn remove" onclick="removeTeacher('${uid}','${(d.fullname||'Teacher').replace(/'/g,'')}')">✕</button>
+          </div>
+        </div>`;
+      } catch(e) { return null; }
+    }));
+    list.innerHTML = items.filter(Boolean).join('') || '<div class="empty-state">Could not load teachers.</div>';
+  }
+
+  // ── REMOVE TEACHER ──
+  window.removeTeacher = async function(uid, name) {
+    if (!confirm('Remove ' + name + ' from your school?')) return;
+    try {
+      const teachers = (mySchool.teachers || []).filter(t => t !== uid);
+      await updateDoc(doc(db, 'schools', currentUser.uid), { teachers });
+      mySchool.teachers = teachers;
+      // Notify teacher
+      await setDoc(doc(db, 'notifications', 'school_removed_' + currentUser.uid + '_' + uid), {
+        toUid: uid, type: 'school_removed',
+        message: 'You have been removed from <strong>' + mySchool.name + '</strong>.',
+        fromUid: currentUser.uid, fromName: currentUserData.fullname || 'Admin',
+        read: false, createdAt: new Date().toISOString()
+      });
+      updateSchoolStats();
+      loadTeachers();
+      showToast(name + ' removed from school.');
+    } catch(e) { showToast('Could not remove teacher.'); }
+  }
+
+  // ── LOAD ALL STUDENTS ──
+  async function loadAllStudents() {
+    const list = document.getElementById('students-list');
+    const teachers = mySchool.teachers || [];
+    if (!teachers.length) {
+      list.innerHTML = '<div class="empty-state">No teachers yet, so no students yet.</div>';
+      return;
+    }
+    list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:0.8rem;">Loading students...</div>';
+    const allStudents = [];
+    await Promise.all(teachers.map(async teacherUid => {
+      try {
+        const classSnap = await getDoc(doc(db, 'classes', teacherUid));
+        if (!classSnap.exists()) return;
+        const classData = classSnap.data();
+        const studentUids = classData.students || [];
+        await Promise.all(studentUids.map(async uid => {
+          try {
+            const snap = await getDoc(doc(db, 'users', uid));
+            if (snap.exists()) {
+              allStudents.push({ uid, teacherName: classData.teacherName, className: classData.name, ...snap.data() });
+            }
+          } catch(e) {}
+        }));
+      } catch(e) {}
+    }));
+
+    if (!allStudents.length) {
+      list.innerHTML = '<div class="empty-state">No students enrolled yet across any classrooms.</div>';
+      return;
+    }
+    list.innerHTML = allStudents.map(d => {
+      const initials = (d.fullname||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+      const avatarContent = d.photoURL ? `<img src="${d.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>` : initials;
+      return `<div class="person-item">
+        <div class="person-avatar">${avatarContent}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="person-name">${d.fullname||'Student'}</div>
+          <div class="person-meta">📖 ${d.className} · 👨‍🏫 ${d.teacherName} · ${d.country||''}</div>
+        </div>
+        <a href="user.html?uid=${d.uid}" class="action-btn view" style="text-decoration:none;">👁️ View</a>
+      </div>`;
+    }).join('');
+  }
+
+  // ── ANNOUNCEMENTS ──
+  window.postAnnouncement = async function() {
+    const title = document.getElementById('ann-title-input').value.trim();
+    const msg = document.getElementById('ann-msg-input').value.trim();
+    const target = document.getElementById('ann-target-input').value;
+    if (!title) { showToast('⚠️ Please enter a title.'); return; }
+    if (!msg) { showToast('⚠️ Please enter a message.'); return; }
+    const btn = document.getElementById('ann-btn');
+    btn.disabled = true; btn.textContent = 'Posting...';
+    try {
+      await addDoc(collection(db, 'schools', currentUser.uid, 'announcements'), {
+        title, message: msg, target,
+        adminName: currentUserData.fullname || 'School Admin',
+        createdAt: new Date().toISOString()
+      });
+      const teachers = mySchool.teachers || [];
+      const target = document.getElementById('ann-target-input').value;
+
+      // Gather student UIDs if needed
+      let studentUids = [];
+      if (target === 'all' || target === 'students') {
+        await Promise.all(teachers.map(async teacherUid => {
+          try {
+            const classSnap = await getDoc(doc(db, 'classes', teacherUid));
+            if (classSnap.exists()) {
+              studentUids = studentUids.concat(classSnap.data().students || []);
+            }
+          } catch(e) {}
+        }));
+      }
+
+      // Notify teachers
+      const ts = Date.now();
+      if (target === 'all' || target === 'teachers') {
+        await Promise.all(teachers.map(uid =>
+          setDoc(doc(db, 'notifications', 'ann_t_' + uid + '_' + ts), {
+            toUid: uid, type: 'school_announcement',
+            message: '📢 <strong>' + mySchool.name + '</strong>: ' + title,
+            fromUid: currentUser.uid, fromName: currentUserData.fullname || 'School Admin',
+            read: false, createdAt: new Date().toISOString()
+          })
+        ));
+      }
+
+      // Notify students
+      if (target === 'all' || target === 'students') {
+        await Promise.all(studentUids.map(uid =>
+          setDoc(doc(db, 'notifications', 'ann_s_' + uid + '_' + ts), {
+            toUid: uid, type: 'school_announcement',
+            message: '📢 <strong>' + mySchool.name + '</strong>: ' + title,
+            fromUid: currentUser.uid, fromName: currentUserData.fullname || 'School Admin',
+            read: false, createdAt: new Date().toISOString()
+          })
+        ));
+      }
+      document.getElementById('ann-title-input').value = '';
+      document.getElementById('ann-msg-input').value = '';
+      showToast('📢 Announcement posted! Teachers notified.');
+      loadAnnouncements();
+    } catch(e) { console.error(e); showToast('Could not post. Try again.'); }
+    btn.disabled = false; btn.textContent = '📢 Post Announcement';
+  }
+
+  async function loadAnnouncements() {
+    const list = document.getElementById('ann-list');
+    try {
+      const snap = await getDocs(collection(db, 'schools', currentUser.uid, 'announcements'));
+      if (snap.empty) { list.innerHTML = '<div class="empty-state">No announcements yet.</div>'; return; }
+      const docs = snap.docs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
+      list.innerHTML = docs.map(d => {
+        const a = d.data();
+        const targetLabel = a.target === 'teachers' ? '👨‍🏫 Teachers only' : a.target === 'students' ? '🎓 Students only' : '👥 All Teachers & Students';
+        return `<div class="announce-item">
+          <button class="announce-delete" onclick="deleteAnnouncement('${d.id}')">🗑️</button>
+          <div class="announce-title">${a.title}</div>
+          <div class="announce-meta">📅 ${a.createdAt ? a.createdAt.split('T')[0] : ''} · Sent to: ${targetLabel}</div>
+          <div class="announce-text">${a.message}</div>
+        </div>`;
+      }).join('');
+    } catch(e) { list.innerHTML = '<div class="empty-state">Could not load announcements.</div>'; }
+  }
+
+  window.deleteAnnouncement = async function(annId) {
+    if (!confirm('Delete this announcement?')) return;
+    try {
+      await deleteDoc(doc(db, 'schools', currentUser.uid, 'announcements', annId));
+      showToast('Announcement deleted.');
+      loadAnnouncements();
+    } catch(e) { showToast('Could not delete.'); }
+  }
+
+  // ── UPDATE SCHOOL ──
+  window.updateSchool = async function() {
+    const name = document.getElementById('edit-school-name').value.trim();
+    const desc = document.getElementById('edit-school-desc').value.trim();
+    const city = document.getElementById('edit-school-city').value.trim();
+    const type = document.getElementById('edit-school-type').value;
+    if (!name) { showToast('⚠️ School name cannot be empty.'); return; }
+    try {
+      await updateDoc(doc(db, 'schools', currentUser.uid), { name, desc, city, type });
+      mySchool = { ...mySchool, name, desc, city, type };
+      document.getElementById('school-name-display').textContent = name;
+      document.getElementById('school-desc-display').textContent = desc;
+      document.getElementById('grid-city').textContent = city || '—';
+      showToast('✅ School profile updated!');
+    } catch(e) { showToast('Could not update.'); }
+  }
+
+  // ── DELETE SCHOOL ──
+  window.deleteSchool = async function() {
+    if (!confirm('Are you sure you want to delete this school profile? This cannot be undone.')) return;
+    try {
+      await deleteDoc(doc(db, 'schools', currentUser.uid));
+      mySchool = null;
+      document.getElementById('school-section').style.display = 'none';
+      document.getElementById('no-school-section').style.display = 'block';
+      document.getElementById('create-school-section').style.display = 'none';
+      document.querySelector('#no-school-section .section').style.display = 'block';
+      showToast('School profile deleted.');
+    } catch(e) { showToast('Could not delete.'); }
+  }
+
+  // ── LOAD TEACHER REPORTS ──
+  async function loadReports() {
+    const list = document.getElementById('reports-list');
+    if (!list || !mySchool) return;
+    list.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--muted);font-size:0.8rem;">Loading reports...</div>';
+    try {
+      const snap = await getDocs(collection(db, 'schools', currentUser.uid, 'reports'));
+      if (snap.empty) { list.innerHTML = '<div class="empty-state">No reports received yet.</div>'; return; }
+      const docs = snap.docs.sort((a,b) => b.data().createdAt?.localeCompare(a.data().createdAt||'')||0);
+      list.innerHTML = docs.map(d => {
+        const r = d.data();
+        return `<div style="background:var(--cream);border-radius:12px;padding:1rem;margin-bottom:0.75rem;border-left:3px solid var(--emerald);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:0.88rem;font-weight:700;color:var(--text);">${r.title}</div>
+              <div style="font-size:0.72rem;color:var(--muted);margin-top:0.15rem;">👨‍🏫 ${r.teacherName} · 📖 ${r.className} · ${r.type}</div>
+              <div style="font-size:0.7rem;color:var(--muted);">📅 ${r.createdAt ? r.createdAt.split('T')[0] : ''}</div>
+            </div>
+            <span style="background:var(--emerald-light);color:var(--emerald-dark);font-size:0.68rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:50px;white-space:nowrap;">${r.type}</span>
+          </div>
+          <div style="font-size:0.82rem;color:var(--text);margin-top:0.6rem;white-space:pre-wrap;">${r.message}</div>
+          <div style="display:flex;gap:1rem;margin-top:0.6rem;font-size:0.7rem;color:var(--muted);">
+            <span>👥 ${r.stats?.totalStudents||0} students</span>
+            <span>🎙️ ${r.stats?.totalRecitations||0} recitations</span>
+            <span>📋 ${r.stats?.totalTasks||0} tasks</span>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) { list.innerHTML = '<div class="empty-state">Could not load reports.</div>'; }
+  }
+
+  // ── AUTH ──
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        currentUserData = userDoc.exists() ? userDoc.data() : {};
+        const name = currentUserData.fullname || 'Admin';
+        const navAvatar = document.getElementById('nav-avatar');
+        if (currentUserData.photoURL) { navAvatar.innerHTML = `<img src="${currentUserData.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`; }
+        else { navAvatar.textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
+
+        if (currentUserData.role !== 'School Admin') {
+          document.getElementById('not-admin-msg').style.display = 'block';
+        } else {
+          document.getElementById('admin-content').style.display = 'block';
+          const schoolSnap = await getDoc(doc(db, 'schools', user.uid));
+          if (schoolSnap.exists()) {
+            mySchool = { id: schoolSnap.id, ...schoolSnap.data() };
+            showSchool();
+          } else {
+            document.getElementById('no-school-section').style.display = 'block';
+          }
+        }
+      } catch(e) { console.error(e); }
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else { window.location.href = 'login.html'; }
+  });
+</script>
+</body>
+</html>

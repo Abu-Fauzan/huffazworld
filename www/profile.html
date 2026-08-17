@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Profile – HuffazWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #C9A84C; --gold-light: #F0D98A;
+    --emerald: #1A6B4A; --emerald-light: #E6F5EE; --emerald-dark: #0D3D29;
+    --cream: #FAF7F0; --text: #1C2B22; --muted: #5A7060; --white: #ffffff;
+    --error: #e53935; --success: #2e7d32;
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+
+  /* NAV */
+  nav { background: var(--emerald-dark); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .nav-logo { font-family: 'Amiri', serif; font-size: 1.5rem; font-weight: 700; color: white; text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-link { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
+  .nav-link:hover { color: white; }
+  .nav-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--gold); color: var(--emerald-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .logout-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 0.4rem 0.9rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .logout-btn:hover { background: rgba(255,255,255,0.2); }
+
+  /* CONTAINER */
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* PROFILE HEADER */
+  .profile-header {
+    background: linear-gradient(135deg, var(--emerald-dark) 0%, var(--emerald) 100%);
+    border-radius: 24px; padding: 2.5rem 2rem;
+    display: flex; align-items: center; gap: 2rem;
+    margin-bottom: 2rem; flex-wrap: wrap;
+    position: relative; overflow: hidden;
+  }
+  .profile-header::before {
+    content: 'بِسْمِ اللَّهِ';
+    position: absolute; right: 2rem; top: 50%; transform: translateY(-50%);
+    font-family: 'Amiri', serif; font-size: 3rem;
+    color: rgba(255,255,255,0.05); pointer-events: none;
+  }
+  .profile-avatar-big {
+    width: 90px; height: 90px; border-radius: 50%;
+    background: var(--gold); color: var(--emerald-dark);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Amiri', serif; font-size: 2rem; font-weight: 700;
+    flex-shrink: 0; border: 4px solid rgba(255,255,255,0.3);
+    cursor: pointer; transition: transform 0.2s; overflow: hidden; position: relative;
+  }
+  .profile-avatar-big:hover { transform: scale(1.05); }
+  .profile-avatar-big:hover .avatar-overlay { opacity: 1; }
+  .avatar-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; border-radius: 50%; }
+  .avatar-overlay span { font-size: 1.4rem; }
+  .profile-avatar-big img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; position: absolute; inset: 0; }
+  .nav-avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .upload-progress { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--emerald-dark); color: white; padding: 0.6rem 1.25rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600; z-index: 9999; display: none; white-space: nowrap; }
+  .profile-info { flex: 1; }
+  .profile-name { font-family: 'Amiri', serif; font-size: 2rem; font-weight: 700; color: white; margin-bottom: 0.25rem; }
+  .profile-role { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(201,168,76,0.2); color: var(--gold-light); padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.82rem; font-weight: 600; margin-bottom: 0.75rem; }
+  .profile-meta { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .profile-meta-item { font-size: 0.82rem; color: rgba(255,255,255,0.65); display: flex; align-items: center; gap: 0.3rem; }
+  .profile-stats { display: flex; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap; }
+  .profile-stat { text-align: center; }
+  .profile-stat-num { font-family: 'Amiri', serif; font-size: 1.5rem; font-weight: 700; color: var(--gold-light); }
+  .profile-stat-label { font-size: 0.72rem; color: rgba(255,255,255,0.55); }
+  .edit-profile-btn { background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 0.6rem 1.2rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.2s; align-self: flex-start; }
+  .edit-profile-btn:hover { background: rgba(255,255,255,0.22); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; background: var(--white); padding: 0.4rem; border-radius: 14px; border: 1px solid rgba(201,168,76,0.18); width: fit-content; }
+  .tab-btn { padding: 0.55rem 1.2rem; border-radius: 10px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--muted); background: transparent; transition: all 0.2s; }
+  .tab-btn.active { background: var(--emerald); color: white; }
+
+  /* GRID */
+  .profile-grid { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+
+  /* POSTS */
+  .feed-post { background: var(--white); border: 1px solid rgba(201,168,76,0.15); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; animation: fadeUp 0.4s ease both; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  .post-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.88rem; flex-shrink: 0; background: var(--emerald); color: white; }
+  .post-author { font-size: 0.9rem; font-weight: 700; color: var(--emerald-dark); }
+  .post-time { font-size: 0.75rem; color: var(--muted); }
+  .post-body { font-size: 0.9rem; color: var(--text); line-height: 1.75; }
+  .post-footer { display: flex; gap: 0.75rem; margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid rgba(201,168,76,0.1); }
+  .post-btn { background: none; border: 1px solid rgba(201,168,76,0.2); border-radius: 8px; font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; padding: 0.3rem 0.75rem; }
+  .post-btn.liked { color: #e53935; border-color: #e53935; background: #fdecea; }
+  .delete-btn { margin-left: auto; background: none; border: 1px solid rgba(229,57,53,0.2); border-radius: 8px; font-size: 0.78rem; color: #e53935; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; padding: 0.3rem 0.75rem; }
+  .delete-btn:hover { background: #fdecea; }
+  .empty-posts { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+  .empty-posts .icon { font-size: 3rem; margin-bottom: 0.75rem; }
+
+  /* SIDEBAR CARDS */
+  .sidebar-card { background: var(--white); border: 1px solid rgba(201,168,76,0.18); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .sidebar-title { font-size: 0.85rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 1rem; }
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid rgba(201,168,76,0.1); font-size: 0.85rem; }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: var(--muted); font-size: 0.8rem; }
+  .info-value { font-weight: 600; color: var(--text); }
+  .progress-item { margin-bottom: 0.85rem; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 0.3rem; }
+  .progress-bar { height: 6px; background: var(--emerald-light); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--emerald); border-radius: 99px; }
+  .badge-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.6rem; }
+  .badge-item { background: var(--emerald-light); border-radius: 10px; padding: 0.75rem 0.5rem; text-align: center; }
+  .badge-icon { font-size: 1.4rem; display: block; margin-bottom: 0.3rem; }
+  .badge-name { font-size: 0.7rem; color: var(--emerald-dark); font-weight: 600; }
+
+  /* EDIT MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 20px; padding: 2rem; width: 100%; max-width: 460px; animation: fadeUp 0.3s ease both; }
+  .modal-title { font-family: 'Amiri', serif; font-size: 1.5rem; font-weight: 700; color: var(--emerald-dark); margin-bottom: 1.5rem; }
+  .form-group { margin-bottom: 1rem; }
+  label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--emerald-dark); margin-bottom: 0.4rem; }
+  input, select, textarea { width: 100%; padding: 0.75rem 1rem; border: 1.5px solid rgba(201,168,76,0.25); border-radius: 12px; font-size: 0.92rem; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); background: var(--cream); outline: none; transition: border-color 0.2s; }
+  input:focus, select:focus, textarea:focus { border-color: var(--emerald); background: white; }
+  .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+  .btn-save { flex: 1; background: var(--emerald); color: white; border: none; border-radius: 12px; padding: 0.85rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .btn-save:hover { background: var(--emerald-dark); }
+  .btn-cancel { flex: 1; background: var(--cream); color: var(--muted); border: 1px solid rgba(201,168,76,0.2); border-radius: 12px; padding: 0.85rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+  /* LOADING */
+  #loading { position: fixed; inset: 0; background: var(--cream); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; }
+  #loading .logo { font-family: 'Amiri', serif; font-size: 2.5rem; font-weight: 700; color: var(--emerald-dark); }
+  #loading .logo span { color: var(--gold); }
+  .loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); display: inline-block; animation: bounce 1.2s infinite; margin: 0 3px; }
+  .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100%{transform:scale(0.6)} 40%{transform:scale(1)} }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--emerald-dark); color: white; padding: 0.75rem 1.5rem; border-radius: 12px; font-size: 0.88rem; font-weight: 600; z-index: 9999; transition: transform 0.3s ease; pointer-events: none; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  @media (max-width: 768px) {
+    .profile-grid { grid-template-columns: 1fr; }
+    .profile-header { flex-direction: column; text-align: center; align-items: center; padding: 1.5rem 1rem; border-radius: 16px; }
+    .profile-meta { justify-content: center; }
+    .profile-stats { justify-content: center; }
+    .container { padding: 1rem; }
+    .tabs { width: 100%; justify-content: space-between; }
+    .tab-btn { flex: 1; padding: 0.5rem 0.5rem; font-size: 0.78rem; }
+    .profile-name { font-size: 1.6rem; }
+    body { padding-bottom: 70px; }
+  }
+
+  /* MOBILE BOTTOM NAV */
+  .mobile-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--emerald-dark);
+    border-top: 1px solid rgba(201,168,76,0.2);
+    padding: 0.5rem 0 0.75rem;
+    z-index: 200;
+  }
+  .mobile-nav-inner {
+    display: flex; justify-content: space-around; align-items: center;
+  }
+  .mobile-nav-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.2rem; text-decoration: none; cursor: pointer;
+    flex: 1; padding: 0.3rem 0;
+    border: none; background: none; font-family: "Plus Jakarta Sans", sans-serif;
+  }
+  .mobile-nav-item .m-icon { font-size: 1.3rem; }
+  .mobile-nav-item .m-label { font-size: 0.62rem; font-weight: 600; color: rgba(255,255,255,0.55); }
+  .mobile-nav-item.active .m-label { color: var(--gold); }
+  .mobile-nav-item.active .m-icon { filter: drop-shadow(0 0 4px rgba(201,168,76,0.6)); }
+  .mobile-nav-post {
+    background: var(--gold); border-radius: 50%;
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; margin-top: -1.2rem;
+    border: 3px solid var(--emerald-dark);
+    box-shadow: 0 4px 16px rgba(201,168,76,0.4);
+    cursor: pointer; text-decoration: none;
+    flex-shrink: 0;
+  }
+  @media (max-width: 768px) {
+    .mobile-nav { display: block; }
+    body { padding-bottom: 70px; }
+    .nav-links-desktop { display: none !important; }
+    nav { padding: 0.85rem 1.25rem; }
+  }
+
+
+  /* HIDE TOP NAV LINKS ON MOBILE */
+  @media (max-width: 768px) {
+    .nav-right .nav-link,
+    .nav-right .logout-btn,
+    .nav-right .nav-avatar {
+      display: none !important;
+    }
+    .nav-right .nav-avatar { display: none !important; }
+    .nav-right .msg-nav-link { display: inline-flex !important; }
+    .nav-right .group-nav-link { display: inline-flex !important; }
+    nav { justify-content: space-between; }
+  }
+
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="logo">Huffaz<span>World</span></div>
+  <div style="margin-top:1rem;"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">✏️ Edit Profile</div>
+    <div class="form-group"><label>Full Name</label><input type="text" id="edit-name" /></div>
+    <div class="form-group"><label>Country</label>
+<select id="edit-country">
+      <option value="">Select your country...</option>
+      <optgroup label="🌙 Muslim Majority Countries">
+        <option>Afghanistan</option>
+        <option>Albania</option>
+        <option>Algeria</option>
+        <option>Azerbaijan</option>
+        <option>Bahrain</option>
+        <option>Bangladesh</option>
+        <option>Bosnia and Herzegovina</option>
+        <option>Brunei</option>
+        <option>Burkina Faso</option>
+        <option>Chad</option>
+        <option>Comoros</option>
+        <option>Djibouti</option>
+        <option>Egypt</option>
+        <option>Gambia</option>
+        <option>Guinea</option>
+        <option>Guinea-Bissau</option>
+        <option>Indonesia</option>
+        <option>Iran</option>
+        <option>Iraq</option>
+        <option>Jordan</option>
+        <option>Kazakhstan</option>
+        <option>Kosovo</option>
+        <option>Kuwait</option>
+        <option>Kyrgyzstan</option>
+        <option>Lebanon</option>
+        <option>Libya</option>
+        <option>Malaysia</option>
+        <option>Maldives</option>
+        <option>Mali</option>
+        <option>Mauritania</option>
+        <option>Morocco</option>
+        <option>Niger</option>
+        <option>Nigeria</option>
+        <option>Oman</option>
+        <option>Pakistan</option>
+        <option>Palestine</option>
+        <option>Qatar</option>
+        <option>Saudi Arabia</option>
+        <option>Senegal</option>
+        <option>Sierra Leone</option>
+        <option>Somalia</option>
+        <option>Sudan</option>
+        <option>Syria</option>
+        <option>Tajikistan</option>
+        <option>Tunisia</option>
+        <option>Turkey</option>
+        <option>Turkmenistan</option>
+        <option>United Arab Emirates</option>
+        <option>Uzbekistan</option>
+        <option>Western Sahara</option>
+        <option>Yemen</option>
+      </optgroup>
+      <optgroup label="🌍 All Countries">
+        <option>Afghanistan</option>
+        <option>Albania</option>
+        <option>Algeria</option>
+        <option>Andorra</option>
+        <option>Angola</option>
+        <option>Antigua and Barbuda</option>
+        <option>Argentina</option>
+        <option>Armenia</option>
+        <option>Australia</option>
+        <option>Austria</option>
+        <option>Azerbaijan</option>
+        <option>Bahamas</option>
+        <option>Bahrain</option>
+        <option>Bangladesh</option>
+        <option>Barbados</option>
+        <option>Belarus</option>
+        <option>Belgium</option>
+        <option>Belize</option>
+        <option>Benin</option>
+        <option>Bhutan</option>
+        <option>Bolivia</option>
+        <option>Bosnia and Herzegovina</option>
+        <option>Botswana</option>
+        <option>Brazil</option>
+        <option>Brunei</option>
+        <option>Bulgaria</option>
+        <option>Burkina Faso</option>
+        <option>Burundi</option>
+        <option>Cabo Verde</option>
+        <option>Cambodia</option>
+        <option>Cameroon</option>
+        <option>Canada</option>
+        <option>Central African Republic</option>
+        <option>Chad</option>
+        <option>Chile</option>
+        <option>China</option>
+        <option>Colombia</option>
+        <option>Comoros</option>
+        <option>Congo (Brazzaville)</option>
+        <option>Congo (Kinshasa)</option>
+        <option>Costa Rica</option>
+        <option>Croatia</option>
+        <option>Cuba</option>
+        <option>Cyprus</option>
+        <option>Czech Republic</option>
+        <option>Denmark</option>
+        <option>Djibouti</option>
+        <option>Dominica</option>
+        <option>Dominican Republic</option>
+        <option>Ecuador</option>
+        <option>Egypt</option>
+        <option>El Salvador</option>
+        <option>Equatorial Guinea</option>
+        <option>Eritrea</option>
+        <option>Estonia</option>
+        <option>Eswatini</option>
+        <option>Ethiopia</option>
+        <option>Fiji</option>
+        <option>Finland</option>
+        <option>France</option>
+        <option>Gabon</option>
+        <option>Gambia</option>
+        <option>Georgia</option>
+        <option>Germany</option>
+        <option>Ghana</option>
+        <option>Greece</option>
+        <option>Grenada</option>
+        <option>Guatemala</option>
+        <option>Guinea</option>
+        <option>Guinea-Bissau</option>
+        <option>Guyana</option>
+        <option>Haiti</option>
+        <option>Honduras</option>
+        <option>Hungary</option>
+        <option>Iceland</option>
+        <option>India</option>
+        <option>Indonesia</option>
+        <option>Iran</option>
+        <option>Iraq</option>
+        <option>Ireland</option>
+        <option>Israel</option>
+        <option>Italy</option>
+        <option>Ivory Coast</option>
+        <option>Jamaica</option>
+        <option>Japan</option>
+        <option>Jordan</option>
+        <option>Kazakhstan</option>
+        <option>Kenya</option>
+        <option>Kiribati</option>
+        <option>Kosovo</option>
+        <option>Kuwait</option>
+        <option>Kyrgyzstan</option>
+        <option>Laos</option>
+        <option>Latvia</option>
+        <option>Lebanon</option>
+        <option>Lesotho</option>
+        <option>Liberia</option>
+        <option>Libya</option>
+        <option>Liechtenstein</option>
+        <option>Lithuania</option>
+        <option>Luxembourg</option>
+        <option>Madagascar</option>
+        <option>Malawi</option>
+        <option>Malaysia</option>
+        <option>Maldives</option>
+        <option>Mali</option>
+        <option>Malta</option>
+        <option>Marshall Islands</option>
+        <option>Mauritania</option>
+        <option>Mauritius</option>
+        <option>Mexico</option>
+        <option>Micronesia</option>
+        <option>Moldova</option>
+        <option>Monaco</option>
+        <option>Mongolia</option>
+        <option>Montenegro</option>
+        <option>Morocco</option>
+        <option>Mozambique</option>
+        <option>Myanmar</option>
+        <option>Namibia</option>
+        <option>Nauru</option>
+        <option>Nepal</option>
+        <option>Netherlands</option>
+        <option>New Zealand</option>
+        <option>Nicaragua</option>
+        <option>Niger</option>
+        <option>Nigeria</option>
+        <option>North Korea</option>
+        <option>North Macedonia</option>
+        <option>Norway</option>
+        <option>Oman</option>
+        <option>Pakistan</option>
+        <option>Palau</option>
+        <option>Palestine</option>
+        <option>Panama</option>
+        <option>Papua New Guinea</option>
+        <option>Paraguay</option>
+        <option>Peru</option>
+        <option>Philippines</option>
+        <option>Poland</option>
+        <option>Portugal</option>
+        <option>Qatar</option>
+        <option>Romania</option>
+        <option>Russia</option>
+        <option>Rwanda</option>
+        <option>Saint Kitts and Nevis</option>
+        <option>Saint Lucia</option>
+        <option>Saint Vincent and the Grenadines</option>
+        <option>Samoa</option>
+        <option>San Marino</option>
+        <option>Sao Tome and Principe</option>
+        <option>Saudi Arabia</option>
+        <option>Senegal</option>
+        <option>Serbia</option>
+        <option>Seychelles</option>
+        <option>Sierra Leone</option>
+        <option>Singapore</option>
+        <option>Slovakia</option>
+        <option>Slovenia</option>
+        <option>Solomon Islands</option>
+        <option>Somalia</option>
+        <option>South Africa</option>
+        <option>South Korea</option>
+        <option>South Sudan</option>
+        <option>Spain</option>
+        <option>Sri Lanka</option>
+        <option>Sudan</option>
+        <option>Suriname</option>
+        <option>Sweden</option>
+        <option>Switzerland</option>
+        <option>Syria</option>
+        <option>Taiwan</option>
+        <option>Tajikistan</option>
+        <option>Tanzania</option>
+        <option>Thailand</option>
+        <option>Timor-Leste</option>
+        <option>Togo</option>
+        <option>Tonga</option>
+        <option>Trinidad and Tobago</option>
+        <option>Tunisia</option>
+        <option>Turkey</option>
+        <option>Turkmenistan</option>
+        <option>Tuvalu</option>
+        <option>Uganda</option>
+        <option>Ukraine</option>
+        <option>United Arab Emirates</option>
+        <option>United Kingdom</option>
+        <option>United States</option>
+        <option>Uruguay</option>
+        <option>Uzbekistan</option>
+        <option>Vanuatu</option>
+        <option>Vatican City</option>
+        <option>Venezuela</option>
+        <option>Vietnam</option>
+        <option>Yemen</option>
+        <option>Zambia</option>
+        <option>Zimbabwe</option>
+      </optgroup>
+    </select>
+    </div>
+    <div class="form-group"><label>Role</label>
+      <select id="edit-role">
+        <option value="Hafiz">🏅 Hafiz (Male)</option>
+        <option value="Hafizah">🏅 Hafizah (Female)</option>
+        <option value="Student">📖 Student</option>
+        <option value="Teacher">🎓 Teacher</option>
+        <option value="Parent">👨‍👧 Parent</option>
+        <option value="School Admin">🏫 School Admin</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Bio</label><textarea id="edit-bio" rows="3" placeholder="Tell the community about yourself..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveProfile()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <nav>
+    <a href="dashboard.html" class="nav-logo">Huffaz<span>World</span></a>
+    <div class="nav-right">
+      <a href="messages.html" class="nav-link msg-nav-link" style="font-size:1.2rem;">💬</a>
+      <a href="dashboard.html" class="nav-link">🏠 Feed</a>
+      <div class="nav-avatar" id="nav-avatar">?</div>
+      <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- PROFILE HEADER -->
+    <div class="profile-header">
+      <div class="profile-avatar-big" id="profile-avatar-big" onclick="document.getElementById('avatar-file-input').click()" title="Click to change photo">
+        <span id="avatar-initials">?</span>
+        <div class="avatar-overlay"><span>📷</span></div>
+      </div>
+      <input type="file" id="avatar-file-input" accept="image/*" style="display:none;" onchange="handleAvatarSelected(this)"/>
+      <div class="upload-progress" id="upload-progress">☁️ Uploading photo...</div>
+      <div class="profile-info">
+        <div class="profile-name" id="profile-name">Loading...</div>
+        <div class="profile-role" id="profile-role">🏅 Member</div>
+        <div class="profile-meta">
+          <div class="profile-meta-item">🌍 <span id="profile-country">—</span></div>
+          <div class="profile-meta-item">📅 Joined <span id="profile-joined">—</span></div>
+          <div class="profile-meta-item">✉️ <span id="profile-email">—</span></div>
+        </div>
+        <div class="profile-stats">
+          <div class="profile-stat"><div class="profile-stat-num" id="stat-posts">0</div><div class="profile-stat-label">Posts</div></div>
+          <div class="profile-stat"><div class="profile-stat-num" id="stat-followers">0</div><div class="profile-stat-label">Followers</div></div>
+          <div class="profile-stat"><div class="profile-stat-num" id="stat-following">0</div><div class="profile-stat-label">Following</div></div>
+          <div class="profile-stat"><div class="profile-stat-num" id="stat-likes">0</div><div class="profile-stat-label">Likes</div></div>
+        </div>
+        <div id="profile-bio" style="margin-top:0.75rem; font-size:0.85rem; color:rgba(255,255,255,0.65); max-width:400px; line-height:1.6;"></div>
+      </div>
+      <button class="edit-profile-btn" onclick="openModal()">✏️ Edit Profile</button>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('posts', this)">📝 My Posts</button>
+      <button class="tab-btn" onclick="switchTab('progress', this)">📊 Progress</button>
+      <button class="tab-btn" onclick="switchTab('badges', this)">🏅 Badges</button>
+    </div>
+
+    <div class="profile-grid">
+      <div>
+        <!-- MY POSTS TAB -->
+        <div class="tab-content active" id="tab-posts">
+          <div id="my-posts"><div style="text-align:center;padding:2rem;color:var(--muted);">Loading your posts...</div></div>
+        </div>
+
+        <!-- PROGRESS TAB -->
+        <div class="tab-content" id="tab-progress">
+          <div class="sidebar-card">
+            <div class="sidebar-title">📖 Hifz Progress Tracker</div>
+            <div class="progress-item"><div class="progress-label"><span>Juz 30 — Juz Amma</span><span>100%</span></div><div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div></div>
+            <div class="progress-item"><div class="progress-label"><span>Juz 29 — Juz Tabarak</span><span>65%</span></div><div class="progress-bar"><div class="progress-fill" style="width:65%"></div></div></div>
+            <div class="progress-item"><div class="progress-label"><span>Juz 28</span><span>20%</span></div><div class="progress-bar"><div class="progress-fill" style="width:20%"></div></div></div>
+            <div class="progress-item"><div class="progress-label"><span>Surah Al-Baqarah</span><span>30%</span></div><div class="progress-bar"><div class="progress-fill" style="width:30%"></div></div></div>
+            <div class="progress-item"><div class="progress-label"><span>Surah Al-Imran</span><span>10%</span></div><div class="progress-bar"><div class="progress-fill" style="width:10%"></div></div></div>
+            <div style="margin-top:1.25rem; background:var(--emerald-light); border-radius:12px; padding:1rem; text-align:center;">
+              <div style="font-family:'Amiri',serif; font-size:1.8rem; color:var(--emerald-dark); font-weight:700;">8%</div>
+              <div style="font-size:0.8rem; color:var(--muted);">Overall Qur'an Memorized</div>
+              <div style="font-size:0.75rem; color:var(--emerald); margin-top:0.3rem; font-weight:600;">Keep going! Every page counts 🤲</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BADGES TAB -->
+        <div class="tab-content" id="tab-badges">
+          <div class="sidebar-card">
+            <div class="sidebar-title">🏅 Your Badges</div>
+            <div class="badge-grid" id="profile-badge-grid">
+              <div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--muted);font-size:0.82rem;">Loading badges...</div>
+            </div>
+            <a href="badges.html" style="display:block;margin-top:1rem;text-align:center;background:var(--emerald);color:white;padding:0.6rem;border-radius:10px;text-decoration:none;font-size:0.82rem;font-weight:700;">View All Badges 🏅</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div>
+        <div class="sidebar-card">
+          <div class="sidebar-title">👤 Account Info</div>
+          <div class="info-row"><span class="info-label">Full Name</span><span class="info-value" id="info-name">—</span></div>
+          <div class="info-row"><span class="info-label">Role</span><span class="info-value" id="info-role">—</span></div>
+          <div class="info-row"><span class="info-label">Country</span><span class="info-value" id="info-country">—</span></div>
+          <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="info-email" style="font-size:0.78rem;">—</span></div>
+          <div class="info-row"><span class="info-label">Member Since</span><span class="info-value" id="info-joined">—</span></div>
+        </div>
+
+        <div class="sidebar-card" style="background:var(--emerald-dark); border-color:var(--gold);">
+          <div class="sidebar-title" style="color:var(--gold-light);">✨ Daily Reminder</div>
+          <div style="font-family:'Amiri',serif; font-size:1.1rem; color:var(--gold-light); direction:rtl; text-align:right; line-height:1.8; margin-bottom:0.6rem;">خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ</div>
+          <div style="font-size:0.8rem; color:rgba(255,255,255,0.6); line-height:1.6;">"The best among you are those who learn the Qur'an and teach it." — Prophet Muhammad ﷺ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- MOBILE BOTTOM NAV -->
+  <div class="mobile-nav">
+    <div class="mobile-nav-inner">
+      <a href="dashboard.html" class="mobile-nav-item"><span class="m-icon">🏠</span><span class="m-label">Home</span></a>
+      <a href="search.html" class="mobile-nav-item"><span class="m-icon">🔍</span><span class="m-label">Search</span></a>
+      <a href="messages.html" class="mobile-nav-item"><span class="m-icon">💬</span><span class="m-label">Chat</span></a>
+      <a href="notifications.html" class="mobile-nav-item"><span class="m-icon">🔔</span><span class="m-label">Alerts</span></a>
+      <a href="profile.html" class="mobile-nav-item"><span class="m-icon">👤</span><span class="m-label">Profile</span></a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
+    authDomain: "huffazworld.firebaseapp.com",
+    projectId: "huffazworld",
+    storageBucket: "huffazworld.firebasestorage.app",
+    messagingSenderId: "69769070061",
+    appId: "1:69769070061:web:469c095c061654b4d013e4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  let currentUser = null;
+  let currentUserData = null;
+
+  // ── CLOUDINARY AVATAR UPLOAD ──────────────────────────────────
+  const CLOUDINARY_CLOUD = 'dl1rabt4f';
+  const CLOUDINARY_PRESET = 'huffazworld';
+
+  window.handleAvatarSelected = async function(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast('⚠️ Photo must be under 5MB'); input.value = ''; return; }
+
+    const progress = document.getElementById('upload-progress');
+    progress.style.display = 'block';
+    progress.textContent = '☁️ Uploading photo...';
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    formData.append('folder', 'avatars');
+
+    try {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method:'POST', body:formData });
+      const data = await res.json();
+      if (data.secure_url) {
+        // Save to Firebase
+        await setDoc(doc(db, 'users', currentUser.uid), { photoURL: data.secure_url }, { merge:true });
+        currentUserData.photoURL = data.secure_url;
+        loadProfile(currentUserData, currentUser);
+        progress.textContent = '✅ Photo updated!';
+        showToast('Profile photo updated! 🤲');
+        setTimeout(() => progress.style.display = 'none', 2000);
+      } else {
+        progress.textContent = '❌ Upload failed';
+        showToast('Upload failed. Try again.');
+        setTimeout(() => progress.style.display = 'none', 2000);
+      }
+    } catch(e) {
+      progress.textContent = '❌ Error uploading';
+      showToast('Could not upload photo.');
+      setTimeout(() => progress.style.display = 'none', 2000);
+    }
+    input.value = '';
+  }
+  // ─────────────────────────────────────────────────────────────
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function timeAgo(timestamp) {
+    if (!timestamp) return 'Just now';
+    const time = new Date(timestamp).getTime();
+    const diff = Math.floor((Date.now() - time) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff/60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff/3600) + ' hr ago';
+    return Math.floor(diff/86400) + ' days ago';
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  }
+
+  function loadProfile(data, user) {
+    const name = data.fullname || user.displayName || 'Friend';
+    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    // Avatar — show photo if exists, else initials
+    const avatarBig = document.getElementById('profile-avatar-big');
+    const initialsEl = document.getElementById('avatar-initials');
+    initialsEl.textContent = initials;
+    if (data.photoURL) {
+      const old = avatarBig.querySelector('img');
+      if (old) old.remove();
+      const img = document.createElement('img');
+      img.src = data.photoURL; img.alt = name;
+      avatarBig.insertBefore(img, avatarBig.firstChild);
+      initialsEl.style.display = 'none';
+    } else { initialsEl.style.display = ''; }
+    // Nav avatar
+    const navAvatar = document.getElementById('nav-avatar');
+    if (data.photoURL) { navAvatar.innerHTML = `<img src="${data.photoURL}" class="nav-avatar-img" alt="${name}"/>`; }
+    else { navAvatar.textContent = initials; }
+    document.getElementById('profile-name').textContent = name;
+    document.getElementById('profile-role').textContent = (
+      data.role === 'Hafiz' ? '🏅 Hafiz' :
+      data.role === 'Hafizah' ? '🏅 Hafizah' :
+      data.role === 'Teacher' ? '🎓 Teacher' :
+      data.role === 'Parent' ? '👨‍👧 Parent' :
+      data.role === 'School Admin' ? '🏫 School Admin' :
+      '📖 ' + (data.role || 'Member')
+    );
+    document.getElementById('profile-country').textContent = data.country || '—';
+    document.getElementById('profile-email').textContent = user.email || '—';
+    document.getElementById('profile-joined').textContent = formatDate(data.createdAt);
+    if (data.bio) document.getElementById('profile-bio').textContent = data.bio;
+    document.getElementById('info-name').textContent = name;
+    document.getElementById('info-role').textContent = data.role || '—';
+    document.getElementById('info-country').textContent = data.country || '—';
+    document.getElementById('info-email').textContent = user.email || '—';
+    document.getElementById('info-joined').textContent = formatDate(data.createdAt);
+    document.getElementById('edit-name').value = name;
+    document.getElementById('edit-country').value = data.country || 'Nigeria';
+    document.getElementById('edit-role').value = data.role || 'Student';
+    document.getElementById('edit-bio').value = data.bio || '';
+    document.getElementById('stat-followers').textContent = (data.followers||[]).length;
+    document.getElementById('stat-following').textContent = (data.following||[]).length;
+  }
+
+  async function loadMyPosts(uid) {
+    const container = document.getElementById('my-posts');
+    try {
+      const q = query(collection(db,'posts'), where('uid','==',uid));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        container.innerHTML = '<div class="empty-posts"><div class="icon">📝</div><p>You have not shared any posts yet.<br/><a href="dashboard.html" style="color:var(--emerald);font-weight:600;">Go share your first post!</a></p></div>';
+        return;
+      }
+      const posts = [];
+      snap.forEach(d => posts.push({ id: d.id, ...d.data() }));
+      posts.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      container.innerHTML = '';
+      let totalLikes = 0;
+      posts.forEach(p => {
+        const likes = (p.likes||[]).length;
+        totalLikes += likes;
+        const div = document.createElement('div');
+        div.className = 'feed-post';
+        div.innerHTML = `
+          <div class="post-header">
+            <div class="avatar" style="background:var(--emerald);color:white;">${document.getElementById('profile-avatar-big').textContent}</div>
+            <div>
+              <div class="post-author">${p.authorName||'You'}</div>
+              <div class="post-time">${timeAgo(p.createdAt)}</div>
+            </div>
+          </div>
+          <div class="post-body">${p.text}</div>
+          <div class="post-footer">
+            <span class="post-btn">❤️ ${likes} ${likes===1?'Like':'Likes'}</span>
+            <span class="post-btn">💬 ${(p.comments||[]).length} ${(p.comments||[]).length===1?'Comment':'Comments'}</span>
+            <button class="delete-btn" onclick="deletePost('${p.id}', this)">🗑️ Delete</button>
+          </div>`;
+        container.appendChild(div);
+      });
+      document.getElementById('stat-posts').textContent = posts.length;
+      document.getElementById('stat-likes').textContent = totalLikes;
+    } catch(e) {
+      console.error(e);
+      container.innerHTML = '<div class="empty-posts"><p>Could not load posts. Try refreshing.</p></div>';
+    }
+  }
+
+  window.deletePost = async function(postId, btn) {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    try {
+      await deleteDoc(doc(db,'posts',postId));
+      btn.closest('.feed-post').remove();
+      showToast('🗑️ Post deleted.');
+      const remaining = document.querySelectorAll('.feed-post').length;
+      document.getElementById('stat-posts').textContent = remaining;
+    } catch(e) { showToast('Could not delete. Try again.'); }
+  }
+
+  window.switchTab = function(tabName, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + tabName).classList.add('active');
+  }
+
+  window.openModal = function() { document.getElementById('edit-modal').classList.add('open'); }
+  window.closeModal = function() { document.getElementById('edit-modal').classList.remove('open'); }
+
+  window.saveProfile = async function() {
+    if (!currentUser) return;
+    const name = document.getElementById('edit-name').value.trim();
+    const country = document.getElementById('edit-country').value;
+    const role = document.getElementById('edit-role').value;
+    const bio = document.getElementById('edit-bio').value.trim();
+    if (!name) { showToast('⚠️ Name cannot be empty.'); return; }
+    try {
+      await updateDoc(doc(db,'users',currentUser.uid), { fullname:name, country, role, bio });
+      currentUserData = { ...currentUserData, fullname:name, country, role, bio };
+      loadProfile(currentUserData, currentUser);
+      closeModal();
+      showToast('✅ Profile updated! Alhamdulillah 🤲');
+    } catch(e) { showToast('⚠️ Could not save. Try again.'); }
+  }
+
+  window.handleLogout = async function() { await signOut(auth); window.location.href = 'login.html'; }
+
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+      try {
+        const userDoc = await getDoc(doc(db,'users',user.uid));
+        currentUserData = userDoc.exists() ? userDoc.data() : {};
+        loadProfile(currentUserData, user);
+        await loadMyPosts(user.uid);
+        await loadProfileBadges(user.uid);
+      } catch(e) { console.error(e); }
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else { window.location.href = 'login.html'; }
+  });
+
+  async function loadProfileBadges(uid) {
+    const grid = document.getElementById('profile-badge-grid');
+    if (!grid) return;
+    try {
+      const snap = await getDoc(doc(db, 'badges', uid));
+      const earned = snap.exists() && snap.data().earned ? snap.data().earned : {};
+      const ALL = [
+        { id:'full_hafiz', emoji:'👑', name:'Full Hafiz' },
+        { id:'half_quran', emoji:'⭐', name:'Half Hafiz' },
+        { id:'quarter_quran', emoji:'🌙', name:'Quarter Hafiz' },
+        { id:'streak_365', emoji:'🤲', name:'Year of Quran' },
+        { id:'streak_100', emoji:'💎', name:'Diamond Hafiz' },
+        { id:'streak_30', emoji:'🌙', name:'Month of Hifz' },
+        { id:'streak_7', emoji:'🔥🔥', name:'Week Warrior' },
+        { id:'streak_3', emoji:'🔥', name:'On Fire' },
+        { id:'juz_amma', emoji:'📖', name:"Juz 'Amma" },
+        { id:'ten_surahs', emoji:'🌿', name:'Growing Strong' },
+        { id:'first_surah', emoji:'🌱', name:'First Step' },
+        { id:'session_100', emoji:'🎯', name:'Centurion' },
+        { id:'session_50', emoji:'📚', name:'Dedicated' },
+        { id:'session_10', emoji:'📝', name:'Committed' },
+        { id:'session_1', emoji:'🌱', name:'First Session' },
+        { id:'first_post', emoji:'✍️', name:'First Post' },
+        { id:'joined', emoji:'🤝', name:'Welcome' },
+      ];
+      const earnedList = ALL.filter(b => earned[b.id]);
+      const lockedList = ALL.filter(b => !earned[b.id]).slice(0, 3);
+      if (!earnedList.length && !lockedList.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--muted);font-size:0.82rem;">No badges yet — start tracking your Hifz! 📖</div>';
+        return;
+      }
+      grid.innerHTML = [
+        ...earnedList.map(b => `<div class="badge-item"><span class="badge-icon">${b.emoji}</span><div class="badge-name">${b.name}</div></div>`),
+        ...lockedList.map(b => `<div class="badge-item" style="opacity:0.35;"><span class="badge-icon">${b.emoji}</span><div class="badge-name">${b.name}</div></div>`)
+      ].join('');
+    } catch(e) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--muted);font-size:0.82rem;">Could not load badges.</div>';
+    }
+  }
+</script>
+</body>
+</html>
