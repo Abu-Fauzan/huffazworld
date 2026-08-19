@@ -512,6 +512,7 @@
           </div>
         </div>
         <div id="feed"><div class="feed-loading"><span class="spinner"></span> Loading posts...</div></div>
+        <div id="feed-pagination" style="text-align:center;margin:1.5rem 0;"></div>
       </div>
 
       <div>
@@ -594,7 +595,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, orderBy, query, onSnapshot, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, orderBy, query, onSnapshot, where, limit, startAfter } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
@@ -834,17 +835,127 @@
   }
   // ────────────────────────────────────────────────────────────────
 
-  function loadFeed() {
-    const feed = document.getElementById('feed');
-    const q = query(collection(db,'posts'), orderBy("createdAt","desc"), limit(10));
-    onSnapshot(q, snap => {
-      feed.innerHTML = '';
-      if (snap.empty) { feed.innerHTML = '<div class="empty-feed"><div class="icon">📖</div><p>No posts yet.<br/>Be the first to share your Hifz journey!</p></div>'; return; }
-      let myCount = 0;
-      snap.forEach(d => { if (currentUser && d.data().uid===currentUser.uid) myCount++; feed.appendChild(renderPost(d.id, d.data())); });
-      document.getElementById('stat-posts').textContent = myCount;
-    });
+  let feedLastDoc = null;
+let feedLoading = false;
+let feedHasMore = true;
+
+async function loadFeed(reset = true) {
+  const feed = document.getElementById('feed');
+  const pagination = document.getElementById('feed-pagination');
+
+  if (reset) {
+    feed.innerHTML = '<div class="feed-loading"><span class="spinner"></span> Loading posts...</div>';
+    feedLastDoc = null;
+    feedHasMore = true;
   }
+
+  try {
+    const constraints = [
+      collection(db, 'posts'),
+      orderBy('createdAt', 'desc'),
+      limit(10)
+    ];
+
+    if (feedLastDoc) {
+      constraints.push(startAfter(feedLastDoc));
+    }
+
+    const q = query(...constraints);
+    const snap = await getDocs(q);
+
+    if (reset) {
+      feed.innerHTML = '';
+    }
+
+    if (snap.empty) {
+      if (reset) {
+        feed.innerHTML = '<div class="empty-feed"><div class="icon">📖</div><p>No posts yet.<br/>Be the first to share your Hifz journey!</p></div>';
+      }
+
+      feedHasMore = false;
+      renderFeedPagination();
+      return;
+    }
+
+    let myCount = reset
+      ? 0
+      : Number(document.getElementById('stat-posts')?.textContent || 0);
+
+    snap.forEach(d => {
+      if (currentUser && d.data().uid === currentUser.uid) {
+        myCount++;
+      }
+
+      feed.appendChild(renderPost(d.id, d.data()));
+    });
+
+    document.getElementById('stat-posts').textContent = myCount;
+
+    feedLastDoc = snap.docs[snap.docs.length - 1];
+    feedHasMore = snap.docs.length === 10;
+
+    renderFeedPagination();
+
+  } catch (e) {
+    console.error('Feed loading error:', e);
+
+    if (reset) {
+      feed.innerHTML = '<div class="empty-feed"><div class="icon">⚠️</div><p>Could not load posts.<br/>Please refresh and try again.</p></div>';
+    }
+
+    if (pagination) {
+      pagination.innerHTML = `
+        <button
+          onclick="loadFeed(false)"
+          style="padding:0.8rem 1.5rem;border:none;border-radius:10px;background:var(--emerald);color:white;font-family:inherit;font-weight:700;cursor:pointer;"
+        >
+          Try Again
+        </button>
+      `;
+    }
+  } finally {
+    feedLoading = false;
+  }
+}
+
+function renderFeedPagination() {
+  const pagination = document.getElementById('feed-pagination');
+  if (!pagination) return;
+
+  if (!feedHasMore) {
+    pagination.innerHTML = feedLastDoc
+      ? '<div style="color:var(--muted);font-size:0.85rem;padding:1rem;">🤲 You\'ve reached the end of the feed.</div>'
+      : '';
+    return;
+  }
+
+  pagination.innerHTML = `
+    <button
+      onclick="loadMorePosts()"
+      style="padding:0.8rem 1.5rem;border:none;border-radius:10px;background:var(--emerald);color:white;font-family:inherit;font-weight:700;cursor:pointer;"
+    >
+      Load More Posts ↓
+    </button>
+  `;
+}
+
+window.loadMorePosts = async function() {
+  if (feedLoading || !feedHasMore || !feedLastDoc) return;
+
+  feedLoading = true;
+
+  const pagination = document.getElementById('feed-pagination');
+
+  if (pagination) {
+    pagination.innerHTML = `
+      <div style="color:var(--muted);font-size:0.85rem;padding:1rem;">
+        Loading more posts...
+      </div>
+    `;
+  }
+
+  await loadFeed(false);
+};
 
   // ── STORIES ──────────────────────────────────────────────────────
   let allStories = [];       // [{uid, stories:[]}]
