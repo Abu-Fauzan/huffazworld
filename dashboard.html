@@ -63,7 +63,18 @@
   .story-text-bg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
   .story-nav-left { position: absolute; left: 0; top: 0; bottom: 0; width: 40%; cursor: pointer; }
   .story-nav-right { position: absolute; right: 0; top: 0; bottom: 0; width: 40%; cursor: pointer; }
-  .story-delete-btn { position: absolute; bottom: 1.5rem; right: 1rem; background: rgba(229,57,53,0.8); color: white; border: none; border-radius: 10px; padding: 0.4rem 0.85rem; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .story-delete-btn{
+  background:rgba(229,57,53,.9);
+  color:#fff;
+  border:none;
+  border-radius:50px;
+  padding:.45rem .8rem;
+  font-size:.78rem;
+  font-weight:700;
+  cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  flex-shrink:0;
+}
 
   /* ── STORY REACTIONS & COMMENTS ── */
   .story-bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; z-index: 11; padding: 0.75rem 1rem; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); }
@@ -374,7 +385,6 @@
           </div>
           <div class="story-nav-left" onclick="prevStory()"></div>
           <div class="story-nav-right" onclick="nextStory()"></div>
-          <button class="story-delete-btn" id="story-delete-btn" style="display:none;" onclick="deleteCurrentStory()">🗑️ Delete</button>
 
           <!-- REACTIONS & COMMENTS BOTTOM BAR -->
           <div class="story-bottom-bar" onclick="event.stopPropagation()">
@@ -390,8 +400,25 @@
             </div>
             <!-- Comment input -->
             <div class="story-comment-row">
-              <input class="story-comment-input" id="story-comment-input" placeholder="Reply to this story..." onkeydown="if(event.key==='Enter') sendStoryComment()"/>
-              <button class="story-comment-send" onclick="sendStoryComment()">➤</button>
+              <input
+  class="story-comment-input"
+  id="story-comment-input"
+  placeholder="Reply to this story..."
+  onkeydown="if(event.key==='Enter') sendStoryComment()"
+/>
+
+<button
+  class="story-delete-btn"
+  id="story-delete-btn"
+  style="display:none;"
+  onclick="deleteCurrentStory()"
+>
+  🗑️
+</button>
+
+<button class="story-comment-send" onclick="sendStoryComment()">
+  ➤
+</button>
             </div>
           </div>
         </div>
@@ -1121,7 +1148,7 @@ window.loadMorePosts = async function() {
     // Media
     const wrap = document.getElementById('story-media-wrap');
     wrap.innerHTML = '';
-    storyDuration = 5000;
+    storyDuration = 30000;
 
     if (story.type === 'photo' && story.mediaUrl) {
       wrap.innerHTML = `<img src="${story.mediaUrl}" class="story-img"/>`;
@@ -1149,7 +1176,7 @@ window.loadMorePosts = async function() {
       const bg = story.bg || 'linear-gradient(135deg,#0D3D29,#1A6B4A)';
       wrap.style.background = bg;
       wrap.innerHTML = `<div class="story-text-bg"><div class="story-text-card">${story.text || ''}</div></div>`;
-      storyDuration = 6000;
+      storyDuration = 30000;
     }
 
     // Load reactions and comments for this story
@@ -1324,7 +1351,7 @@ window.loadMorePosts = async function() {
     const group = allStories[viewerGroupIdx];
     const story = group?.stories[viewerStoryIdx];
     if (!story || story.uid !== currentUser?.uid) return;
-    if (!confirm('Delete this story?')) return;
+    if (!await showDeleteConfirmation('story')) return;
     try {
       await deleteDoc(doc(db, 'stories', story.id));
       showToast('Story deleted.');
@@ -2150,15 +2177,24 @@ window.loadMorePosts = async function() {
   };
 
       // ── CUSTOM DELETE CONFIRMATION MODAL ─────────────────────────────
-  window.showDeleteConfirmation = function(type = 'post') {
+    window.showDeleteConfirmation = function(type = 'post') {
     return new Promise(resolve => {
       document.getElementById('delete-confirm-modal')?.remove();
 
       const isComment = type === 'comment';
-      const title = isComment ? 'Delete comment?' : 'Delete post?';
-      const message = isComment
-        ? 'Are you sure you want to delete this comment?'
-        : 'Are you sure you want to delete this post?';
+      const isStory = type === 'story';
+
+      const title = isStory
+        ? 'Delete story?'
+        : isComment
+          ? 'Delete comment?'
+          : 'Delete post?';
+
+      const message = isStory
+        ? 'Are you sure you want to delete this story?'
+        : isComment
+          ? 'Are you sure you want to delete this comment?'
+          : 'Are you sure you want to delete this post?';
 
       const modal = document.createElement('div');
       modal.id = 'delete-confirm-modal';
