@@ -712,13 +712,15 @@
                 </div>
               </div>
             </div>`).join('')}
+        </div>
         <div class="comment-input-row">
           <textarea
-  class="comment-input"
-  id="comment-input-${postId}"
-  placeholder="Write a comment... (Ctrl+Enter to send)"
-  rows="1"
-  onkeydown="if(event.key === 'Enter' && event.ctrlKey){event.preventDefault();submitComment('${postId}');}"
+ class="comment-input"
+ id="comment-input-${postId}"
+ placeholder="Write a comment... (Ctrl+Enter to send)"
+ rows="1"
+ oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,160)+'px';"
+ onkeydown="if(event.key === 'Enter' && event.ctrlKey){event.preventDefault();submitComment('${postId}');}"
 ></textarea>
           <button class="comment-send" onclick="submitComment('${postId}')">Send</button>
         </div>
