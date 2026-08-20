@@ -2149,8 +2149,153 @@ window.loadMorePosts = async function() {
     }
   };
 
+      // ── CUSTOM DELETE CONFIRMATION MODAL ─────────────────────────────
+  window.showDeleteConfirmation = function(type = 'post') {
+    return new Promise(resolve => {
+      document.getElementById('delete-confirm-modal')?.remove();
+
+      const isComment = type === 'comment';
+      const title = isComment ? 'Delete comment?' : 'Delete post?';
+      const message = isComment
+        ? 'Are you sure you want to delete this comment?'
+        : 'Are you sure you want to delete this post?';
+
+      const modal = document.createElement('div');
+      modal.id = 'delete-confirm-modal';
+
+      modal.style.cssText = `
+        position:fixed;
+        inset:0;
+        z-index:100000;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:1rem;
+        background:rgba(0,0,0,0.55);
+        backdrop-filter:blur(4px);
+        -webkit-backdrop-filter:blur(4px);
+      `;
+
+      modal.innerHTML = `
+        <div style="
+          width:min(92vw,420px);
+          background:var(--card,#fff);
+          border-radius:20px;
+          padding:1.5rem;
+          box-shadow:0 20px 60px rgba(0,0,0,0.3);
+          font-family:inherit;
+          animation:deleteModalIn 0.2s ease;
+        ">
+          <div style="
+            display:flex;
+            align-items:center;
+            gap:0.8rem;
+            margin-bottom:0.8rem;
+          ">
+            <div style="
+              width:44px;
+              height:44px;
+              border-radius:50%;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              background:#fff0f0;
+              font-size:1.35rem;
+              flex-shrink:0;
+            ">🗑️</div>
+
+            <div style="
+              font-size:1.15rem;
+              font-weight:800;
+              color:var(--text,#183c2d);
+            ">${title}</div>
+          </div>
+
+          <div style="
+            color:var(--muted,#6b7280);
+            font-size:0.92rem;
+            line-height:1.55;
+            margin-bottom:0.35rem;
+          ">${message}</div>
+
+          <div style="
+            color:var(--muted,#6b7280);
+            font-size:0.82rem;
+            margin-bottom:1.4rem;
+          ">This action cannot be undone.</div>
+
+          <div style="
+            display:flex;
+            justify-content:flex-end;
+            gap:0.7rem;
+          ">
+            <button
+              type="button"
+              id="delete-confirm-cancel"
+              style="
+                border:1px solid rgba(0,0,0,0.12);
+                background:transparent;
+                color:var(--text,#183c2d);
+                padding:0.7rem 1.1rem;
+                border-radius:10px;
+                font-family:inherit;
+                font-weight:700;
+                cursor:pointer;
+              "
+            >Cancel</button>
+
+            <button
+              type="button"
+              id="delete-confirm-delete"
+              style="
+                border:none;
+                background:#e53935;
+                color:white;
+                padding:0.7rem 1.1rem;
+                border-radius:10px;
+                font-family:inherit;
+                font-weight:700;
+                cursor:pointer;
+              "
+            >🗑️ Delete</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      const finish = result => {
+        modal.remove();
+        resolve(result);
+      };
+
+      document.getElementById('delete-confirm-cancel').onclick = () => {
+        finish(false);
+      };
+
+      document.getElementById('delete-confirm-delete').onclick = () => {
+        finish(true);
+      };
+
+      modal.addEventListener('click', event => {
+        if (event.target === modal) {
+          finish(false);
+        }
+      });
+
+      const escapeHandler = event => {
+        if (event.key === 'Escape') {
+          document.removeEventListener('keydown', escapeHandler);
+          finish(false);
+        }
+      };
+
+      document.addEventListener('keydown', escapeHandler);
+    });
+  };
+
   window.deleteComment = async function(postId, commentId) {
-    const confirmed = confirm('Delete this comment? This action cannot be undone.');
+      const confirmed = await showDeleteConfirmation('comment');
 
     if (!confirmed) return;
 
@@ -2251,7 +2396,7 @@ window.loadMorePosts = async function() {
   }
 
   window.deletePost = async function(postId, btn) {
-    if (!confirm('Delete this post? This cannot be undone.')) return;
+   if (!await showDeleteConfirmation('post')) return;
     try {
       await deleteDoc(doc(db,'posts',postId));
       const postDiv = btn.closest('.feed-post');
