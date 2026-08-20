@@ -693,13 +693,33 @@
       <div class="comments-section" id="comments-${postId}">
         <div id="comments-list-${postId}">
           ${(data.comments||[]).map(c=>`
-            <div class="comment-item">
+                                    <div
+              class="comment-item"
+              data-post-id="${postId}"
+              data-comment-id="${c.id || ''}"
+              oncontextmenu="openCommentMenu(event, '${postId}', '${c.id || ''}')"
+              ontouchstart="startCommentLongPress(event, '${postId}', '${c.id || ''}')"
+              ontouchend="cancelCommentLongPress()"
+              ontouchmove="cancelCommentLongPress()"
+            >
               <div class="comment-avatar">${(c.name||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)}</div>
-              <div class="comment-bubble"><div class="comment-name">${c.name||'Anonymous'}</div><div class="comment-text">${c.text}</div></div>
+              <div class="comment-bubble">
+                <div class="comment-name">${c.name||'Anonymous'}</div>
+                <div class="comment-text" style="white-space:pre-wrap;">${escapeHtml(c.text||'')}</div>
+                <div style="display:flex;gap:0.75rem;margin-top:0.3rem;">
+                  <button onclick="reactToComment(this)" style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;">❤️ Like</button>
+                  <button onclick="replyToComment('${postId}','${c.name||''}')" style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;">↩ Reply</button>
+                </div>
+              </div>
             </div>`).join('')}
-        </div>
         <div class="comment-input-row">
-          <input class="comment-input" id="comment-input-${postId}" placeholder="Write a comment... (Ctrl+Enter to send)" />
+          <textarea
+  class="comment-input"
+  id="comment-input-${postId}"
+  placeholder="Write a comment... (Ctrl+Enter to send)"
+  rows="1"
+  onkeydown="if(event.key === 'Enter' && event.ctrlKey){event.preventDefault();submitComment('${postId}');}"
+></textarea>
           <button class="comment-send" onclick="submitComment('${postId}')">Send</button>
         </div>
       </div>`;
@@ -836,10 +856,11 @@
   // ────────────────────────────────────────────────────────────────
 
   let feedLastDoc = null;
-let feedLoading = false;
-let feedHasMore = true;
+  let feedLoading = false;
+  let feedHasMore = true;
+  let feedUnsubscribe = null;
 
-async function loadFeed(reset = true) {
+  async function loadFeed(reset = true) {
   const feed = document.getElementById('feed');
   const pagination = document.getElementById('feed-pagination');
 
@@ -847,39 +868,87 @@ async function loadFeed(reset = true) {
     feed.innerHTML = '<div class="feed-loading"><span class="spinner"></span> Loading posts...</div>';
     feedLastDoc = null;
     feedHasMore = true;
-  }
 
-  try {
-    const constraints = [
+    if (feedUnsubscribe) {
+      feedUnsubscribe();
+      feedUnsubscribe = null;
+    }
+
+    const q = query(
       collection(db, 'posts'),
       orderBy('createdAt', 'desc'),
       limit(10)
-    ];
+    );
 
-    if (feedLastDoc) {
-      constraints.push(startAfter(feedLastDoc));
-    }
-
-    const q = query(...constraints);
-    const snap = await getDocs(q);
-
-    if (reset) {
+    feedUnsubscribe = onSnapshot(q, snap => {
       feed.innerHTML = '';
-    }
 
-    if (snap.empty) {
-      if (reset) {
+      if (snap.empty) {
         feed.innerHTML = '<div class="empty-feed"><div class="icon">📖</div><p>No posts yet.<br/>Be the first to share your Hifz journey!</p></div>';
+        feedLastDoc = null;
+        feedHasMore = false;
+        if (pagination) pagination.innerHTML = '';
+        return;
       }
 
+      let myCount = 0;
+
+      snap.forEach(d => {
+        if (currentUser && d.data().uid === currentUser.uid) {
+          myCount++;
+        }
+
+        feed.appendChild(renderPost(d.id, d.data()));
+      });
+
+      document.getElementById('stat-posts').textContent = myCount;
+
+      feedLastDoc = snap.docs[snap.docs.length - 1];
+      feedHasMore = snap.docs.length === 10;
+
+      renderFeedPagination();
+    }, error => {
+      console.error('Feed realtime error:', error);
+
+      feed.innerHTML = '<div class="empty-feed"><div class="icon">⚠️</div><p>Could not load posts.<br/>Please refresh and try again.</p></div>';
+
+      if (pagination) pagination.innerHTML = '';
+    });
+
+    return;
+  }
+
+  if (feedLoading || !feedHasMore || !feedLastDoc) return;
+
+  feedLoading = true;
+
+  if (pagination) {
+    pagination.innerHTML = `
+      <div style="color:var(--muted);font-size:0.85rem;padding:1rem;">
+        Loading more posts...
+      </div>
+    `;
+  }
+
+  try {
+    const q = query(
+      collection(db, 'posts'),
+      orderBy('createdAt', 'desc'),
+      startAfter(feedLastDoc),
+      limit(10)
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
       feedHasMore = false;
       renderFeedPagination();
       return;
     }
 
-    let myCount = reset
-      ? 0
-      : Number(document.getElementById('stat-posts')?.textContent || 0);
+    let myCount = Number(
+      document.getElementById('stat-posts')?.textContent || 0
+    );
 
     snap.forEach(d => {
       if (currentUser && d.data().uid === currentUser.uid) {
@@ -897,16 +966,12 @@ async function loadFeed(reset = true) {
     renderFeedPagination();
 
   } catch (e) {
-    console.error('Feed loading error:', e);
-
-    if (reset) {
-      feed.innerHTML = '<div class="empty-feed"><div class="icon">⚠️</div><p>Could not load posts.<br/>Please refresh and try again.</p></div>';
-    }
+    console.error('Load more posts error:', e);
 
     if (pagination) {
       pagination.innerHTML = `
         <button
-          onclick="loadFeed(false)"
+          onclick="loadMorePosts()"
           style="padding:0.8rem 1.5rem;border:none;border-radius:10px;background:var(--emerald);color:white;font-family:inherit;font-weight:700;cursor:pointer;"
         >
           Try Again
@@ -941,18 +1006,6 @@ function renderFeedPagination() {
 
 window.loadMorePosts = async function() {
   if (feedLoading || !feedHasMore || !feedLastDoc) return;
-
-  feedLoading = true;
-
-  const pagination = document.getElementById('feed-pagination');
-
-  if (pagination) {
-    pagination.innerHTML = `
-      <div style="color:var(--muted);font-size:0.85rem;padding:1rem;">
-        Loading more posts...
-      </div>
-    `;
-  }
 
   await loadFeed(false);
 };
@@ -1730,7 +1783,13 @@ window.loadMorePosts = async function() {
     const input = document.getElementById('comment-input-'+postId);
     const text = input.value.trim();
     if (!text) return;
-    const comment = { uid: currentUser.uid, name: currentUserData?.fullname || currentUser.displayName || 'Anonymous', text, createdAt: new Date().toISOString() };
+    const comment = {
+  id: crypto.randomUUID(),
+  uid: currentUser.uid,
+  name: currentUserData?.fullname || currentUser.displayName || 'Anonymous',
+  text,
+  createdAt: new Date().toISOString()
+};
     const postSnap = await getDoc(doc(db,'posts',postId));
     await updateDoc(doc(db,'posts',postId), { comments: arrayUnion(comment) });
     const postOwner = postSnap.data()?.uid;
@@ -1738,16 +1797,47 @@ window.loadMorePosts = async function() {
     await saveNotification(postOwner, 'comment', '<strong>' + comment.name + '</strong> commented on your post: "' + postPreview + '..."', postId);
     const list = document.getElementById('comments-list-'+postId);
     const initials = comment.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-    const div = document.createElement('div');
+        const div = document.createElement('div');
     div.className = 'comment-item';
+    div.dataset.postId = postId;
+    div.dataset.commentId = comment.id;
+
+    div.setAttribute(
+      'oncontextmenu',
+      `openCommentMenu(event, '${postId}', '${comment.id}')`
+    );
+
+    div.setAttribute(
+      'ontouchstart',
+      `startCommentLongPress(event, '${postId}', '${comment.id}')`
+    );
+
+    div.setAttribute(
+      'ontouchend',
+      'cancelCommentLongPress()'
+    );
+
+    div.setAttribute(
+      'ontouchmove',
+      'cancelCommentLongPress()'
+    );
+
     div.innerHTML = `
       <div class="comment-avatar">${initials}</div>
       <div class="comment-bubble">
-        <div class="comment-name">${comment.name}</div>
-        <div class="comment-text">${comment.text}</div>
+        <div class="comment-name">${escapeHtml(comment.name)}</div>
+        <div class="comment-text" style="white-space:pre-wrap;">${escapeHtml(comment.text)}</div>
         <div style="display:flex;gap:0.75rem;margin-top:0.3rem;">
-          <button onclick="reactToComment(this)" style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;">❤️ Like</button>
-          <button onclick="replyToComment('${postId}','${comment.name}')" style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;">↩ Reply</button>
+          <button
+            class="comment-like-btn"
+            onclick="reactToComment(this)"
+            style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;"
+          >❤️ Like</button>
+
+          <button
+            onclick="replyToComment('${postId}','${escapeHtml(comment.name)}')"
+            style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;"
+          >↩ Reply</button>
         </div>
       </div>`;
     list.appendChild(div);
@@ -1814,6 +1904,286 @@ window.loadMorePosts = async function() {
     const text = encodeURIComponent('Check this post on HuffazWorld by ' + authorName + ':\n"' + postText + '"\n\nhttps://huffazworld.netlify.app');
     window.open('https://wa.me/?text=' + text, '_blank');
   }
+
+    // ── COMMENT MENU & MANAGEMENT ────────────────────────────────────
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+  }
+
+  let commentLongPressTimer = null;
+
+  window.startCommentLongPress = function(event, postId, commentId) {
+    commentLongPressTimer = setTimeout(() => {
+      const touch = event.touches?.[0];
+
+      openCommentMenu(
+        {
+          preventDefault: () => {},
+          clientX: touch?.clientX || window.innerWidth / 2,
+          clientY: touch?.clientY || window.innerHeight / 2
+        },
+        postId,
+        commentId
+      );
+    }, 600);
+  };
+
+  window.cancelCommentLongPress = function() {
+    if (commentLongPressTimer) {
+      clearTimeout(commentLongPressTimer);
+      commentLongPressTimer = null;
+    }
+  };
+
+  window.openCommentMenu = async function(event, postId, commentId) {
+    event.preventDefault();
+
+    // Remove an existing menu first.
+    document.getElementById('comment-action-menu')?.remove();
+
+    const postSnap = await getDoc(doc(db, 'posts', postId));
+    if (!postSnap.exists()) return;
+
+    const comments = postSnap.data()?.comments || [];
+    const comment = comments.find(c => c.id === commentId);
+
+    if (!comment) {
+      showToast('This comment is no longer available.');
+      return;
+    }
+
+    const isOwner = currentUser && comment.uid === currentUser.uid;
+
+    const menu = document.createElement('div');
+    menu.id = 'comment-action-menu';
+
+    menu.style.cssText = `
+      position:fixed;
+      z-index:99999;
+      background:white;
+      border:1px solid rgba(201,168,76,0.25);
+      border-radius:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.18);
+      padding:0.45rem;
+      min-width:190px;
+      font-family:inherit;
+    `;
+
+    const actions = [];
+
+    actions.push({
+      icon: '📋',
+      text: 'Copy',
+      action: () => copyComment(comment.text)
+    });
+
+    if (isOwner) {
+      actions.push({
+        icon: '✏️',
+        text: 'Edit',
+        action: () => editComment(postId, comment.id)
+      });
+
+      actions.push({
+        icon: '🗑️',
+        text: 'Delete',
+        danger: true,
+        action: () => deleteComment(postId, comment.id)
+      });
+    }
+
+    actions.push({
+      icon: '❤️',
+      text: 'Like',
+      action: () => {
+        const commentEl = document.querySelector(
+          `[data-post-id="${postId}"][data-comment-id="${comment.id}"]`
+        );
+
+        const likeButton = commentEl?.querySelector('.comment-like-btn');
+
+        if (likeButton) {
+          reactToComment(likeButton);
+        } else {
+          showToast('❤️ Like');
+        }
+      }
+    });
+
+    actions.push({
+      icon: '✕',
+      text: 'Cancel',
+      action: () => menu.remove()
+    });
+
+    actions.forEach(item => {
+      const button = document.createElement('button');
+
+      button.type = 'button';
+      button.textContent = `${item.icon}  ${item.text}`;
+
+      button.style.cssText = `
+        display:block;
+        width:100%;
+        text-align:left;
+        border:none;
+        background:none;
+        padding:0.7rem 0.8rem;
+        border-radius:9px;
+        font-family:inherit;
+        font-size:0.9rem;
+        cursor:pointer;
+        color:${item.danger ? '#e53935' : 'var(--text)'};
+      `;
+
+      button.onmouseenter = () => {
+        button.style.background = item.danger
+          ? '#fff0f0'
+          : '#f4f8f5';
+      };
+
+      button.onmouseleave = () => {
+        button.style.background = 'none';
+      };
+
+      button.onclick = () => {
+        menu.remove();
+        item.action();
+      };
+
+      menu.appendChild(button);
+    });
+
+    document.body.appendChild(menu);
+
+    let x = event.clientX || window.innerWidth / 2;
+    let y = event.clientY || window.innerHeight / 2;
+
+    // Keep the menu inside the viewport.
+    const menuWidth = 200;
+    const menuHeight = actions.length * 45 + 20;
+
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10;
+    }
+
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - 10;
+    }
+
+    menu.style.left = Math.max(10, x) + 'px';
+    menu.style.top = Math.max(10, y) + 'px';
+
+    setTimeout(() => {
+      document.addEventListener('click', closeCommentMenuOutside, { once: true });
+    }, 0);
+  };
+
+  function closeCommentMenuOutside(event) {
+    const menu = document.getElementById('comment-action-menu');
+
+    if (menu && !menu.contains(event.target)) {
+      menu.remove();
+    }
+  }
+
+  window.copyComment = async function(text) {
+    try {
+      await navigator.clipboard.writeText(text || '');
+      showToast('📋 Comment copied!');
+    } catch (e) {
+      showToast('Could not copy comment.');
+    }
+  };
+
+  window.editComment = async function(postId, commentId) {
+    try {
+      const postRef = doc(db, 'posts', postId);
+      const snap = await getDoc(postRef);
+
+      if (!snap.exists()) return;
+
+      const comments = snap.data()?.comments || [];
+      const index = comments.findIndex(c => c.id === commentId);
+
+      if (index === -1) {
+        showToast('Comment not found.');
+        return;
+      }
+
+      if (!currentUser || comments[index].uid !== currentUser.uid) {
+        showToast('You can only edit your own comments.');
+        return;
+      }
+
+      const oldText = comments[index].text || '';
+
+      const newText = prompt('Edit your comment:', oldText);
+
+      if (newText === null) return;
+
+      const trimmed = newText.trim();
+
+      if (!trimmed) {
+        showToast('Comment cannot be empty.');
+        return;
+      }
+
+      comments[index] = {
+        ...comments[index],
+        text: trimmed,
+        editedAt: new Date().toISOString()
+      };
+
+      await updateDoc(postRef, { comments });
+
+      showToast('✏️ Comment updated!');
+    } catch (e) {
+      console.error('Edit comment error:', e);
+      showToast('Could not edit comment.');
+    }
+  };
+
+  window.deleteComment = async function(postId, commentId) {
+    const confirmed = confirm('Delete this comment? This action cannot be undone.');
+
+    if (!confirmed) return;
+
+    try {
+      const postRef = doc(db, 'posts', postId);
+      const snap = await getDoc(postRef);
+
+      if (!snap.exists()) return;
+
+      const comments = snap.data()?.comments || [];
+      const comment = comments.find(c => c.id === commentId);
+
+      if (!comment) {
+        showToast('Comment not found.');
+        return;
+      }
+
+      if (!currentUser || comment.uid !== currentUser.uid) {
+        showToast('You can only delete your own comments.');
+        return;
+      }
+
+      const updatedComments = comments.filter(c => c.id !== commentId);
+
+      await updateDoc(postRef, {
+        comments: updatedComments
+      });
+
+      showToast('🗑️ Comment deleted.');
+    } catch (e) {
+      console.error('Delete comment error:', e);
+      showToast('Could not delete comment.');
+    }
+  };
+
 
   window.reactToComment = function(btn) {
     const reactions = ['❤️','😂','😮','😢','🤲','🥰'];
