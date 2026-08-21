@@ -801,6 +801,7 @@
     const row = document.createElement('div');
     row.className = 'msg-row ' + (isMine?'mine':'other') + (isFirst?' first':'') + (isConsecutive?' consecutive':'');
     row.dataset.msgId = msgId;
+    row.dataset.senderUid = data.senderUid || '';
     row.dataset.sender = isMine ? (currentUserData?.fullname||'Me') : otherName;
 
     // Avatar
@@ -875,48 +876,186 @@
   }
 
   // ── LOAD MESSAGES ──
-  function loadMessages() {
-    const area = document.getElementById('messages-area');
-    const q = query(collection(db,'conversations',convId,'messages'), orderBy('createdAt','asc'));
-    let prevSender = null;
-    let prevDate = null;
+function loadMessages() {
+  const area = document.getElementById('messages-area');
 
-    onSnapshot(q, snap => {
+  const q = query(
+    collection(db, 'conversations', convId, 'messages'),
+    orderBy('createdAt', 'asc')
+  );
+
+  let initialized = false;
+  const renderedMessages = new Set();
+
+  onSnapshot(q, snap => {
+
+    // ── FIRST LOAD ──
+    if (!initialized) {
       area.innerHTML = '';
       lastMsgDate = null;
+
       if (snap.empty) {
-        area.innerHTML = '<div class="empty-chat" id="empty-chat"><div class="icon">🤲</div><p>Say Assalamualaikum!<br/>Start your blessed conversation.</p></div>';
+        area.innerHTML = `
+          <div class="empty-chat" id="empty-chat">
+            <div class="icon">🤲</div>
+            <p>Say Assalamualaikum!<br/>Start your blessed conversation.</p>
+          </div>
+        `;
+        initialized = true;
         return;
       }
 
-      const docs = [];
-      snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+      let prevSender = null;
+      let prevDate = null;
 
-      prevSender = null; prevDate = null;
-      docs.forEach((msg, i) => {
+      snap.docs.forEach((d, i) => {
+        const msg = { id: d.id, ...d.data() };
         const ts = msg.createdAt;
         const msgDate = ts ? formatDate(ts) : 'Today';
 
-        // Date divider
         if (msgDate !== prevDate) {
           prevDate = msgDate;
+
           const divider = document.createElement('div');
           divider.className = 'date-divider';
+          divider.dataset.date = msgDate;
+          divider.innerHTML = '<span>' + msgDate + '</span>';
+          area.appendChild(divider);
+        }
+
+        const isFirst =
+          i === 0 ||
+          prevSender !== msg.senderUid ||
+          msgDate !== formatDate(
+            snap.docs[i - 1]?.data()?.createdAt
+          );
+
+        const isConsecutive = prevSender === msg.senderUid;
+
+        area.appendChild(
+          buildMsg(msg.id, msg, isFirst, isConsecutive)
+        );
+
+        renderedMessages.add(msg.id);
+        prevSender = msg.senderUid;
+      });
+
+      area.scrollTop = area.scrollHeight;
+      initialized = true;
+      return;
+    }
+
+    // ── REALTIME CHANGES ──
+    let changed = false;
+
+    snap.docChanges().forEach(change => {
+      const msg = {
+        id: change.doc.id,
+        ...change.doc.data()
+      };
+
+      // New message
+      if (change.type === 'added') {
+
+        // Already rendered locally
+        if (renderedMessages.has(msg.id)) return;
+
+        // Remove empty-chat placeholder
+        const empty = document.getElementById('empty-chat');
+        if (empty) empty.remove();
+
+        // Determine previous message
+        const rows = area.querySelectorAll('.msg-row');
+        const previousRow = rows[rows.length - 1];
+
+        const previousSender = previousRow?.dataset.senderUid || null;
+
+        // Date divider
+        const msgDate = msg.createdAt
+          ? formatDate(msg.createdAt)
+          : 'Today';
+
+        const lastDivider =
+          area.querySelector('.date-divider:last-of-type');
+
+        const lastDate = lastDivider?.dataset.date || null;
+
+        if (msgDate !== lastDate) {
+          const divider = document.createElement('div');
+          divider.className = 'date-divider';
+          divider.dataset.date = msgDate;
           divider.innerHTML = '<span>' + msgDate + '</span>';
           area.appendChild(divider);
         }
 
         const isMine = msg.senderUid === currentUser?.uid;
-        const isFirst = (i === 0) || (prevSender !== msg.senderUid) || (msgDate !== (docs[i-1] ? formatDate(docs[i-1].createdAt) : ''));
-        const isConsecutive = prevSender === msg.senderUid;
+        const isFirst =
+          !previousRow ||
+          previousRow.dataset.sender !== msg.senderUid;
 
-        area.appendChild(buildMsg(msg.id, msg, isFirst, isConsecutive));
-        prevSender = msg.senderUid;
-      });
+        const isConsecutive =
+          !!previousRow &&
+          previousRow.dataset.sender === msg.senderUid;
 
-      area.scrollTop = area.scrollHeight;
+        const messageEl = buildMsg(
+          msg.id,
+          msg,
+          isFirst,
+          isConsecutive
+        );
+
+        // Store sender for future consecutive-message logic
+        messageEl.dataset.senderUid = msg.senderUid;
+
+        area.appendChild(messageEl);
+        renderedMessages.add(msg.id);
+        changed = true;
+      }
+
+      // Message removed
+      if (change.type === 'removed') {
+        const messageEl = area.querySelector(
+          `[data-msg-id="${change.doc.id}"]`
+        );
+
+        if (messageEl) {
+          messageEl.remove();
+          renderedMessages.delete(change.doc.id);
+          changed = true;
+        }
+      }
+
+      // Message updated
+      if (change.type === 'modified') {
+        const oldEl = area.querySelector(
+          `[data-msg-id="${change.doc.id}"]`
+        );
+
+        if (oldEl) {
+          const msg = {
+            id: change.doc.id,
+            ...change.doc.data()
+          };
+
+          const newEl = buildMsg(
+            msg.id,
+            msg,
+            oldEl.classList.contains('first'),
+            oldEl.classList.contains('consecutive')
+          );
+
+          newEl.dataset.senderUid = msg.senderUid;
+          oldEl.replaceWith(newEl);
+          changed = true;
+        }
+      }
     });
-  }
+
+    if (changed) {
+      area.scrollTop = area.scrollHeight;
+    }
+  });
+}
 
   // ── VOICE PLAYBACK ──
   let currentAudio = null;
@@ -990,45 +1129,119 @@
   // ─────────────────────────────────────────────────────────────────
 
   // ── SEND MESSAGE ──
-  window.sendMessage = async function() {
-    const input = document.getElementById('msg-input');
-    const btn = document.getElementById('send-btn');
-    const text = input.value.trim();
-    if (!text || !currentUser) return;
+  // ── SEND MESSAGE ──
+window.sendMessage = async function() {
+  const input = document.getElementById('msg-input');
+  const btn = document.getElementById('send-btn');
+  const area = document.getElementById('messages-area');
+  const text = input.value.trim();
 
-    btn.disabled = true;
-    input.value = '';
-    input.style.height = 'auto';
+  if (!text || !currentUser) return;
 
-    const msgData = {
-      text,
-      senderUid: currentUser.uid,
-      senderName: currentUserData?.fullname || 'Me',
-      createdAt: new Date().toISOString(),
-      replyTo: replyTo ? { name: replyTo.name, text: replyTo.text } : null
+  // Capture reply before clearing it
+  const replyData = replyTo
+    ? { name: replyTo.name, text: replyTo.text }
+    : null;
+
+  const createdAt = new Date().toISOString();
+
+  const msgData = {
+    text,
+    senderUid: currentUser.uid,
+    senderName: currentUserData?.fullname || 'Me',
+    createdAt,
+    replyTo: replyData
+  };
+
+  // Temporary local ID
+  const tempId = 'local_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+
+  // ── INSTANT UI ──
+  input.value = '';
+  input.style.height = 'auto';
+  btn.disabled = true;
+
+  cancelReply();
+  document.getElementById('emoji-panel').classList.remove('show');
+
+  // Remove empty-chat placeholder
+  const empty = document.getElementById('empty-chat');
+  if (empty) empty.remove();
+
+  // Determine previous message for grouping
+  const rows = area.querySelectorAll('.msg-row');
+  const previousRow = rows[rows.length - 1];
+
+  const isFirst =
+    !previousRow ||
+    previousRow.dataset.senderUid !== msgData.senderUid;
+
+  const isConsecutive =
+    !!previousRow &&
+    previousRow.dataset.senderUid === msgData.senderUid;
+
+  // Add message immediately
+  const localEl = buildMsg(
+    tempId,
+    msgData,
+    isFirst,
+    isConsecutive
+  );
+
+  localEl.dataset.senderUid = msgData.senderUid;
+  localEl.dataset.localMessage = 'true';
+
+  area.appendChild(localEl);
+  area.scrollTop = area.scrollHeight;
+
+  // ── FIRESTORE BACKGROUND SAVE ──
+  try {
+    const messageRef = await addDoc(
+      collection(db, 'conversations', convId, 'messages'),
+      msgData
+    );
+
+    // Replace temporary ID with real Firestore ID.
+    localEl.dataset.msgId = messageRef.id;
+    localEl.dataset.localMessage = 'false';
+
+    const convData = {
+      members: [currentUser.uid, otherUid],
+      lastMessage: text.slice(0, 60),
+      lastTime: createdAt,
+      unreadBy: [otherUid]
     };
 
-    cancelReply();
-    document.getElementById('emoji-panel').classList.remove('show');
+    // Save sender photo so inbox can display it
+    if (currentUserData?.photoURL) {
+      convData['photo_' + currentUser.uid] =
+        currentUserData.photoURL;
+    }
 
-    try {
-      await addDoc(collection(db,'conversations',convId,'messages'), msgData);
-      const convData = {
-        members: [currentUser.uid, otherUid],
-        lastMessage: text.slice(0,60),
-        lastTime: new Date().toISOString(),
-        unreadBy: [otherUid]
-      };
-      // Save sender photo so inbox can display it
-      if (currentUserData && currentUserData.photoURL) {
-        convData['photo_' + currentUser.uid] = currentUserData.photoURL;
-      }
-      await setDoc(doc(db,'conversations',convId), convData, { merge: true });
-    } catch(e) { console.error('Send error:', e); showToast('Could not send.'); }
+    await setDoc(
+      doc(db, 'conversations', convId),
+      convData,
+      { merge: true }
+    );
 
+  } catch (e) {
+    console.error('Send error:', e);
+
+    // Clearly mark failed local message
+    localEl.dataset.sendFailed = 'true';
+
+    const bubble = localEl.querySelector('.msg-bubble');
+    if (bubble) {
+      bubble.style.opacity = '0.55';
+      bubble.title = 'Message could not be sent.';
+    }
+
+    showToast('Could not send message. Please try again.');
+  } finally {
     btn.disabled = false;
     input.focus();
   }
+}
 
   window.handleKey = function(e) {
     if (e.key === 'Enter' && e.ctrlKey) {
