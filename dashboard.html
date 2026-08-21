@@ -622,7 +622,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, orderBy, query, onSnapshot, where, limit, startAfter } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, getCountFromServer, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, orderBy, query, onSnapshot, where, limit, startAfter } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
@@ -820,7 +820,7 @@
       reqSnap.forEach(d => pending.push(d.data().toUid));
 
       // Load all users excluding self, already following, and pending
-      const snap = await getDocs(collection(db,'users'));
+      const snap = await getDocs(query(collection(db,'users'), limit(20)));
       const suggestions = [];
       snap.forEach(d => {
         if (d.id === currentUser.uid) return;
@@ -2446,10 +2446,11 @@ window.loadMorePosts = async function() {
 
   async function loadUnreadMessages(uid) {
     try {
-      const { getDocs: gd, query: q2, where: w2 } = await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
-      const convSnap = await getDocs(query(collection(db,'conversations'), where('members','array-contains',uid)));
-      let unread = 0;
-      convSnap.forEach(d => { if ((d.data().unreadBy||[]).includes(uid)) unread++; });
+      const q = query(
+  collection(db,'conversations'),
+  where('unreadBy','array-contains',uid));
+      const countSnap = await getCountFromServer(q);
+      const unread = countSnap.data().count;
       if (unread > 0) {
         const badge = document.getElementById('msg-badge');
         const mbadge = document.getElementById('m-msg-badge');
@@ -2462,9 +2463,12 @@ window.loadMorePosts = async function() {
 
   async function loadUnreadCount(uid) {
     try {
-      const q = query(collection(db,'notifications'), where('toUid','==',uid), where('read','==',false));
-      const snap = await getDocs(q);
-      const count = snap.size;
+      const q = query(
+  collection(db,'notifications'),
+  where('toUid','==',uid),
+  where('read','==',false));
+      const countSnap = await getCountFromServer(q);
+      const count = countSnap.data().count;
       const badge = document.getElementById('notif-badge');
       const mbadge = document.getElementById('m-notif-badge');
       if (count > 0) {
@@ -2491,8 +2495,8 @@ window.loadMorePosts = async function() {
         }
         document.getElementById('welcome-name').textContent = 'Welcome back, ' + name.split(' ')[0] + '! 🤲';
         document.getElementById('welcome-role').textContent = role + ' · Continue your blessed journey today.';
-        const usersSnap = await getDocs(collection(db,'users'));
-        document.getElementById('stat-members').textContent = usersSnap.size;
+        const usersCountSnap = await getCountFromServer(collection(db,'users'));
+        document.getElementById('stat-members').textContent = usersCountSnap.data().count;
 
         // ── Real streak from hifzProgress ──
         try {
