@@ -200,6 +200,9 @@
 
   window.handleLogout = async function() { await signOut(auth); window.location.href = 'login.html'; }
 
+    // Cache user profiles to avoid repeated Firestore reads
+    const userProfileCache = new Map();
+
   onAuthStateChanged(auth, async user => {
     if (user) {
       currentUser = user;
@@ -211,25 +214,81 @@
         if (userData.photoURL) { navAvatar.innerHTML = `<img src="${userData.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`; }
         else { navAvatar.textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
 
-        // Load conversations
-        const q = query(collection(db,'conversations'), where('members','array-contains',user.uid));
+                // Load conversations in real time
+        const q = query(
+          collection(db,'conversations'),
+          where('members','array-contains',user.uid)
+        );
+
         onSnapshot(q, async snap => {
-          allConvs = [];
-          for (const d of snap.docs) {
+          const conversations = snap.docs.map(d => {
             const data = d.data();
-            const otherUid = data.members.find(m => m !== user.uid);
-            let otherName = 'Unknown';
-            let otherPhoto = null;
-            try {
-              const otherDoc = await getDoc(doc(db,'users',otherUid));
-              if (otherDoc.exists()) {
-                otherName = otherDoc.data().fullname || 'Unknown';
-                otherPhoto = otherDoc.data().photoURL || null;
+            return {
+              id: d.id,
+              data,
+              otherUid: data.members.find(m => m !== user.uid)
+            };
+          });
+
+          // Fetch only profiles that are not already cached
+          const uncachedUids = [
+            ...new Set(
+              conversations
+                .map(c => c.otherUid)
+                .filter(uid => uid && !userProfileCache.has(uid))
+            )
+          ];
+
+          await Promise.all(
+            uncachedUids.map(async uid => {
+              try {
+                const otherDoc = await getDoc(doc(db,'users',uid));
+
+                if (otherDoc.exists()) {
+                  const data = otherDoc.data();
+
+                  userProfileCache.set(uid, {
+                    name: data.fullname || 'Unknown',
+                    photo: data.photoURL || null
+                  });
+                } else {
+                  userProfileCache.set(uid, {
+                    name: 'Unknown',
+                    photo: null
+                  });
+                }
+              } catch(e) {
+                userProfileCache.set(uid, {
+                  name: 'Unknown',
+                  photo: null
+                });
               }
-            } catch(e) {}
-            allConvs.push({ id:d.id, otherUid, otherName, otherPhoto, lastMessage: data.lastMessage, lastTime: data.lastTime, unread: data.unreadBy?.includes(user.uid) });
-          }
-          allConvs.sort((a,b) => new Date(b.lastTime||0) - new Date(a.lastTime||0));
+            })
+          );
+
+          allConvs = conversations.map(c => {
+            const profile = userProfileCache.get(c.otherUid) || {
+              name: 'Unknown',
+              photo: null
+            };
+
+            return {
+              id: c.id,
+              otherUid: c.otherUid,
+              otherName: profile.name,
+              otherPhoto: profile.photo,
+              lastMessage: c.data.lastMessage,
+              lastTime: c.data.lastTime,
+              unread: c.data.unreadBy?.includes(user.uid)
+            };
+          });
+
+          allConvs.sort(
+            (a,b) =>
+              new Date(b.lastTime || 0) -
+              new Date(a.lastTime || 0)
+          );
+
           renderConvs(allConvs);
         });
       } catch(e) { console.error(e); }
