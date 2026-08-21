@@ -685,6 +685,7 @@
     const div = document.createElement('div');
     div.className = 'feed-post';
     div.id = 'post-' + postId;
+    div.dataset.createdAt = data.createdAt || '';
     div.dataset.author = (data.authorName||'').replace(/'/g,'');
     div.dataset.text = (data.text||'').replace(/'/g,'').slice(0,100);
     div.innerHTML = `
@@ -910,39 +911,138 @@
     );
 
     feedUnsubscribe = onSnapshot(q, snap => {
-      feed.innerHTML = '';
+  if (snap.empty) {
+    feed.innerHTML = '<div class="empty-feed"><div class="icon">📖</div><p>No posts yet.<br/>Be the first to share your Hifz journey!</p></div>';
+    feedLastDoc = null;
+    feedHasMore = false;
+    if (pagination) pagination.innerHTML = '';
+    return;
+  }
 
-      if (snap.empty) {
-        feed.innerHTML = '<div class="empty-feed"><div class="icon">📖</div><p>No posts yet.<br/>Be the first to share your Hifz journey!</p></div>';
-        feedLastDoc = null;
-        feedHasMore = false;
-        if (pagination) pagination.innerHTML = '';
-        return;
+  // Remove loading and empty states when posts exist
+    const loadingFeed = feed.querySelector('.feed-loading');
+if (loadingFeed) loadingFeed.remove();
+
+    const emptyFeed = feed.querySelector('.empty-feed');
+if (emptyFeed) emptyFeed.remove();
+
+let changed = false;
+
+  snap.docChanges().forEach(change => {
+    const postId = change.doc.id;
+    const data = change.doc.data();
+
+    // ── NEW / ENTERING POST ──
+if (change.type === 'added') {
+  const existing = document.getElementById('post-' + postId);
+
+  if (!existing) {
+    const postEl = renderPost(postId, data);
+    const newTime = new Date(data.createdAt || 0).getTime();
+
+    // Insert according to chronological order:
+    // newest → oldest.
+    const existingPosts = [...feed.querySelectorAll('.feed-post')];
+
+    let inserted = false;
+
+    for (const existingPost of existingPosts) {
+      const existingTime = new Date(
+        existingPost.dataset.createdAt || 0
+      ).getTime();
+
+      if (newTime > existingTime) {
+        feed.insertBefore(postEl, existingPost);
+        inserted = true;
+        break;
       }
+    }
 
-      let myCount = 0;
+    // If older than every currently rendered post,
+    // place it at the bottom.
+    if (!inserted) {
+      feed.appendChild(postEl);
+    }
 
-      snap.forEach(d => {
-        if (currentUser && d.data().uid === currentUser.uid) {
-          myCount++;
-        }
+    changed = true;
+  }
+}
 
-        feed.appendChild(renderPost(d.id, d.data()));
-      });
+    // ── UPDATED POST ──
+// Do NOT rebuild the entire post.
+// Likes and comments already update their own UI instantly.
+if (change.type === 'modified') {
+  const postEl = document.getElementById('post-' + postId);
 
-      document.getElementById('stat-posts').textContent = myCount;
+  if (postEl) {
+    // Update like button/count without replacing the post
+    const likeBtn = postEl.querySelector('.post-btn');
+    if (likeBtn && currentUser) {
+      const likes = data.likes || [];
+      const liked = likes.includes(currentUser.uid);
+      const likeCount = likes.length;
 
-      feedLastDoc = snap.docs[snap.docs.length - 1];
-      feedHasMore = snap.docs.length === 10;
+      likeBtn.className = 'post-btn ' + (liked ? 'liked' : '');
+      likeBtn.textContent =
+        (liked ? '❤️' : '🤍') + ' ' +
+        likeCount + ' ' +
+        (likeCount === 1 ? 'Like' : 'Likes');
+    }
 
-      renderFeedPagination();
-    }, error => {
-      console.error('Feed realtime error:', error);
+    // Update comment count without rebuilding the post
+    const commentBtn = postEl.querySelectorAll('.post-btn')[1];
+    if (commentBtn) {
+      const commentCount = (data.comments || []).length;
+      commentBtn.textContent =
+        '💬 ' +
+        commentCount + ' ' +
+        (commentCount === 1 ? 'Comment' : 'Comments');
+    }
+  }
 
-      feed.innerHTML = '<div class="empty-feed"><div class="icon">⚠️</div><p>Could not load posts.<br/>Please refresh and try again.</p></div>';
+  // No full-card replacement = no shake.
+}
 
-      if (pagination) pagination.innerHTML = '';
-    });
+    // ── DELETED POST ──
+    if (change.type === 'removed') {
+      const oldPost = document.getElementById('post-' + postId);
+
+      if (oldPost) {
+        oldPost.remove();
+        changed = true;
+      }
+    }
+  });
+
+  // Keep pagination state updated
+  feedLastDoc = snap.docs[snap.docs.length - 1];
+  feedHasMore = snap.docs.length === 10;
+
+  // Update "Your Posts" count
+  let myCount = 0;
+
+  snap.forEach(d => {
+    if (currentUser && d.data().uid === currentUser.uid) {
+      myCount++;
+    }
+  });
+
+  const statPosts = document.getElementById('stat-posts');
+  if (statPosts) {
+    statPosts.textContent = myCount;
+  }
+
+  if (changed) {
+    renderFeedPagination();
+  }
+
+}, error => {
+  console.error('Feed realtime error:', error);
+
+  feed.innerHTML = '<div class="empty-feed"><div class="icon">⚠️</div><p>Could not load posts.<br/>Please refresh and try again.</p></div>';
+
+  if (pagination) pagination.innerHTML = '';
+});
 
     return;
   }
