@@ -490,7 +490,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, limit, startAfter, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
@@ -514,6 +514,11 @@
   let contextMsgId = null;
   let contextMsgOwn = false;
   let lastMsgDate = null;
+
+    // ── MESSAGE HISTORY PAGINATION ──
+  let oldestMessageDoc = null;
+  let hasOlderMessages = true;
+  let loadingOlderMessages = false;
 
   // ── CLOUDINARY ──
   const CLOUDINARY_CLOUD = 'dl1rabt4f';
@@ -932,6 +937,30 @@
   function loadMessages() {
   const area = document.getElementById('messages-area');
 
+    // ── LOAD OLDER MESSAGES WHEN SCROLLING TO TOP ──
+  let scrollLoadLock = false;
+
+  area.addEventListener('scroll', async () => {
+    if (
+      scrollLoadLock ||
+      loadingOlderMessages ||
+      !hasOlderMessages
+    ) {
+      return;
+    }
+
+    // Trigger slightly before the absolute top.
+    if (area.scrollTop <= 80) {
+      scrollLoadLock = true;
+
+      try {
+        await loadOlderMessages();
+      } finally {
+        scrollLoadLock = false;
+      }
+    }
+  });
+
   const q = query(
     collection(db, 'conversations', convId, 'messages'),
     orderBy('createdAt', 'desc'),
@@ -962,7 +991,13 @@
       let prevSender = null;
       let prevDate = null;
 
-      [...snap.docs].reverse().forEach((d, i, docs) => {
+            // Remember the oldest loaded message for pagination.
+      oldestMessageDoc = snap.docs[snap.docs.length - 1];
+      hasOlderMessages = snap.docs.length === 50;
+
+      const initialDocs = [...snap.docs].reverse();
+
+      initialDocs.forEach((d, i) => {
         const msg = { id: d.id, ...d.data() };
         const ts = msg.createdAt;
         const msgDate = ts ? formatDate(ts) : 'Today';
@@ -981,8 +1016,8 @@
           i === 0 ||
           prevSender !== msg.senderUid ||
           msgDate !== formatDate(
-            docs[i - 1]?.data()?.createdAt
-          );
+           initialDocs[i - 1]?.data()?.createdAt
+        );
 
         const isConsecutive = prevSender === msg.senderUid;
 
@@ -1141,6 +1176,207 @@
     }
   });
 }
+
+    // ── LOAD OLDER MESSAGES ──
+  async function loadOlderMessages() {
+    if (
+      loadingOlderMessages ||
+      !hasOlderMessages ||
+      !oldestMessageDoc ||
+      !convId
+    ) {
+      return;
+    }
+
+    loadingOlderMessages = true;
+
+    const area = document.getElementById('messages-area');
+
+    // Preserve the exact viewport position.
+    const previousHeight = area.scrollHeight;
+    const previousTop = area.scrollTop;
+
+    try {
+      const q = query(
+        collection(db, 'conversations', convId, 'messages'),
+        orderBy('createdAt', 'desc'),
+        startAfter(oldestMessageDoc),
+        limit(50)
+      );
+
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        hasOlderMessages = false;
+        return;
+      }
+
+      // Firestore returned newest → oldest.
+      // Reverse so we insert oldest → newest.
+      const olderDocs = [...snap.docs].reverse();
+
+      // Existing first message is the boundary between
+      // the older page and the messages already on screen.
+      const existingFirst = area.querySelector('.msg-row');
+
+      const boundarySender =
+        existingFirst?.dataset.senderUid || null;
+
+      const boundaryMsgId =
+        existingFirst?.dataset.msgId || null;
+
+      let boundaryDate = null;
+
+      if (boundaryMsgId) {
+        const boundaryBubble =
+          existingFirst.querySelector('.msg-bubble');
+
+        // Use the existing message's rendered date divider
+        // as the boundary date when available.
+        const allRows = [...area.querySelectorAll('.msg-row')];
+        const firstIndex = allRows.indexOf(existingFirst);
+
+        if (firstIndex >= 0) {
+          const previousDivider =
+            existingFirst.previousElementSibling;
+
+          if (
+            previousDivider &&
+            previousDivider.classList.contains('date-divider')
+          ) {
+            boundaryDate =
+              previousDivider.dataset.date || null;
+          }
+        }
+
+        // Fallback: derive from the first existing message's
+        // timestamp if the divider isn't directly available.
+        if (!boundaryDate) {
+          const firstDateDivider =
+            area.querySelector('.date-divider');
+
+          boundaryDate =
+            firstDateDivider?.dataset.date || null;
+        }
+      }
+
+      // Build the older messages in chronological order.
+      const fragment = document.createDocumentFragment();
+
+      let previousSender = null;
+      let previousDate = null;
+
+      olderDocs.forEach((d, index) => {
+        const msg = {
+          id: d.id,
+          ...d.data()
+        };
+
+        // Safety: don't duplicate an already-rendered message.
+        if (
+          area.querySelector(
+            `[data-msg-id="${msg.id}"]`
+          )
+        ) {
+          return;
+        }
+
+        const msgDate = msg.createdAt
+          ? formatDate(msg.createdAt)
+          : 'Today';
+
+        const isFirst =
+          index === 0
+            ? (
+                !boundarySender ||
+                msg.senderUid !== boundarySender ||
+                msgDate !== boundaryDate
+              )
+            : (
+                msg.senderUid !== previousSender ||
+                msgDate !== previousDate
+              );
+
+        const isConsecutive =
+          index === 0
+            ? (
+                !!boundarySender &&
+                msg.senderUid === boundarySender &&
+                msgDate === boundaryDate
+              )
+            : (
+                msg.senderUid === previousSender &&
+                msgDate === previousDate
+              );
+
+        // Add date divider when this older message begins
+        // a different date from the message immediately after it.
+        if (
+          index === 0 ||
+          msgDate !== previousDate
+        ) {
+          const divider = document.createElement('div');
+          divider.className = 'date-divider';
+          divider.dataset.date = msgDate;
+          divider.innerHTML =
+            '<span>' + msgDate + '</span>';
+
+          fragment.appendChild(divider);
+        }
+
+        const messageEl = buildMsg(
+          msg.id,
+          msg,
+          isFirst,
+          isConsecutive
+        );
+
+        messageEl.dataset.senderUid =
+          msg.senderUid || '';
+
+        fragment.appendChild(messageEl);
+
+        previousSender = msg.senderUid;
+        previousDate = msgDate;
+      });
+
+      // Insert the entire older page before the current history.
+      const firstMessage =
+        area.querySelector('.msg-row');
+
+      if (firstMessage) {
+        area.insertBefore(fragment, firstMessage);
+      } else {
+        area.appendChild(fragment);
+      }
+
+      // The oldest document returned by this query becomes
+      // the cursor for the next page.
+      oldestMessageDoc =
+        snap.docs[snap.docs.length - 1];
+
+      hasOlderMessages =
+        snap.docs.length === 50;
+
+      // Keep the user's viewport anchored to the same messages.
+      const newHeight = area.scrollHeight;
+
+      area.scrollTop =
+        previousTop + (newHeight - previousHeight);
+
+    } catch (e) {
+      console.error(
+        'Load older messages error:',
+        e
+      );
+
+      showToast(
+        'Could not load older messages.'
+      );
+    } finally {
+      loadingOlderMessages = false;
+    }
+  }
 
   // ── VOICE PLAYBACK ──
   let currentAudio = null;
