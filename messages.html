@@ -230,66 +230,99 @@
             };
           });
 
-          // Fetch only profiles that are not already cached
-          const uncachedUids = [
-            ...new Set(
-              conversations
-                .map(c => c.otherUid)
-                .filter(uid => uid && !userProfileCache.has(uid))
-            )
-          ];
+          // ── INSTANT-FIRST CONVERSATION RENDER ──────────────────────────
+// Render immediately using cached profile data.
+// Missing profiles are fetched in the background.
 
-          await Promise.all(
-            uncachedUids.map(async uid => {
-              try {
-                const otherDoc = await getDoc(doc(db,'users',uid));
+allConvs = conversations.map(c => {
+  const profile = userProfileCache.get(c.otherUid) || {
+    name: 'Unknown',
+    photo: null
+  };
 
-                if (otherDoc.exists()) {
-                  const data = otherDoc.data();
+  return {
+    id: c.id,
+    otherUid: c.otherUid,
+    otherName: profile.name,
+    otherPhoto: profile.photo,
+    lastMessage: c.data.lastMessage,
+    lastTime: c.data.lastTime,
+    unread: c.data.unreadBy?.includes(user.uid)
+  };
+});
 
-                  userProfileCache.set(uid, {
-                    name: data.fullname || 'Unknown',
-                    photo: data.photoURL || null
-                  });
-                } else {
-                  userProfileCache.set(uid, {
-                    name: 'Unknown',
-                    photo: null
-                  });
-                }
-              } catch(e) {
-                userProfileCache.set(uid, {
-                  name: 'Unknown',
-                  photo: null
-                });
-              }
-            })
-          );
+allConvs.sort(
+  (a, b) =>
+    new Date(b.lastTime || 0) -
+    new Date(a.lastTime || 0)
+);
 
-          allConvs = conversations.map(c => {
-            const profile = userProfileCache.get(c.otherUid) || {
-              name: 'Unknown',
-              photo: null
-            };
+// ⚡ Render NOW — do not wait for profile reads.
+renderConvs(allConvs);
 
-            return {
-              id: c.id,
-              otherUid: c.otherUid,
-              otherName: profile.name,
-              otherPhoto: profile.photo,
-              lastMessage: c.data.lastMessage,
-              lastTime: c.data.lastTime,
-              unread: c.data.unreadBy?.includes(user.uid)
-            };
+// ── BACKGROUND PROFILE FETCH ──────────────────────────────────
+const uncachedUids = [
+  ...new Set(
+    conversations
+      .map(c => c.otherUid)
+      .filter(uid => uid && !userProfileCache.has(uid))
+  )
+];
+
+if (uncachedUids.length > 0) {
+  Promise.all(
+    uncachedUids.map(async uid => {
+      try {
+        const otherDoc = await getDoc(doc(db, 'users', uid));
+
+        if (otherDoc.exists()) {
+          const data = otherDoc.data();
+
+          userProfileCache.set(uid, {
+            name: data.fullname || 'Unknown',
+            photo: data.photoURL || null
           });
+        } else {
+          userProfileCache.set(uid, {
+            name: 'Unknown',
+            photo: null
+          });
+        }
+      } catch (e) {
+        userProfileCache.set(uid, {
+          name: 'Unknown',
+          photo: null
+        });
+      }
+    })
+  ).then(() => {
+    // Update the visible list after profiles arrive.
+    allConvs = conversations.map(c => {
+      const profile = userProfileCache.get(c.otherUid) || {
+        name: 'Unknown',
+        photo: null
+      };
 
-          allConvs.sort(
-            (a,b) =>
-              new Date(b.lastTime || 0) -
-              new Date(a.lastTime || 0)
-          );
+      return {
+        id: c.id,
+        otherUid: c.otherUid,
+        otherName: profile.name,
+        otherPhoto: profile.photo,
+        lastMessage: c.data.lastMessage,
+        lastTime: c.data.lastTime,
+        unread: c.data.unreadBy?.includes(user.uid)
+      };
+    });
 
-          renderConvs(allConvs);
+    allConvs.sort(
+      (a, b) =>
+        new Date(b.lastTime || 0) -
+        new Date(a.lastTime || 0)
+    );
+
+    renderConvs(allConvs);
+  });
+}
         });
       } catch(e) { console.error(e); }
       document.getElementById('loading').style.display = 'none';

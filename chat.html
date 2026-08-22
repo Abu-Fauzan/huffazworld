@@ -490,7 +490,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
@@ -752,22 +752,50 @@
     } catch(e) { showToast('Could not delete.'); }
   }
 
-  // ── REACTION ──
-  window.addReaction = function(emoji) {
+    // ── REACTION ──
+  window.addReaction = async function(emoji) {
     closeContextMenu();
-    const el = document.querySelector('[data-msg-id="' + contextMsgId + '"]');
-    if (!el) return;
-    let reactRow = el.querySelector('.msg-reactions');
-    if (!reactRow) {
-      reactRow = document.createElement('div');
-      reactRow.className = 'msg-reactions';
-      el.querySelector('.msg-bubble-wrap').appendChild(reactRow);
+
+    if (!contextMsgId || !currentUser || !convId) return;
+
+    try {
+      const messageRef = doc(
+        db,
+        'conversations',
+        convId,
+        'messages',
+        contextMsgId
+      );
+
+      const snap = await getDoc(messageRef);
+
+      if (!snap.exists()) {
+        showToast('Message not found.');
+        return;
+      }
+
+      const data = snap.data();
+      const reactions = { ...(data.reactions || {}) };
+
+      // Toggle the current user's reaction.
+      // Same emoji = remove it.
+      // Different emoji = change it.
+      if (reactions[currentUser.uid] === emoji) {
+        delete reactions[currentUser.uid];
+      } else {
+        reactions[currentUser.uid] = emoji;
+      }
+
+      await updateDoc(messageRef, {
+        reactions: reactions
+      });
+
+      showToast('Reacted with ' + emoji);
+
+    } catch (e) {
+      console.error('Reaction error:', e);
+      showToast('Could not add reaction.');
     }
-    const pill = document.createElement('span');
-    pill.className = 'reaction-pill';
-    pill.textContent = emoji + ' 1';
-    reactRow.appendChild(pill);
-    showToast('Reacted with ' + emoji);
   }
 
   // ── CONTEXT MENU ──
@@ -844,7 +872,33 @@
     } else {
       bubble.textContent = data.text || '';
     }
-    wrap.appendChild(bubble);
+        wrap.appendChild(bubble);
+
+    // ── MESSAGE REACTIONS ──
+    const reactions = data.reactions || {};
+    const reactionEntries = Object.entries(reactions);
+
+    if (reactionEntries.length > 0) {
+      const reactRow = document.createElement('div');
+      reactRow.className = 'msg-reactions';
+
+      // Group identical reactions
+      const grouped = {};
+
+      reactionEntries.forEach(([uid, emoji]) => {
+        if (!grouped[emoji]) grouped[emoji] = 0;
+        grouped[emoji]++;
+      });
+
+      Object.entries(grouped).forEach(([emoji, count]) => {
+        const pill = document.createElement('span');
+        pill.className = 'reaction-pill';
+        pill.textContent = emoji + ' ' + count;
+        reactRow.appendChild(pill);
+      });
+
+      wrap.appendChild(reactRow);
+    }
 
     // Meta (time + tick)
     const meta = document.createElement('div');
@@ -875,13 +929,13 @@
     return row;
   }
 
-  // ── LOAD MESSAGES ──
-function loadMessages() {
+  function loadMessages() {
   const area = document.getElementById('messages-area');
 
   const q = query(
     collection(db, 'conversations', convId, 'messages'),
-    orderBy('createdAt', 'asc')
+    orderBy('createdAt', 'desc'),
+    limit(50)
   );
 
   let initialized = false;
@@ -908,7 +962,7 @@ function loadMessages() {
       let prevSender = null;
       let prevDate = null;
 
-      snap.docs.forEach((d, i) => {
+      [...snap.docs].reverse().forEach((d, i, docs) => {
         const msg = { id: d.id, ...d.data() };
         const ts = msg.createdAt;
         const msgDate = ts ? formatDate(ts) : 'Today';
@@ -927,7 +981,7 @@ function loadMessages() {
           i === 0 ||
           prevSender !== msg.senderUid ||
           msgDate !== formatDate(
-            snap.docs[i - 1]?.data()?.createdAt
+            docs[i - 1]?.data()?.createdAt
           );
 
         const isConsecutive = prevSender === msg.senderUid;
@@ -1025,7 +1079,7 @@ function loadMessages() {
         }
       }
 
-      // Message updated
+            // Message updated
       if (change.type === 'modified') {
         const oldEl = area.querySelector(
           `[data-msg-id="${change.doc.id}"]`
@@ -1037,16 +1091,47 @@ function loadMessages() {
             ...change.doc.data()
           };
 
-          const newEl = buildMsg(
-            msg.id,
-            msg,
-            oldEl.classList.contains('first'),
-            oldEl.classList.contains('consecutive')
-          );
+          // ── UPDATE REACTIONS ONLY ──
+          const oldWrap = oldEl.querySelector('.msg-bubble-wrap');
 
-          newEl.dataset.senderUid = msg.senderUid;
-          oldEl.replaceWith(newEl);
-          changed = true;
+          if (oldWrap) {
+            const oldReactionRow = oldWrap.querySelector('.msg-reactions');
+
+            if (oldReactionRow) {
+              oldReactionRow.remove();
+            }
+
+            const reactions = msg.reactions || {};
+            const reactionEntries = Object.entries(reactions);
+
+            if (reactionEntries.length > 0) {
+              const reactRow = document.createElement('div');
+              reactRow.className = 'msg-reactions';
+
+              const grouped = {};
+
+              reactionEntries.forEach(([uid, emoji]) => {
+                if (!grouped[emoji]) {
+                  grouped[emoji] = 0;
+                }
+
+                grouped[emoji]++;
+              });
+
+              Object.entries(grouped).forEach(([emoji, count]) => {
+                const pill = document.createElement('span');
+                pill.className = 'reaction-pill';
+                pill.textContent = emoji + ' ' + count;
+                reactRow.appendChild(pill);
+              });
+
+              oldWrap.appendChild(reactRow);
+            }
+          }
+
+          // Keep the existing message element.
+          // Do NOT rebuild or replace the message.
+          // Reaction update should not move the chat.
         }
       }
     });
@@ -1253,36 +1338,68 @@ window.sendMessage = async function() {
 
   window.handleLogout = async function() { await signOut(auth); window.location.href = 'login.html'; }
 
-  onAuthStateChanged(auth, async user => {
-    if (user) {
-      currentUser = user;
-      if (!otherUid) { window.location.href = 'messages.html'; return; }
-      convId = getConvId(user.uid, otherUid);
+    onAuthStateChanged(auth, async user => {
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
 
-      try {
-        const userDoc = await getDoc(doc(db,'users',user.uid));
-        currentUserData = userDoc.exists() ? userDoc.data() : {};
-      } catch(e) { console.warn('Could not load user data', e); }
+    currentUser = user;
 
-      try {
-        // Set header
-        const otherInitials = (otherName||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-        document.getElementById('header-profile-link').textContent = otherInitials;
-        document.getElementById('header-name').textContent = otherName;
-        document.getElementById('header-profile-link').href = 'user.html?uid=' + otherUid;
-        document.getElementById('header-name-link').href = 'user.html?uid=' + otherUid;
+    if (!otherUid) {
+      window.location.href = 'messages.html';
+      return;
+    }
 
-        initEmojiPanel();
-        loadMessages();
-        checkUnreadStatus();
-      } catch(e) { console.error('Header setup error:', e); }
+    // Build conversation ID immediately.
+    convId = getConvId(user.uid, otherUid);
 
-      // Always show the app — even if something above fails
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      try { document.getElementById('msg-input').focus(); } catch(e) {}
+    // ── SHOW CHAT IMMEDIATELY ──
+    // The URL already gives us otherUid and otherName,
+    // so there is no reason to keep the entire chat hidden.
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
 
-    } else { window.location.href = 'login.html'; }
+    // Set the header immediately using the name from the URL.
+    const otherInitials = (otherName || '?')
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+
+    document.getElementById('header-profile-link').textContent = otherInitials;
+    document.getElementById('header-name').textContent = otherName || 'HuffazWorld Member';
+    document.getElementById('header-profile-link').href =
+      'user.html?uid=' + otherUid;
+    document.getElementById('header-name-link').href =
+      'user.html?uid=' + otherUid;
+
+    initEmojiPanel();
+
+    // Start loading messages immediately.
+    loadMessages();
+
+    // Focus input without waiting for profile data.
+    try {
+      document.getElementById('msg-input').focus();
+    } catch (e) {}
+
+    // ── BACKGROUND DATA ──
+    // Load our profile without blocking the chat UI.
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+
+      currentUserData = userDoc.exists()
+        ? userDoc.data()
+        : {};
+    } catch (e) {
+      console.warn('Could not load user data', e);
+      currentUserData = {};
+    }
+
+    // Check unread status in the background.
+    checkUnreadStatus();
   });
 </script>
 
