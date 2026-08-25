@@ -1,0 +1,548 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================
+    // AUTHENTICATION
+    // ============================================================
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // ============================================================
+    // USERS
+    // ============================================================
+
+    match /users/{userId} {
+
+      allow read: if signedIn();
+
+      // A user may create only their own profile.
+      allow create: if signedIn()
+                    && request.auth.uid == userId
+                    && request.resource.data.uid == userId;
+
+      // Users may update their own profile.
+      //
+      // Authorization-sensitive fields remain protected.
+      // classId / schoolId have controlled membership transitions.
+      allow update: if signedIn()
+                    && request.auth.uid == userId
+                    && request.resource.data.uid == resource.data.uid
+                    && request.resource.data.role == resource.data.role
+                    && (
+                      // Ordinary profile update.
+                      (
+                        request.resource.data.classId
+                        == resource.data.classId
+                        &&
+                        request.resource.data.schoolId
+                        == resource.data.schoolId
+                        &&
+                        request.resource.data.schoolName
+                        == resource.data.schoolName
+                      )
+
+                      ||
+
+                      // ------------------------------------------------
+                      // JOIN CLASS
+                      // ------------------------------------------------
+                      (
+                        resource.data.classId == null
+                        &&
+                        request.resource.data.classId is string
+                        &&
+                        get(
+                          /databases/$(database)/documents/classes/$(request.resource.data.classId)
+                        ).data.students.hasAny([request.auth.uid])
+                      )
+
+                      ||
+
+                      // ------------------------------------------------
+                      // LEAVE CLASS
+                      // ------------------------------------------------
+                      (
+                        resource.data.classId is string
+                        &&
+                        request.resource.data.classId == null
+                      )
+
+                      ||
+
+                      // ------------------------------------------------
+                      // JOIN SCHOOL
+                      // ------------------------------------------------
+                      (
+                        resource.data.schoolId == null
+                        &&
+                        request.resource.data.schoolId is string
+                        &&
+                        request.resource.data.schoolName is string
+                        &&
+                        resource.data.role == 'Teacher'
+                        &&
+                        get(
+                          /databases/$(database)/documents/schools/$(request.resource.data.schoolId)
+                        ).data.teachers.hasAny([request.auth.uid])
+                        &&
+                        request.resource.data.schoolName ==
+                        get(
+                          /databases/$(database)/documents/schools/$(request.resource.data.schoolId)
+                        ).data.name
+                      )
+
+                      ||
+
+                      // ------------------------------------------------
+                      // LEAVE SCHOOL
+                      // ------------------------------------------------
+                      (
+                        resource.data.schoolId is string
+                        &&
+                        request.resource.data.schoolId == null
+                        &&
+                        request.resource.data.schoolName == null
+                      )
+                    );
+
+      allow delete: if false;
+    }
+
+    // ============================================================
+    // FOLLOW REQUESTS
+    // ============================================================
+
+    match /followRequests/{requestId} {
+
+      allow create: if signedIn()
+                    && request.resource.data.fromUid == request.auth.uid
+                    && request.resource.data.toUid is string
+                    && request.resource.data.toUid != request.auth.uid
+                    && request.resource.data.status == 'pending'
+                    && requestId ==
+                       request.resource.data.fromUid + '_' +
+                       request.resource.data.toUid;
+
+      allow read: if signedIn()
+                  && (
+                    resource.data.fromUid == request.auth.uid ||
+                    resource.data.toUid == request.auth.uid
+                  );
+
+      allow update: if false;
+
+      allow delete: if signedIn()
+                    && (
+                      resource.data.fromUid == request.auth.uid ||
+                      resource.data.toUid == request.auth.uid
+                    );
+    }
+
+    // ============================================================
+    // NOTIFICATIONS
+    // ============================================================
+
+    match /notifications/{notificationId} {
+
+      allow read: if signedIn()
+                  && resource.data.toUid == request.auth.uid;
+
+      allow create: if signedIn()
+                    && request.resource.data.toUid is string
+                    && request.resource.data.fromUid is string
+                    && request.resource.data.read is bool
+                    && request.resource.data.toUid != '';
+
+      allow update: if signedIn()
+                    && resource.data.toUid == request.auth.uid
+                    && request.resource.data.toUid == resource.data.toUid
+                    && request.resource.data.fromUid == resource.data.fromUid;
+
+      allow delete: if signedIn()
+                    && resource.data.toUid == request.auth.uid;
+    }
+
+    // ============================================================
+    // CLASSES
+    // ============================================================
+
+    match /classes/{classId} {
+
+      // Authenticated users may find/join classes.
+      allow read: if signedIn();
+
+      // Teacher creates their own class.
+      allow create: if signedIn()
+                    && classId == request.auth.uid
+                    && request.resource.data.teacherUid == request.auth.uid
+                    && request.resource.data.name is string
+                    && request.resource.data.code is string
+                    && request.resource.data.students is list;
+
+      // Class owner can edit class details and manage students.
+      allow update: if signedIn()
+                    && (
+                      // ----------------------------------------------
+                      // OWNER UPDATE
+                      // ----------------------------------------------
+                      (
+                        classId == request.auth.uid
+                        &&
+                        resource.data.teacherUid == request.auth.uid
+                        &&
+                        request.resource.data.teacherUid == resource.data.teacherUid
+                        &&
+                        request.resource.data.code == resource.data.code
+                        &&
+                        request.resource.data.createdAt == resource.data.createdAt
+                      )
+
+                      ||
+
+                      // ----------------------------------------------
+                      // STUDENT JOINS
+                      // ----------------------------------------------
+                      (
+                        request.resource.data.teacherUid == resource.data.teacherUid
+                        &&
+                        request.resource.data.code == resource.data.code
+                        &&
+                        request.resource.data.createdAt == resource.data.createdAt
+                        &&
+                        request.resource.data.diff(resource.data)
+                          .affectedKeys()
+                          .hasOnly(['students'])
+                        &&
+                        !resource.data.students.hasAny([request.auth.uid])
+                        &&
+                        request.resource.data.students.hasAll(
+                          resource.data.students
+                        )
+                        &&
+                        request.resource.data.students.hasAny(
+                          [request.auth.uid]
+                        )
+                        &&
+                        request.resource.data.students.size()
+                          == resource.data.students.size() + 1
+                      )
+
+                      ||
+
+                      // ----------------------------------------------
+                      // STUDENT LEAVES
+                      // ----------------------------------------------
+                      (
+                        request.resource.data.teacherUid == resource.data.teacherUid
+                        &&
+                        request.resource.data.code == resource.data.code
+                        &&
+                        request.resource.data.createdAt == resource.data.createdAt
+                        &&
+                        request.resource.data.diff(resource.data)
+                          .affectedKeys()
+                          .hasOnly(['students'])
+                        &&
+                        resource.data.students.hasAny([request.auth.uid])
+                        &&
+                        !request.resource.data.students.hasAny(
+                          [request.auth.uid]
+                        )
+                        &&
+                        resource.data.students.hasAll(
+                          request.resource.data.students
+                        )
+                        &&
+                        request.resource.data.students.size()
+                          == resource.data.students.size() - 1
+                      )
+                    );
+
+      // Only the owning teacher may delete the class.
+      allow delete: if signedIn()
+                    && classId == request.auth.uid
+                    && resource.data.teacherUid == request.auth.uid;
+    }
+
+    // ============================================================
+    // SCHOOLS
+    // ============================================================
+
+    match /schools/{schoolId} {
+
+      // Authenticated users may find schools.
+      allow read: if signedIn();
+
+      // School admin creates their own school.
+      allow create: if signedIn()
+                    && schoolId == request.auth.uid
+                    && request.resource.data.adminUid == request.auth.uid
+                    && request.resource.data.name is string
+                    && request.resource.data.code is string
+                    && request.resource.data.teachers is list;
+
+      // School admin or controlled teacher membership changes.
+      allow update: if signedIn()
+                    && (
+                      // ----------------------------------------------
+                      // SCHOOL ADMIN UPDATE
+                      // ----------------------------------------------
+                      (
+                        schoolId == request.auth.uid
+                        &&
+                        resource.data.adminUid == request.auth.uid
+                        &&
+                        request.resource.data.adminUid == resource.data.adminUid
+                        &&
+                        request.resource.data.code == resource.data.code
+                        &&
+                        request.resource.data.createdAt == resource.data.createdAt
+                      )
+
+                      ||
+
+                      // ----------------------------------------------
+                      // TEACHER JOINS
+                      // ----------------------------------------------
+                      (
+                        request.resource.data.adminUid == resource.data.adminUid
+                        &&
+                        request.resource.data.code == resource.data.code
+                        &&
+                        request.resource.data.createdAt == resource.data.createdAt
+                        &&
+                        request.resource.data.diff(resource.data)
+                          .affectedKeys()
+                          .hasOnly(['teachers'])
+                        &&
+                        !resource.data.teachers.hasAny([request.auth.uid])
+                        &&
+                        request.resource.data.teachers.hasAll(
+                          resource.data.teachers
+                        )
+                        &&
+                        request.resource.data.teachers.hasAny(
+                          [request.auth.uid]
+                        )
+                        &&
+                        request.resource.data.teachers.size()
+                          == resource.data.teachers.size() + 1
+                      )
+
+                      ||
+
+                      // ----------------------------------------------
+                      // TEACHER LEAVES
+                      // ----------------------------------------------
+                      (
+                        request.resource.data.adminUid == resource.data.adminUid
+                        &&
+                        request.resource.data.code == resource.data.code
+                        &&
+                        request.resource.data.createdAt == resource.data.createdAt
+                        &&
+                        request.resource.data.diff(resource.data)
+                          .affectedKeys()
+                          .hasOnly(['teachers'])
+                        &&
+                        resource.data.teachers.hasAny([request.auth.uid])
+                        &&
+                        !request.resource.data.teachers.hasAny(
+                          [request.auth.uid]
+                        )
+                        &&
+                        resource.data.teachers.hasAll(
+                          request.resource.data.teachers
+                        )
+                        &&
+                        request.resource.data.teachers.size()
+                          == resource.data.teachers.size() - 1
+                      )
+                    );
+
+      // Only the owning school admin may delete.
+      allow delete: if signedIn()
+                    && schoolId == request.auth.uid
+                    && resource.data.adminUid == request.auth.uid;
+    }
+
+    // ============================================================
+    // POSTS
+    // ============================================================
+
+    match /posts/{postId} {
+
+      // Authenticated users may read feed posts.
+      allow read: if signedIn();
+
+      // A new post must belong to the authenticated user.
+      allow create: if signedIn()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.text is string
+                    && request.resource.data.authorName is string
+                    && request.resource.data.createdAt is string;
+
+      // Only the post owner may edit it.
+      // Ownership and author identity cannot be transferred.
+      allow update: if signedIn()
+                    && resource.data.uid == request.auth.uid
+                    && request.resource.data.uid == resource.data.uid
+                    && request.resource.data.authorName == resource.data.authorName
+                    && request.resource.data.authorRole == resource.data.authorRole
+                    && request.resource.data.authorCountry == resource.data.authorCountry
+                    && request.resource.data.authorPhoto == resource.data.authorPhoto
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys()
+                         .hasOnly(['text', 'edited']);
+
+      // Only the post owner may delete it.
+      allow delete: if signedIn()
+                    && resource.data.uid == request.auth.uid;
+
+      // ------------------------------------------------------------
+      // POST LIKES
+      // ------------------------------------------------------------
+      match /likes/{likeUid} {
+
+        // A user may create only their own like.
+        allow create: if signedIn()
+                      && likeUid == request.auth.uid
+                      && request.resource.data.uid == request.auth.uid
+                      && request.resource.data.createdAt is string;
+
+        // A user may delete only their own like.
+        allow delete: if signedIn()
+                      && likeUid == request.auth.uid
+                      && resource.data.uid == request.auth.uid;
+
+        // Likes are immutable.
+        allow update: if false;
+
+        // Authenticated users may read likes.
+        allow read: if signedIn();
+      }
+
+      // ------------------------------------------------------------
+      // POST COMMENTS
+      // ------------------------------------------------------------
+      match /comments/{commentId} {
+
+        // Authenticated users may read comments.
+        allow read: if signedIn();
+
+        // A user may create only their own comment.
+        allow create: if signedIn()
+                      && request.resource.data.uid == request.auth.uid
+                      && request.resource.data.name is string
+                      && request.resource.data.text is string
+                      && request.resource.data.createdAt is string;
+
+        // A user may edit only their own comment.
+        // Identity and creation metadata cannot be changed.
+        allow update: if signedIn()
+                      && resource.data.uid == request.auth.uid
+                      && request.resource.data.uid == resource.data.uid
+                      && request.resource.data.name == resource.data.name
+                      && request.resource.data.createdAt == resource.data.createdAt
+                      && request.resource.data.diff(resource.data)
+                           .affectedKeys()
+                           .hasOnly(['text', 'editedAt']);
+
+        // A user may delete only their own comment.
+        allow delete: if signedIn()
+                      && resource.data.uid == request.auth.uid;
+      }
+    }
+
+    // ============================================================
+    // PRIVATE CHAT
+    // ============================================================
+
+    match /conversations/{conversationId} {
+
+      // A conversation may be read only by one of its members.
+      allow read: if signedIn()
+                  && resource.data.members is list
+                  && resource.data.members.hasAny([request.auth.uid]);
+
+      // A new conversation must contain the authenticated creator
+      // and exactly one other participant.
+      allow create: if signedIn()
+                    && request.resource.data.members is list
+                    && request.resource.data.members.size() == 2
+                    && request.resource.data.members.hasAny([request.auth.uid])
+                    && request.resource.data.unreadBy is list
+                    && request.resource.data.unreadBy.hasOnly(
+                         request.resource.data.members
+                       );
+
+      // Existing members may update conversation metadata, but
+      // membership itself cannot be changed.
+      allow update: if signedIn()
+                    && resource.data.members is list
+                    && resource.data.members.hasAny([request.auth.uid])
+                    && request.resource.data.members is list
+                    && request.resource.data.members.size()
+                       == resource.data.members.size()
+                    && request.resource.data.members.hasAll(
+                         resource.data.members
+                       )
+                    && resource.data.members.hasAll(
+                         request.resource.data.members
+                       )
+                    && request.resource.data.unreadBy is list
+                    && request.resource.data.unreadBy.hasOnly(
+                         resource.data.members
+                       );
+
+      // A conversation itself is not deletable by clients.
+      allow delete: if false;
+
+      match /messages/{messageId} {
+
+        // Only conversation members can read messages.
+        allow read: if signedIn()
+                    && get(
+                         /databases/$(database)/documents/conversations/$(conversationId)
+                       ).data.members.hasAny([request.auth.uid]);
+
+        // A message must be authored by the authenticated user.
+        allow create: if signedIn()
+                      && get(
+                           /databases/$(database)/documents/conversations/$(conversationId)
+                         ).data.members.hasAny([request.auth.uid])
+                      && request.resource.data.senderUid == request.auth.uid
+                      && request.resource.data.senderName is string
+                      && request.resource.data.createdAt is string;
+
+        // A sender may modify only their own message.
+        allow update: if signedIn()
+                      && resource.data.senderUid == request.auth.uid
+                      && get(
+                           /databases/$(database)/documents/conversations/$(conversationId)
+                         ).data.members.hasAny([request.auth.uid])
+                      && request.resource.data.senderUid == resource.data.senderUid;
+
+        // A sender may delete only their own message.
+        allow delete: if signedIn()
+                      && resource.data.senderUid == request.auth.uid
+                      && get(
+                           /databases/$(database)/documents/conversations/$(conversationId)
+                         ).data.members.hasAny([request.auth.uid]);
+      }
+    }
+
+    // ============================================================
+    // DEFAULT DENY
+    // ============================================================
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
