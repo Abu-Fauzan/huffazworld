@@ -63,7 +63,18 @@
   .story-text-bg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
   .story-nav-left { position: absolute; left: 0; top: 0; bottom: 0; width: 40%; cursor: pointer; }
   .story-nav-right { position: absolute; right: 0; top: 0; bottom: 0; width: 40%; cursor: pointer; }
-  .story-delete-btn { position: absolute; bottom: 1.5rem; right: 1rem; background: rgba(229,57,53,0.8); color: white; border: none; border-radius: 10px; padding: 0.4rem 0.85rem; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
+  .story-delete-btn{
+  background:rgba(229,57,53,.9);
+  color:#fff;
+  border:none;
+  border-radius:50px;
+  padding:.45rem .8rem;
+  font-size:.78rem;
+  font-weight:700;
+  cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  flex-shrink:0;
+}
 
   /* ── STORY REACTIONS & COMMENTS ── */
   .story-bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; z-index: 11; padding: 0.75rem 1rem; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); }
@@ -132,6 +143,33 @@
   .post-author { font-size: 0.9rem; font-weight: 700; color: var(--emerald-dark); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
   .role-badge { font-size: 0.7rem; background: var(--emerald-light); color: var(--emerald); padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 600; }
   .post-info { font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; }
+
+  .post-menu-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--muted);
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .post-menu-btn:hover {
+    background: var(--emerald-light);
+    color: var(--emerald-dark);
+  }
+
+  .post-menu-btn:active {
+    transform: scale(0.94);
+  }
   .post-body { font-size: 0.9rem; color: var(--text); line-height: 1.75; }
   .post-footer { display: flex; gap: 0.75rem; margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid rgba(201,168,76,0.12); flex-wrap: wrap; }
   .post-btn { background: none; border: 1px solid rgba(201,168,76,0.2); border-radius: 8px; font-size: 0.78rem; color: var(--muted); cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500; padding: 0.3rem 0.75rem; transition: all 0.2s; }
@@ -246,7 +284,7 @@
   .more-drawer-item { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; text-decoration: none; background: var(--cream); border-radius: 14px; padding: 0.85rem 0.5rem; color: var(--text); transition: all 0.2s; border: 1.5px solid transparent; }
   .more-drawer-item:hover, .more-drawer-item.active { background: var(--emerald-light); border-color: rgba(26,107,74,0.2); color: var(--emerald-dark); }
   .more-drawer-item .di-icon { font-size: 1.5rem; }
-  .more-drawer-item .di-label { font-size: 0.68rem; font-weight: 700; text-align: center; }
+  .more-drawer-item .di-label { font-size: 0.68rem; font-weight: 700; text-align: center; } .more-signout-item { color: #b91c1c; cursor: pointer; font-family: inherit; width: 100%; } .more-signout-item:hover { background: #fef2f2; border-color: rgba(185,28,28,0.2); color: #991b1b; }
   .m-icon-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; }
   .m-badge {
     position: absolute; top: -4px; right: -6px;
@@ -374,7 +412,6 @@
           </div>
           <div class="story-nav-left" onclick="prevStory()"></div>
           <div class="story-nav-right" onclick="nextStory()"></div>
-          <button class="story-delete-btn" id="story-delete-btn" style="display:none;" onclick="deleteCurrentStory()">🗑️ Delete</button>
 
           <!-- REACTIONS & COMMENTS BOTTOM BAR -->
           <div class="story-bottom-bar" onclick="event.stopPropagation()">
@@ -390,8 +427,25 @@
             </div>
             <!-- Comment input -->
             <div class="story-comment-row">
-              <input class="story-comment-input" id="story-comment-input" placeholder="Reply to this story..." onkeydown="if(event.key==='Enter') sendStoryComment()"/>
-              <button class="story-comment-send" onclick="sendStoryComment()">➤</button>
+              <input
+  class="story-comment-input"
+  id="story-comment-input"
+  placeholder="Reply to this story..."
+  onkeydown="if(event.key==='Enter') sendStoryComment()"
+/>
+
+<button
+  class="story-delete-btn"
+  id="story-delete-btn"
+  style="display:none;"
+  onclick="deleteCurrentStory()"
+>
+  🗑️
+</button>
+
+<button class="story-comment-send" onclick="sendStoryComment()">
+  ➤
+</button>
             </div>
           </div>
         </div>
@@ -512,6 +566,7 @@
           </div>
         </div>
         <div id="feed"><div class="feed-loading"><span class="spinner"></span> Loading posts...</div></div>
+        <div id="feed-pagination" style="text-align:center;margin:1.5rem 0;"></div>
       </div>
 
       <div>
@@ -561,13 +616,7 @@
       <a id="more-class-link" href="join-class.html" class="more-drawer-item"><span class="di-icon">📖</span><span class="di-label" id="more-class-label">My Class</span></a>
       <a href="quran-player.html" class="more-drawer-item"><span class="di-icon">🎧</span><span class="di-label">Quran Audio</span></a>
       <a href="notifications.html" class="more-drawer-item"><span class="di-icon">🔔</span><span class="di-label">Alerts</span></a>
-      <a href="profile.html" class="more-drawer-item"><span class="di-icon">👤</span><span class="di-label">Profile</span></a>
-    
-      <button onclick="handleLogout(); closeMoreDrawer();" class="more-drawer-item" style="border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">
-       <span class="di-icon">🚪</span>
-       <span class="di-label">Sign Out</span>
-      </button>
-    
+      <a href="profile.html" class="more-drawer-item"><span class="di-icon">👤</span><span class="di-label">Profile</span></a><button type="button" class="more-drawer-item more-signout-item" onclick="closeMoreDrawer(); handleLogout();"><span class="di-icon">🚪</span><span class="di-label">Sign Out</span></button>
     </div>
   </div>
 
@@ -600,7 +649,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, getCountFromServer, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, orderBy, query, onSnapshot, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, getCountFromServer, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, arrayUnion, orderBy, query, onSnapshot, where, limit, startAfter } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDxKqk5lpSz7s4cRSQXLMCfQmfU8k-iHK8",
@@ -657,12 +706,18 @@
   function renderPost(postId, data) {
     const [bg, fg] = avatarColor(data.uid);
     const initials = (data.authorName||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-    const liked = currentUser && (data.likes||[]).includes(currentUser.uid);
-    const likeCount = (data.likes||[]).length;
-    const commentCount = (data.comments||[]).length;
+
+    // Legacy likes are used only for the initial fallback while old
+    // posts are being migrated to the secure likes subcollection.
+    const legacyLikes = Array.isArray(data.likes) ? data.likes : [];
+    const liked = currentUser && legacyLikes.includes(currentUser.uid);
+    const likeCount = legacyLikes.length;
+    const commentCount = 0;
     const div = document.createElement('div');
     div.className = 'feed-post';
     div.id = 'post-' + postId;
+    div.dataset.createdAt = data.createdAt || '';
+    div.dataset.uid = data.uid || '';
     div.dataset.author = (data.authorName||'').replace(/'/g,'');
     div.dataset.text = (data.text||'').replace(/'/g,'').slice(0,100);
     div.innerHTML = `
@@ -672,9 +727,16 @@
           <div class="post-author"><a href="user.html?uid=${data.uid}" style="color:var(--emerald-dark);text-decoration:none;font-weight:700;">${data.authorName||'Anonymous'}</a> <span class="role-badge">${data.authorRole||'Member'}</span>${data.topBadge ? ` <span title="${data.topBadge.name}" style="font-size:0.95rem;">${data.topBadge.emoji}</span>` : ''}</div>
           <div class="post-info">${timeAgo(data.createdAt)} · ${data.authorCountry||''}</div>
         </div>
+        <button
+          type="button"
+          class="post-menu-btn"
+          title="Post options"
+          aria-label="Post options"
+          onclick="openPostSafetyMenu(event, '${postId}')"
+        >⋮</button>
       </div>
       ${data.tag ? '<div style="margin-bottom:0.5rem;"><span style="font-size:0.72rem;background:var(--emerald-light);color:var(--emerald);padding:0.2rem 0.6rem;border-radius:50px;font-weight:700;">' + (data.tag==='Ayah'?'📖':data.tag==='Milestone'?'🎯':data.tag==='Dua'?'🤲':'💬') + ' ' + data.tag + '</span></div>' : ''}
-      <div class="post-body" style="white-space:pre-wrap;">${data.text}</div>
+      <div class="post-body" style="white-space:pre-wrap;">${escapeHtml(data.text||'')}</div>
       ${data.imageUrl ? `<img src="${data.imageUrl}" class="post-image" alt="Post image" onclick="window.open('${data.imageUrl}','_blank')" loading="lazy" />` : ''}
       ${data.videoUrl ? `
         <div class="video-wrap">
@@ -697,19 +759,307 @@
       </div>
       <div class="comments-section" id="comments-${postId}">
         <div id="comments-list-${postId}">
-          ${(data.comments||[]).map(c=>`
-            <div class="comment-item">
-              <div class="comment-avatar">${(c.name||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)}</div>
-              <div class="comment-bubble"><div class="comment-name">${c.name||'Anonymous'}</div><div class="comment-text">${c.text}</div></div>
-            </div>`).join('')}
+          <!-- Comments are loaded from posts/{postId}/comments/{commentId}. -->
         </div>
         <div class="comment-input-row">
-          <input class="comment-input" id="comment-input-${postId}" placeholder="Write a comment... (Ctrl+Enter to send)" />
+          <textarea
+ class="comment-input"
+ id="comment-input-${postId}"
+ placeholder="Write a comment... (Ctrl+Enter to send)"
+ rows="1" enterkeyhint="enter" inputmode="text"
+ oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,160)+'px';"
+ onkeydown="if(event.key === 'Enter' && event.ctrlKey){event.preventDefault();submitComment('${postId}');}"
+></textarea>
           <button class="comment-send" onclick="submitComment('${postId}')">Send</button>
         </div>
       </div>`;
+    // Load authoritative like state/count asynchronously.
+    refreshPostLikeUI(postId, div, legacyLikes);
+    refreshPostCommentsUI(postId);
+
     return div;
   }
+
+  // ── POST SAFETY MENU ────────────────────────────────────────────
+  window.openPostSafetyMenu = function(event, postId) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    document.getElementById('post-safety-menu')?.remove();
+
+    const postEl = document.getElementById('post-' + postId);
+    if (!postEl) return;
+
+    const isOwner = !!(currentUser && postEl.dataset.uid === currentUser.uid);
+
+    const menu = document.createElement('div');
+    menu.id = 'post-safety-menu';
+
+    menu.style.cssText = `
+      position:fixed;
+      z-index:99999;
+      background:white;
+      border:1px solid rgba(201,168,76,0.25);
+      border-radius:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.18);
+      padding:0.45rem;
+      min-width:190px;
+      font-family:inherit;
+    `;
+
+    const actions = [];
+
+    if (isOwner) {
+      actions.push({
+        icon: '✏️',
+        text: 'Edit Post',
+        action: () => editPost(postId, postEl.querySelector('.edit-btn'))
+      });
+
+      actions.push({
+        icon: '🗑️',
+        text: 'Delete Post',
+        danger: true,
+        action: () => deletePost(postId, postEl.querySelector('[onclick*="deletePost"]'))
+      });
+    } else {
+      actions.push({
+        icon: '🚩',
+        text: 'Report Post',
+        action: () => reportPost(postId)
+      });
+
+      actions.push({
+        icon: '🚫',
+        text: 'Block User',
+        danger: true,
+        action: () => blockPostAuthor(postId)
+      });
+    }
+
+    actions.push({
+      icon: '✕',
+      text: 'Cancel',
+      action: () => menu.remove()
+    });
+
+    actions.forEach(item => {
+      const button = document.createElement('button');
+
+      button.type = 'button';
+      button.textContent = `${item.icon}  ${item.text}`;
+
+      button.style.cssText = `
+        display:block;
+        width:100%;
+        text-align:left;
+        border:none;
+        background:none;
+        padding:0.7rem 0.8rem;
+        border-radius:9px;
+        font-family:inherit;
+        font-size:0.9rem;
+        cursor:pointer;
+        color:${item.danger ? '#e53935' : 'var(--text)'};
+      `;
+
+      button.onmouseenter = () => {
+        button.style.background = item.danger ? '#fff0f0' : '#f4f8f5';
+      };
+
+      button.onmouseleave = () => {
+        button.style.background = 'none';
+      };
+
+      button.onclick = () => {
+        menu.remove();
+        item.action();
+      };
+
+      menu.appendChild(button);
+    });
+
+    document.body.appendChild(menu);
+
+    let x = event.clientX || window.innerWidth / 2;
+    let y = event.clientY || window.innerHeight / 2;
+
+    const menuWidth = 200;
+    const menuHeight = actions.length * 45 + 20;
+
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10;
+    }
+
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - 10;
+    }
+
+    menu.style.left = Math.max(10, x) + 'px';
+    menu.style.top = Math.max(10, y) + 'px';
+
+    setTimeout(() => {
+      document.addEventListener('click', closePostSafetyMenuOutside, { once: true });
+    }, 0);
+  };
+
+  function closePostSafetyMenuOutside(event) {
+    const menu = document.getElementById('post-safety-menu');
+
+    if (menu && !menu.contains(event.target)) {
+      menu.remove();
+    }
+  }
+  // ────────────────────────────────────────────────────────────────
+
+  // ── COMMUNITY SAFETY: REPORT POST ──────────────────────────────
+  window.reportPost = async function(postId) {
+    if (!currentUser) {
+      showToast('Please sign in to report a post.');
+      return;
+    }
+
+    const postSnap = await getDoc(doc(db, 'posts', postId));
+
+    if (!postSnap.exists()) {
+      showToast('This post is no longer available.');
+      return;
+    }
+
+    const post = postSnap.data();
+
+    if (post.uid === currentUser.uid) {
+      showToast('You cannot report your own post.');
+      return;
+    }
+
+    const reasons = [
+      '1. 🔞 Sexual or inappropriate content',
+      '2. ☪️ Non-Islamic or inappropriate content',
+      '3. 🗣️ Harassment or bullying',
+      '4. 🚨 Violence or dangerous content',
+      '5. 🎣 Spam or scam',
+      '6. 📝 Other'
+    ].join('\n');
+
+    const selected = window.prompt(
+      '🚩 Report this post\n\nPlease choose a reason:\n\n' + reasons +
+      '\n\nEnter the number (1-6):'
+    );
+
+    if (selected === null) return;
+
+    const reasonMap = {
+      '1': 'sexual_or_inappropriate',
+      '2': 'non_islamic_or_inappropriate',
+      '3': 'harassment_or_bullying',
+      '4': 'violence_or_dangerous',
+      '5': 'spam_or_scam',
+      '6': 'other'
+    };
+
+    const reason = reasonMap[String(selected).trim()];
+
+    if (!reason) {
+      showToast('Please choose a valid report reason.');
+      return;
+    }
+
+    const reportId = currentUser.uid + '_' + postId;
+
+    try {
+      const reportRef = doc(db, 'reports', reportId);
+      const existingReport = await getDoc(reportRef);
+
+      if (existingReport.exists()) {
+        showToast('You have already reported this post. Thank you.');
+        return;
+      }
+
+      await setDoc(reportRef, {
+        reporterUid: currentUser.uid,
+        reporterName: currentUserData?.fullname || 'User',
+        postId: postId,
+        postAuthorUid: post.uid || '',
+        postAuthorName: post.authorName || 'Unknown',
+        reason: reason,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      });
+
+      showToast('✅ Report submitted. JazakAllahu khairan.');
+    } catch (e) {
+      console.error('Report post error:', e);
+      showToast('Could not submit report. Please try again.');
+    }
+  };
+  // ────────────────────────────────────────────────────────────────
+
+  // ── COMMUNITY SAFETY: BLOCK USER ───────────────────────────────
+  window.blockPostAuthor = async function(postId) {
+    if (!currentUser) {
+      showToast('Please sign in to block a user.');
+      return;
+    }
+
+    const postEl = document.getElementById('post-' + postId);
+
+    if (!postEl) {
+      showToast('This post is no longer available.');
+      return;
+    }
+
+    const targetUid = postEl.dataset.uid;
+
+    if (!targetUid) {
+      showToast('Could not identify this user.');
+      return;
+    }
+
+    if (targetUid === currentUser.uid) {
+      showToast('You cannot block yourself.');
+      return;
+    }
+
+    const authorName =
+      postEl.dataset.author ||
+      'this user';
+
+    const confirmed = window.confirm(
+      '🚫 Block ' + authorName + '?\n\n' +
+      'You will no longer see this user’s posts in your feed.'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const blockRef = doc(
+        db,
+        'users',
+        currentUser.uid,
+        'blockedUsers',
+        targetUid
+      );
+
+      await setDoc(blockRef, {
+        uid: targetUid,
+        name: authorName,
+        createdAt: new Date().toISOString()
+      });
+
+      // Immediately remove this user's visible posts
+      // from the current feed without refreshing the page.
+      document
+        .querySelectorAll('.feed-post[data-uid="' + targetUid + '"]')
+        .forEach(post => post.remove());
+
+      showToast('🚫 ' + authorName + ' has been blocked.');
+    } catch (e) {
+      console.error('Block user error:', e);
+      showToast('Could not block this user. Please try again.');
+    }
+  };
+  // ────────────────────────────────────────────────────────────────
 
   // ── MORE DRAWER ──────────────────────────────────────────────────
   window.openMoreDrawer = function() {
@@ -776,11 +1126,7 @@
       reqSnap.forEach(d => pending.push(d.data().toUid));
 
       // Load all users excluding self, already following, and pending
-      const snap = await getDocs(query(
-        collection(db,'users'),
-        orderBy('createdAt','desc'),
-        limit(20)
-      ));
+      const snap = await getDocs(query(collection(db,'users'), limit(20)));
       const suggestions = [];
       snap.forEach(d => {
         if (d.id === currentUser.uid) return;
@@ -844,17 +1190,277 @@
   }
   // ────────────────────────────────────────────────────────────────
 
-  function loadFeed() {
-    const feed = document.getElementById('feed');
-    const q = query(collection(db,'posts'), orderBy("createdAt","desc"), limit(10));
-    onSnapshot(q, snap => {
-      feed.innerHTML = '';
-      if (snap.empty) { feed.innerHTML = '<div class="empty-feed"><div class="icon">📖</div><p>No posts yet.<br/>Be the first to share your Hifz journey!</p></div>'; return; }
-      let myCount = 0;
-      snap.forEach(d => { if (currentUser && d.data().uid===currentUser.uid) myCount++; feed.appendChild(renderPost(d.id, d.data())); });
-      document.getElementById('stat-posts').textContent = myCount;
-    });
+  // ── COMMUNITY SAFETY: BLOCKED USERS ────────────────────────────
+  let blockedUserIds = new Set();
+
+  async function loadBlockedUsers() {
+    blockedUserIds = new Set();
+
+    if (!currentUser) return;
+
+    try {
+      const blockedSnap = await getDocs(
+        collection(db, 'users', currentUser.uid, 'blockedUsers')
+      );
+
+      blockedSnap.forEach(blockDoc => {
+        blockedUserIds.add(blockDoc.id);
+      });
+
+      console.log('🛡️ Blocked users loaded:', blockedUserIds.size);
+    } catch (e) {
+      console.error('Could not load blocked users:', e);
+    }
   }
+
+  // ────────────────────────────────────────────────────────────────
+
+  let feedLastDoc = null;
+  let feedLoading = false;
+  let feedHasMore = true;
+  let feedUnsubscribe = null;
+
+  async function loadFeed(reset = true) {
+  const feed = document.getElementById('feed');
+  const pagination = document.getElementById('feed-pagination');
+
+  if (reset) {
+    feed.innerHTML = '<div class="feed-loading"><span class="spinner"></span> Loading posts...</div>';
+    feedLastDoc = null;
+    feedHasMore = true;
+
+    if (feedUnsubscribe) {
+      feedUnsubscribe();
+      feedUnsubscribe = null;
+    }
+
+    const q = query(
+      collection(db, 'posts'),
+      orderBy('createdAt', 'desc'),
+      limit(10)
+    );
+
+    feedUnsubscribe = onSnapshot(q, snap => {
+  if (snap.empty) {
+    feed.innerHTML = '<div class="empty-feed"><div class="icon">📖</div><p>No posts yet.<br/>Be the first to share your Hifz journey!</p></div>';
+    feedLastDoc = null;
+    feedHasMore = false;
+    if (pagination) pagination.innerHTML = '';
+    return;
+  }
+
+  // Remove loading and empty states when posts exist
+    const loadingFeed = feed.querySelector('.feed-loading');
+if (loadingFeed) loadingFeed.remove();
+
+    const emptyFeed = feed.querySelector('.empty-feed');
+if (emptyFeed) emptyFeed.remove();
+
+let changed = false;
+
+  snap.docChanges().forEach(change => {
+    const postId = change.doc.id;
+    const data = change.doc.data();
+
+    // ── NEW / ENTERING POST ──
+if (change.type === 'added') {
+  // Never render posts from users I have blocked.
+  if (blockedUserIds.has(data.uid)) {
+    return;
+  }
+
+  const existing = document.getElementById('post-' + postId);
+
+  if (!existing) {
+    const postEl = renderPost(postId, data);
+    const newTime = new Date(data.createdAt || 0).getTime();
+
+    // Insert according to chronological order:
+    // newest → oldest.
+    const existingPosts = [...feed.querySelectorAll('.feed-post')];
+
+    let inserted = false;
+
+    for (const existingPost of existingPosts) {
+      const existingTime = new Date(
+        existingPost.dataset.createdAt || 0
+      ).getTime();
+
+      if (newTime > existingTime) {
+        feed.insertBefore(postEl, existingPost);
+        inserted = true;
+        break;
+      }
+    }
+
+    // If older than every currently rendered post,
+    // place it at the bottom.
+    if (!inserted) {
+      feed.appendChild(postEl);
+    }
+
+    changed = true;
+  }
+}
+
+    // ── UPDATED POST ──
+// Do NOT rebuild the entire post.
+// Likes and comments already update their own UI instantly.
+if (change.type === 'modified') {
+  const postEl = document.getElementById('post-' + postId);
+
+  if (postEl) {
+    // Likes and comments now live in secure subcollections.
+    // Their UI is refreshed independently so post updates
+    // never overwrite authoritative interaction counts.
+    refreshPostLikeUI(postId, postEl);
+    refreshPostCommentsUI(postId);
+  }
+
+  // No full-card replacement = no shake.
+}
+
+    // ── DELETED POST ──
+    if (change.type === 'removed') {
+      const oldPost = document.getElementById('post-' + postId);
+
+      if (oldPost) {
+        oldPost.remove();
+        changed = true;
+      }
+    }
+  });
+
+  // Keep pagination state updated
+  feedLastDoc = snap.docs[snap.docs.length - 1];
+  feedHasMore = snap.docs.length === 10;
+
+  // Update "Your Posts" count
+  let myCount = 0;
+
+  snap.forEach(d => {
+    if (currentUser && d.data().uid === currentUser.uid) {
+      myCount++;
+    }
+  });
+
+  const statPosts = document.getElementById('stat-posts');
+  if (statPosts) {
+    statPosts.textContent = myCount;
+  }
+
+  if (changed) {
+    renderFeedPagination();
+  }
+
+}, error => {
+  console.error('Feed realtime error:', error);
+
+  feed.innerHTML = '<div class="empty-feed"><div class="icon">⚠️</div><p>Could not load posts.<br/>Please refresh and try again.</p></div>';
+
+  if (pagination) pagination.innerHTML = '';
+});
+
+    return;
+  }
+
+  if (feedLoading || !feedHasMore || !feedLastDoc) return;
+
+  feedLoading = true;
+
+  if (pagination) {
+    pagination.innerHTML = `
+      <div style="color:var(--muted);font-size:0.85rem;padding:1rem;">
+        Loading more posts...
+      </div>
+    `;
+  }
+
+  try {
+    const q = query(
+      collection(db, 'posts'),
+      orderBy('createdAt', 'desc'),
+      startAfter(feedLastDoc),
+      limit(10)
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      feedHasMore = false;
+      renderFeedPagination();
+      return;
+    }
+
+    let myCount = Number(
+      document.getElementById('stat-posts')?.textContent || 0
+    );
+
+    snap.forEach(d => {
+      const data = d.data();
+
+      if (blockedUserIds.has(data.uid)) {
+        return;
+      }
+
+      if (currentUser && data.uid === currentUser.uid) {
+        myCount++;
+      }
+
+      feed.appendChild(renderPost(d.id, data));
+    });
+
+    document.getElementById('stat-posts').textContent = myCount;
+
+    feedLastDoc = snap.docs[snap.docs.length - 1];
+    feedHasMore = snap.docs.length === 10;
+
+    renderFeedPagination();
+
+  } catch (e) {
+    console.error('Load more posts error:', e);
+
+    if (pagination) {
+      pagination.innerHTML = `
+        <button
+          onclick="loadMorePosts()"
+          style="padding:0.8rem 1.5rem;border:none;border-radius:10px;background:var(--emerald);color:white;font-family:inherit;font-weight:700;cursor:pointer;"
+        >
+          Try Again
+        </button>
+      `;
+    }
+  } finally {
+    feedLoading = false;
+  }
+}
+
+function renderFeedPagination() {
+  const pagination = document.getElementById('feed-pagination');
+  if (!pagination) return;
+
+  if (!feedHasMore) {
+    pagination.innerHTML = feedLastDoc
+      ? '<div style="color:var(--muted);font-size:0.85rem;padding:1rem;">🤲 You\'ve reached the end of the feed.</div>'
+      : '';
+    return;
+  }
+
+  pagination.innerHTML = `
+    <button
+      onclick="loadMorePosts()"
+      style="padding:0.8rem 1.5rem;border:none;border-radius:10px;background:var(--emerald);color:white;font-family:inherit;font-weight:700;cursor:pointer;"
+    >
+      Load More Posts ↓
+    </button>
+  `;
+}
+
+window.loadMorePosts = async function() {
+  if (feedLoading || !feedHasMore || !feedLastDoc) return;
+
+  await loadFeed(false);
+};
 
   // ── STORIES ──────────────────────────────────────────────────────
   let allStories = [];       // [{uid, stories:[]}]
@@ -879,9 +1485,7 @@
       const now = new Date().toISOString();
       const snap = await getDocs(query(
         collection(db, 'stories'),
-        where('expiresAt', '>', now),
-        orderBy('createdAt', 'desc'),
-        limit(30)
+        where('expiresAt', '>', now)
       ));
       // Group by uid
       const grouped = {};
@@ -967,7 +1571,7 @@
     // Media
     const wrap = document.getElementById('story-media-wrap');
     wrap.innerHTML = '';
-    storyDuration = 5000;
+    storyDuration = 30000;
 
     if (story.type === 'photo' && story.mediaUrl) {
       wrap.innerHTML = `<img src="${story.mediaUrl}" class="story-img"/>`;
@@ -995,7 +1599,7 @@
       const bg = story.bg || 'linear-gradient(135deg,#0D3D29,#1A6B4A)';
       wrap.style.background = bg;
       wrap.innerHTML = `<div class="story-text-bg"><div class="story-text-card">${story.text || ''}</div></div>`;
-      storyDuration = 6000;
+      storyDuration = 30000;
     }
 
     // Load reactions and comments for this story
@@ -1170,7 +1774,7 @@
     const group = allStories[viewerGroupIdx];
     const story = group?.stories[viewerStoryIdx];
     if (!story || story.uid !== currentUser?.uid) return;
-    if (!confirm('Delete this story?')) return;
+    if (!await showDeleteConfirmation('story')) return;
     try {
       await deleteDoc(doc(db, 'stories', story.id));
       showToast('Story deleted.');
@@ -1566,8 +2170,6 @@
         authorCountry: currentUserData ? currentUserData.country : '',
         authorPhoto: currentUserData ? (currentUserData.photoURL || null) : null,
         tag: currentTag,
-        likes: [],
-        comments: [],
         createdAt: new Date().toISOString()
       };
       // Attach top badge if user has one
@@ -1603,21 +2205,124 @@
     }
     btn.disabled = false; btn.textContent = 'Share Post';
   }
+  async function refreshPostLikeUI(postId, postEl, fallbackLikes = []) {
+    if (!postEl) return;
+
+    const likeBtn = postEl.querySelector('.post-btn');
+    if (!likeBtn) return;
+
+    try {
+      const likesSnap = await getDocs(
+        collection(db, 'posts', postId, 'likes')
+      );
+
+      const newLikeUids = likesSnap.docs.map(d => d.id);
+
+      // Merge the new secure likes with any legacy likes still
+      // stored on older post documents.
+      const mergedLikeUids = [
+        ...new Set([
+          ...(Array.isArray(fallbackLikes) ? fallbackLikes : []),
+          ...newLikeUids
+        ])
+      ];
+
+      const liked = currentUser
+        ? mergedLikeUids.includes(currentUser.uid)
+        : false;
+
+      const likeCount = mergedLikeUids.length;
+
+      likeBtn.className = 'post-btn ' + (liked ? 'liked' : '');
+      likeBtn.textContent =
+        (liked ? '❤️' : '🤍') + ' ' +
+        likeCount + ' ' +
+        (likeCount === 1 ? 'Like' : 'Likes');
+
+    } catch (e) {
+      console.error('Could not refresh post likes:', e);
+    }
+  }
+
   window.toggleLike = async function(postId, btn) {
     if (!currentUser) return;
-    const ref = doc(db,'posts',postId);
-    const snap = await getDoc(ref);
-    const likes = snap.data()?.likes || [];
-    const liked = likes.includes(currentUser.uid);
-    await updateDoc(ref, { likes: liked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
-    if (!liked) {
-      const postOwner = snap.data()?.uid;
-      const postPreview = (snap.data()?.text||'').slice(0,40);
-      await saveNotification(postOwner, 'like', '<strong>' + (currentUserData?.fullname||'Someone') + '</strong> liked your post: "' + postPreview + '..."', postId);
+
+    const postRef = doc(db, 'posts', postId);
+    const likeRef = doc(db, 'posts', postId, 'likes', currentUser.uid);
+
+    try {
+      const [postSnap, likeSnap] = await Promise.all([
+        getDoc(postRef),
+        getDoc(likeRef)
+      ]);
+
+      if (!postSnap.exists()) return;
+
+      const wasLiked = likeSnap.exists();
+
+      // Optimistic UI update.
+      btn.className = 'post-btn ' + (!wasLiked ? 'liked' : '');
+      btn.textContent = !wasLiked ? '❤️ Liking...' : '🤍 Unliking...';
+
+      if (wasLiked) {
+        await deleteDoc(likeRef);
+      } else {
+        await setDoc(likeRef, {
+          uid: currentUser.uid,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      if (!wasLiked) {
+        const postOwner = postSnap.data()?.uid;
+        const postPreview = (postSnap.data()?.text || '').slice(0,40);
+
+        await saveNotification(
+          postOwner,
+          'like',
+          '<strong>' +
+            (currentUserData?.fullname || 'Someone') +
+            '</strong> liked your post: "' +
+            postPreview +
+            '..."',
+          postId
+        );
+      }
+
+      const postEl = document.getElementById('post-' + postId);
+
+      // Refresh authoritative count/state from the likes subcollection.
+      await refreshPostLikeUI(
+        postId,
+        postEl,
+        postSnap.data()?.likes || []
+      );
+
+    } catch (e) {
+      console.error('Like toggle error:', e);
+      showToast('Could not update like. Try again.');
+
+      const postEl = document.getElementById('post-' + postId);
+
+      if (postEl) {
+        const fallbackLikes = await postSnapFallback(postId);
+
+        await refreshPostLikeUI(
+          postId,
+          postEl,
+          fallbackLikes
+        );
+      }
     }
-    const newCount = liked ? likes.length-1 : likes.length+1;
-    btn.className = 'post-btn ' + (!liked?'liked':'');
-    btn.textContent = (!liked?'❤️':'🤍') + ' ' + newCount + ' ' + (newCount===1?'Like':'Likes');
+  }
+
+  async function postSnapFallback(postId) {
+    try {
+      const snap = await getDoc(doc(db, 'posts', postId));
+      return snap.exists() ? (snap.data()?.likes || []) : [];
+    } catch {
+      return [];
+    }
   }
 
   window.toggleComments = function(postId) {
@@ -1626,35 +2331,227 @@
     if (s.classList.contains('open')) document.getElementById('comment-input-'+postId)?.focus();
   }
 
+  async function refreshPostCommentsUI(postId) {
+    const postEl = document.getElementById('post-' + postId);
+    if (!postEl) return;
+
+    const commentBtn = postEl.querySelectorAll('.post-btn')[1];
+    const list = document.getElementById('comments-list-' + postId);
+
+    try {
+      const commentsRef = collection(db, 'posts', postId, 'comments');
+
+      const commentsQuery = query(
+        commentsRef,
+        orderBy('createdAt', 'asc')
+      );
+
+      const snap = await getDocs(commentsQuery);
+
+      const comments = snap.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      }));
+
+      // Update authoritative comment count.
+      if (commentBtn) {
+        const count = comments.length;
+
+        commentBtn.textContent =
+          '💬 ' +
+          count + ' ' +
+          (count === 1 ? 'Comment' : 'Comments');
+      }
+
+      if (!list) return;
+
+      // Rebuild only the comments list — never the whole post.
+      list.innerHTML = '';
+
+      comments.forEach(comment => {
+        const initials = (comment.name || '?')
+          .split(' ')
+          .map(n => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2);
+
+        const div = document.createElement('div');
+
+        div.className = 'comment-item';
+        div.dataset.postId = postId;
+        div.dataset.commentId = comment.id;
+
+        div.setAttribute(
+          'oncontextmenu',
+          `openCommentMenu(event, '${postId}', '${comment.id}')`
+        );
+
+        div.setAttribute(
+          'ontouchstart',
+          `startCommentLongPress(event, '${postId}', '${comment.id}')`
+        );
+
+        div.setAttribute(
+          'ontouchend',
+          'cancelCommentLongPress()'
+        );
+
+        div.setAttribute(
+          'ontouchmove',
+          'cancelCommentLongPress()'
+        );
+
+        div.innerHTML = `
+          <div class="comment-avatar">${initials}</div>
+          <div class="comment-bubble">
+            <div class="comment-name">${escapeHtml(comment.name || 'Anonymous')}</div>
+
+            <div class="comment-text" style="white-space:pre-wrap;">
+              ${escapeHtml(comment.text || '')}
+            </div>
+
+            <div style="display:flex;gap:0.75rem;margin-top:0.3rem;">
+              <button
+                class="comment-like-btn"
+                onclick="reactToComment(this)"
+                style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;"
+              >❤️ Like</button>
+
+              <button
+                onclick="replyToComment('${postId}','${escapeHtml(comment.name || '')}')"
+                style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;"
+              >↩ Reply</button>
+            </div>
+          </div>
+        `;
+
+        list.appendChild(div);
+      });
+
+    } catch (e) {
+      console.error('Could not load post comments:', e);
+    }
+  }
+
   window.submitComment = async function(postId) {
     if (!currentUser) return;
-    const input = document.getElementById('comment-input-'+postId);
+
+    const input = document.getElementById('comment-input-' + postId);
+    if (!input) return;
+
     const text = input.value.trim();
     if (!text) return;
-    const comment = { uid: currentUser.uid, name: currentUserData?.fullname || currentUser.displayName || 'Anonymous', text, createdAt: new Date().toISOString() };
-    const postSnap = await getDoc(doc(db,'posts',postId));
-    await updateDoc(doc(db,'posts',postId), { comments: arrayUnion(comment) });
-    const postOwner = postSnap.data()?.uid;
-    const postPreview = (postSnap.data()?.text||'').slice(0,40);
-    await saveNotification(postOwner, 'comment', '<strong>' + comment.name + '</strong> commented on your post: "' + postPreview + '..."', postId);
-    const list = document.getElementById('comments-list-'+postId);
-    const initials = comment.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-    const div = document.createElement('div');
-    div.className = 'comment-item';
-    div.innerHTML = `
-      <div class="comment-avatar">${initials}</div>
-      <div class="comment-bubble">
-        <div class="comment-name">${comment.name}</div>
-        <div class="comment-text">${comment.text}</div>
-        <div style="display:flex;gap:0.75rem;margin-top:0.3rem;">
-          <button onclick="reactToComment(this)" style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;">❤️ Like</button>
-          <button onclick="replyToComment('${postId}','${comment.name}')" style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;">↩ Reply</button>
-        </div>
-      </div>`;
-    list.appendChild(div);
-    input.value = '';
-    showToast('💬 Comment added!');
-  }
+
+    const commentId = crypto.randomUUID();
+
+    const comment = {
+      id: commentId,
+      uid: currentUser.uid,
+      name: currentUserData?.fullname || currentUser.displayName || 'Anonymous',
+      text,
+      createdAt: new Date().toISOString()
+    };
+
+    try {
+      const postRef = doc(db, 'posts', postId);
+      const postSnap = await getDoc(postRef);
+
+      if (!postSnap.exists()) {
+        showToast('Post not found.');
+        return;
+      }
+
+      // Store the comment in its own secure subcollection.
+      await setDoc(
+        doc(db, 'posts', postId, 'comments', commentId),
+        comment
+      );
+
+      // Notify the post owner.
+      const postOwner = postSnap.data()?.uid;
+      const postPreview = (postSnap.data()?.text || '').slice(0, 40);
+
+      await saveNotification(
+        postOwner,
+        'comment',
+        '<strong>' + comment.name +
+        '</strong> commented on your post: "' +
+        postPreview + '..."',
+        postId
+      );
+
+      // Render the new comment immediately.
+      const list = document.getElementById('comments-list-' + postId);
+
+      if (list) {
+        const initials = comment.name
+          .split(' ')
+          .map(n => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2);
+
+        const div = document.createElement('div');
+
+        div.className = 'comment-item';
+        div.dataset.postId = postId;
+        div.dataset.commentId = comment.id;
+
+        div.setAttribute(
+          'oncontextmenu',
+          `openCommentMenu(event, '${postId}', '${comment.id}')`
+        );
+
+        div.setAttribute(
+          'ontouchstart',
+          `startCommentLongPress(event, '${postId}', '${comment.id}')`
+        );
+
+        div.setAttribute(
+          'ontouchend',
+          'cancelCommentLongPress()'
+        );
+
+        div.setAttribute(
+          'ontouchmove',
+          'cancelCommentLongPress()'
+        );
+
+        div.innerHTML = `
+          <div class="comment-avatar">${initials}</div>
+          <div class="comment-bubble">
+            <div class="comment-name">${escapeHtml(comment.name)}</div>
+            <div class="comment-text" style="white-space:pre-wrap;">${escapeHtml(comment.text)}</div>
+            <div style="display:flex;gap:0.75rem;margin-top:0.3rem;">
+              <button
+                class="comment-like-btn"
+                onclick="reactToComment(this)"
+                style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;"
+              >❤️ Like</button>
+
+              <button
+                onclick="replyToComment('${postId}','${escapeHtml(comment.name)}')"
+                style="background:none;border:none;font-size:0.72rem;color:var(--muted);cursor:pointer;padding:0;"
+              >↩ Reply</button>
+            </div>
+          </div>`;
+
+        list.appendChild(div);
+      }
+
+      input.value = '';
+      input.style.height = 'auto';
+
+      await refreshPostCommentsUI(postId);
+
+      showToast('💬 Comment added!');
+
+    } catch (e) {
+      console.error('Submit comment error:', e);
+      showToast('Could not add comment. Try again.');
+    }
+  };
 
   window.openShareModal = function(postId, authorName, postText) {
     // Show share options modal
@@ -1715,6 +2612,457 @@
     const text = encodeURIComponent('Check this post on HuffazWorld by ' + authorName + ':\n"' + postText + '"\n\nhttps://huffazworld.netlify.app');
     window.open('https://wa.me/?text=' + text, '_blank');
   }
+
+    // ── COMMENT MENU & MANAGEMENT ────────────────────────────────────
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+  }
+
+  let commentLongPressTimer = null;
+
+  window.startCommentLongPress = function(event, postId, commentId) {
+    commentLongPressTimer = setTimeout(() => {
+      const touch = event.touches?.[0];
+
+      openCommentMenu(
+        {
+          preventDefault: () => {},
+          clientX: touch?.clientX || window.innerWidth / 2,
+          clientY: touch?.clientY || window.innerHeight / 2
+        },
+        postId,
+        commentId
+      );
+    }, 600);
+  };
+
+  window.cancelCommentLongPress = function() {
+    if (commentLongPressTimer) {
+      clearTimeout(commentLongPressTimer);
+      commentLongPressTimer = null;
+    }
+  };
+
+  window.openCommentMenu = async function(event, postId, commentId) {
+    event.preventDefault();
+
+    // Remove an existing menu first.
+    document.getElementById('comment-action-menu')?.remove();
+
+    const postSnap = await getDoc(doc(db, 'posts', postId));
+    if (!postSnap.exists()) return;
+
+    const comments = postSnap.data()?.comments || [];
+    const comment = comments.find(c => c.id === commentId);
+
+    if (!comment) {
+      showToast('This comment is no longer available.');
+      return;
+    }
+
+    const isOwner = currentUser && comment.uid === currentUser.uid;
+
+    const menu = document.createElement('div');
+    menu.id = 'comment-action-menu';
+
+    menu.style.cssText = `
+      position:fixed;
+      z-index:99999;
+      background:white;
+      border:1px solid rgba(201,168,76,0.25);
+      border-radius:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.18);
+      padding:0.45rem;
+      min-width:190px;
+      font-family:inherit;
+    `;
+
+    const actions = [];
+
+    actions.push({
+      icon: '📋',
+      text: 'Copy',
+      action: () => copyComment(comment.text)
+    });
+
+    if (isOwner) {
+      actions.push({
+        icon: '✏️',
+        text: 'Edit',
+        action: () => editComment(postId, comment.id)
+      });
+
+      actions.push({
+        icon: '🗑️',
+        text: 'Delete',
+        danger: true,
+        action: () => deleteComment(postId, comment.id)
+      });
+    }
+
+    actions.push({
+      icon: '❤️',
+      text: 'Like',
+      action: () => {
+        const commentEl = document.querySelector(
+          `[data-post-id="${postId}"][data-comment-id="${comment.id}"]`
+        );
+
+        const likeButton = commentEl?.querySelector('.comment-like-btn');
+
+        if (likeButton) {
+          reactToComment(likeButton);
+        } else {
+          showToast('❤️ Like');
+        }
+      }
+    });
+
+    actions.push({
+      icon: '✕',
+      text: 'Cancel',
+      action: () => menu.remove()
+    });
+
+    actions.forEach(item => {
+      const button = document.createElement('button');
+
+      button.type = 'button';
+      button.textContent = `${item.icon}  ${item.text}`;
+
+      button.style.cssText = `
+        display:block;
+        width:100%;
+        text-align:left;
+        border:none;
+        background:none;
+        padding:0.7rem 0.8rem;
+        border-radius:9px;
+        font-family:inherit;
+        font-size:0.9rem;
+        cursor:pointer;
+        color:${item.danger ? '#e53935' : 'var(--text)'};
+      `;
+
+      button.onmouseenter = () => {
+        button.style.background = item.danger
+          ? '#fff0f0'
+          : '#f4f8f5';
+      };
+
+      button.onmouseleave = () => {
+        button.style.background = 'none';
+      };
+
+      button.onclick = () => {
+        menu.remove();
+        item.action();
+      };
+
+      menu.appendChild(button);
+    });
+
+    document.body.appendChild(menu);
+
+    let x = event.clientX || window.innerWidth / 2;
+    let y = event.clientY || window.innerHeight / 2;
+
+    // Keep the menu inside the viewport.
+    const menuWidth = 200;
+    const menuHeight = actions.length * 45 + 20;
+
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10;
+    }
+
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - 10;
+    }
+
+    menu.style.left = Math.max(10, x) + 'px';
+    menu.style.top = Math.max(10, y) + 'px';
+
+    setTimeout(() => {
+      document.addEventListener('click', closeCommentMenuOutside, { once: true });
+    }, 0);
+  };
+
+  function closeCommentMenuOutside(event) {
+    const menu = document.getElementById('comment-action-menu');
+
+    if (menu && !menu.contains(event.target)) {
+      menu.remove();
+    }
+  }
+
+  window.copyComment = async function(text) {
+    try {
+      await navigator.clipboard.writeText(text || '');
+      showToast('📋 Comment copied!');
+    } catch (e) {
+      showToast('Could not copy comment.');
+    }
+  };
+
+  window.editComment = async function(postId, commentId) {
+    try {
+      if (!currentUser) {
+        showToast('Please sign in to edit a comment.');
+        return;
+      }
+
+      const commentRef = doc(
+        db,
+        'posts',
+        postId,
+        'comments',
+        commentId
+      );
+
+      const snap = await getDoc(commentRef);
+
+      if (!snap.exists()) {
+        showToast('Comment not found.');
+        return;
+      }
+
+      const comment = snap.data();
+
+      if (comment.uid !== currentUser.uid) {
+        showToast('You can only edit your own comments.');
+        return;
+      }
+
+      const oldText = comment.text || '';
+
+      const newText = prompt('Edit your comment:', oldText);
+
+      if (newText === null) return;
+
+      const trimmed = newText.trim();
+
+      if (!trimmed) {
+        showToast('Comment cannot be empty.');
+        return;
+      }
+
+      await updateDoc(commentRef, {
+        text: trimmed,
+        editedAt: new Date().toISOString()
+      });
+
+      await refreshPostCommentsUI(postId);
+
+      showToast('✏️ Comment updated!');
+
+    } catch (e) {
+      console.error('Edit comment error:', e);
+      showToast('Could not edit comment.');
+    }
+  };
+
+      // ── CUSTOM DELETE CONFIRMATION MODAL ─────────────────────────────
+    window.showDeleteConfirmation = function(type = 'post') {
+    return new Promise(resolve => {
+      document.getElementById('delete-confirm-modal')?.remove();
+
+      const isComment = type === 'comment';
+      const isStory = type === 'story';
+
+      const title = isStory
+        ? 'Delete story?'
+        : isComment
+          ? 'Delete comment?'
+          : 'Delete post?';
+
+      const message = isStory
+        ? 'Are you sure you want to delete this story?'
+        : isComment
+          ? 'Are you sure you want to delete this comment?'
+          : 'Are you sure you want to delete this post?';
+
+      const modal = document.createElement('div');
+      modal.id = 'delete-confirm-modal';
+
+      modal.style.cssText = `
+        position:fixed;
+        inset:0;
+        z-index:100000;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:1rem;
+        background:rgba(0,0,0,0.55);
+        backdrop-filter:blur(4px);
+        -webkit-backdrop-filter:blur(4px);
+      `;
+
+      modal.innerHTML = `
+        <div style="
+          width:min(92vw,420px);
+          background:var(--card,#fff);
+          border-radius:20px;
+          padding:1.5rem;
+          box-shadow:0 20px 60px rgba(0,0,0,0.3);
+          font-family:inherit;
+          animation:deleteModalIn 0.2s ease;
+        ">
+          <div style="
+            display:flex;
+            align-items:center;
+            gap:0.8rem;
+            margin-bottom:0.8rem;
+          ">
+            <div style="
+              width:44px;
+              height:44px;
+              border-radius:50%;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              background:#fff0f0;
+              font-size:1.35rem;
+              flex-shrink:0;
+            ">🗑️</div>
+
+            <div style="
+              font-size:1.15rem;
+              font-weight:800;
+              color:var(--text,#183c2d);
+            ">${title}</div>
+          </div>
+
+          <div style="
+            color:var(--muted,#6b7280);
+            font-size:0.92rem;
+            line-height:1.55;
+            margin-bottom:0.35rem;
+          ">${message}</div>
+
+          <div style="
+            color:var(--muted,#6b7280);
+            font-size:0.82rem;
+            margin-bottom:1.4rem;
+          ">This action cannot be undone.</div>
+
+          <div style="
+            display:flex;
+            justify-content:flex-end;
+            gap:0.7rem;
+          ">
+            <button
+              type="button"
+              id="delete-confirm-cancel"
+              style="
+                border:1px solid rgba(0,0,0,0.12);
+                background:transparent;
+                color:var(--text,#183c2d);
+                padding:0.7rem 1.1rem;
+                border-radius:10px;
+                font-family:inherit;
+                font-weight:700;
+                cursor:pointer;
+              "
+            >Cancel</button>
+
+            <button
+              type="button"
+              id="delete-confirm-delete"
+              style="
+                border:none;
+                background:#e53935;
+                color:white;
+                padding:0.7rem 1.1rem;
+                border-radius:10px;
+                font-family:inherit;
+                font-weight:700;
+                cursor:pointer;
+              "
+            >🗑️ Delete</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      const finish = result => {
+        modal.remove();
+        resolve(result);
+      };
+
+      document.getElementById('delete-confirm-cancel').onclick = () => {
+        finish(false);
+      };
+
+      document.getElementById('delete-confirm-delete').onclick = () => {
+        finish(true);
+      };
+
+      modal.addEventListener('click', event => {
+        if (event.target === modal) {
+          finish(false);
+        }
+      });
+
+      const escapeHandler = event => {
+        if (event.key === 'Escape') {
+          document.removeEventListener('keydown', escapeHandler);
+          finish(false);
+        }
+      };
+
+      document.addEventListener('keydown', escapeHandler);
+    });
+  };
+
+  window.deleteComment = async function(postId, commentId) {
+    const confirmed = await showDeleteConfirmation('comment');
+
+    if (!confirmed) return;
+
+    try {
+      if (!currentUser) {
+        showToast('Please sign in to delete a comment.');
+        return;
+      }
+
+      const commentRef = doc(
+        db,
+        'posts',
+        postId,
+        'comments',
+        commentId
+      );
+
+      const snap = await getDoc(commentRef);
+
+      if (!snap.exists()) {
+        showToast('Comment not found.');
+        return;
+      }
+
+      const comment = snap.data();
+
+      if (comment.uid !== currentUser.uid) {
+        showToast('You can only delete your own comments.');
+        return;
+      }
+
+      await deleteDoc(commentRef);
+
+      await refreshPostCommentsUI(postId);
+
+      showToast('🗑️ Comment deleted.');
+
+    } catch (e) {
+      console.error('Delete comment error:', e);
+      showToast('Could not delete comment.');
+    }
+  };
+
 
   window.reactToComment = function(btn) {
     const reactions = ['❤️','😂','😮','😢','🤲','🥰'];
@@ -1780,7 +3128,7 @@
   }
 
   window.deletePost = async function(postId, btn) {
-    if (!confirm('Delete this post? This cannot be undone.')) return;
+   if (!await showDeleteConfirmation('post')) return;
     try {
       await deleteDoc(doc(db,'posts',postId));
       const postDiv = btn.closest('.feed-post');
@@ -1795,9 +3143,8 @@
   async function loadUnreadMessages(uid) {
     try {
       const q = query(
-        collection(db,'conversations'),
-        where('unreadBy','array-contains',uid)
-      );
+  collection(db,'conversations'),
+  where('unreadBy','array-contains',uid));
       const countSnap = await getCountFromServer(q);
       const unread = countSnap.data().count;
       if (unread > 0) {
@@ -1812,7 +3159,10 @@
 
   async function loadUnreadCount(uid) {
     try {
-      const q = query(collection(db,'notifications'), where('toUid','==',uid), where('read','==',false));
+      const q = query(
+  collection(db,'notifications'),
+  where('toUid','==',uid),
+  where('read','==',false));
       const countSnap = await getCountFromServer(q);
       const count = countSnap.data().count;
       const badge = document.getElementById('notif-badge');
@@ -1841,37 +3191,27 @@
         }
         document.getElementById('welcome-name').textContent = 'Welcome back, ' + name.split(' ')[0] + '! 🤲';
         document.getElementById('welcome-role').textContent = role + ' · Continue your blessed journey today.';
-        // ── Load dashboard stats in parallel ──
-        Promise.all([
-          (async () => {
-            try {
-              const usersCountSnap = await getCountFromServer(collection(db,'users'));
-              const membersEl = document.getElementById('stat-members');
-              if (membersEl) membersEl.textContent = usersCountSnap.data().count;
-            } catch(e) { console.error('Member count error:', e); }
-          })(),
+        const usersCountSnap = await getCountFromServer(collection(db,'users'));
+        document.getElementById('stat-members').textContent = usersCountSnap.data().count;
 
-          (async () => {
-            try {
-              const progSnap = await getDoc(doc(db, 'hifzProgress', user.uid));
-              const streak = progSnap.exists() ? (progSnap.data().streak || 0) : 0;
-              const streakEl = document.getElementById('stat-streak');
-              if (streakEl) streakEl.textContent = streak;
-            } catch(e) { console.error('Streak error:', e); }
-          })(),
+        // ── Real streak from hifzProgress ──
+        try {
+          const progSnap = await getDoc(doc(db, 'hifzProgress', user.uid));
+          const streak = progSnap.exists() ? (progSnap.data().streak || 0) : 0;
+          const streakEl = document.getElementById('stat-streak');
+          if (streakEl) streakEl.textContent = streak;
+        } catch(e) {}
 
-          (async () => {
-            try {
-              const badgeSnap = await getDoc(doc(db, 'badges', user.uid));
-              let badgeCount = 0;
-              if (badgeSnap.exists() && badgeSnap.data().earned) {
-                badgeCount = Object.values(badgeSnap.data().earned).filter(Boolean).length;
-              }
-              const badgeEl = document.getElementById('stat-badges');
-              if (badgeEl) badgeEl.textContent = badgeCount;
-            } catch(e) { console.error('Badge count error:', e); }
-          })()
-        ]);
+        // ── Real badge count from badges collection ──
+        try {
+          const badgeSnap = await getDoc(doc(db, 'badges', user.uid));
+          let badgeCount = 0;
+          if (badgeSnap.exists() && badgeSnap.data().earned) {
+            badgeCount = Object.values(badgeSnap.data().earned).filter(Boolean).length;
+          }
+          const badgeEl = document.getElementById('stat-badges');
+          if (badgeEl) badgeEl.textContent = badgeCount;
+        } catch(e) {}
 
         // Set classroom nav link based on role (mobile + desktop)
         const classLink = document.getElementById('more-class-link');
@@ -1887,11 +3227,8 @@
           if (classLink) { classLink.href = classPage; classLink.querySelector('.di-icon').textContent = '📖'; classLink.querySelector('.di-label').textContent = 'My Class'; }
           if (desktopClassLink) { desktopClassLink.href = classPage; desktopClassLink.textContent = '📖 My Class'; }
         }
-
-        // Show dashboard as soon as essential profile/navigation is ready.
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
       } catch(e) { console.error(e); }
+      await loadBlockedUsers();
       loadFeed();
       loadStories();
       loadSidebarSuggestions();
@@ -1912,11 +3249,10 @@
       }
       loadUnreadCount(user.uid);
       loadUnreadMessages(user.uid);
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
     } else { window.location.href = 'login.html'; }
   });
 </script>
-
-<script src="js/android-navigation.js"></script>
-
 </body>
 </html>
