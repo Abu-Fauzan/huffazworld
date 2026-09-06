@@ -775,7 +775,6 @@
       </div>`;
     // Load authoritative like state/count asynchronously.
     refreshPostLikeUI(postId, div, legacyLikes);
-    refreshPostCommentsUI(postId);
 
     return div;
   }
@@ -1299,6 +1298,8 @@ if (change.type === 'added') {
       feed.appendChild(postEl);
     }
 
+    refreshPostCommentsUI(postId);
+
     changed = true;
   }
 }
@@ -1407,7 +1408,9 @@ if (change.type === 'modified') {
         myCount++;
       }
 
-      feed.appendChild(renderPost(d.id, data));
+      const postEl = renderPost(d.id, data);
+      feed.appendChild(postEl);
+      refreshPostCommentsUI(d.id);
     });
 
     document.getElementById('stat-posts').textContent = myCount;
@@ -2325,10 +2328,16 @@ window.loadMorePosts = async function() {
     }
   }
 
-  window.toggleComments = function(postId) {
-    const s = document.getElementById('comments-'+postId);
+  window.toggleComments = async function(postId) {
+    const s = document.getElementById('comments-' + postId);
+    if (!s) return;
+
     s.classList.toggle('open');
-    if (s.classList.contains('open')) document.getElementById('comment-input-'+postId)?.focus();
+
+    if (s.classList.contains('open')) {
+      await refreshPostCommentsUI(postId);
+      document.getElementById('comment-input-' + postId)?.focus();
+    }
   }
 
   async function refreshPostCommentsUI(postId) {
