@@ -313,7 +313,7 @@
   /* ── BOTTOM ── */
 
   .bottom-bar {
-    padding: 0.75rem 1.25rem 1.5rem;
+    padding: 0.75rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
   }
 
   .dots {
@@ -339,6 +339,7 @@
 
   .next-btn {
     display: block;
+    min-height: 52px;
     width: 100%;
     max-width: 500px;
     margin: 0 auto;
