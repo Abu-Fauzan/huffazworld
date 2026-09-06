@@ -3191,6 +3191,11 @@ window.loadMorePosts = async function() {
         }
         document.getElementById('welcome-name').textContent = 'Welcome back, ' + name.split(' ')[0] + '! 🤲';
         document.getElementById('welcome-role').textContent = role + ' · Continue your blessed journey today.';
+        
+        // Show dashboard immediately after basic profile is ready
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+
         const usersCountSnap = await getCountFromServer(collection(db,'users'));
         document.getElementById('stat-members').textContent = usersCountSnap.data().count;
 
@@ -3228,11 +3233,12 @@ window.loadMorePosts = async function() {
           if (desktopClassLink) { desktopClassLink.href = classPage; desktopClassLink.textContent = '📖 My Class'; }
         }
       } catch(e) { console.error(e); }
-      await loadBlockedUsers();
-      loadFeed();
+      loadBlockedUsers().then(() => {
+        loadFeed();
+      });
+
       loadStories();
       loadSidebarSuggestions();
-
       // Scroll to post if navigated from notification
       if (window.location.hash && window.location.hash.startsWith('#post-')) {
         const targetPostId = window.location.hash.replace('#post-', '');
@@ -3249,8 +3255,6 @@ window.loadMorePosts = async function() {
       }
       loadUnreadCount(user.uid);
       loadUnreadMessages(user.uid);
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
     } else { window.location.href = 'login.html'; }
   });
 </script>
