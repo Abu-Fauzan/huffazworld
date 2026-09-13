@@ -1049,7 +1049,25 @@
         // Already rendered locally
         if (renderedMessages.has(msg.id)) return;
 
-        // Remove empty-chat placeholder
+        // Reconcile an optimistic local message with
+        // the real Firestore message.
+        if (msg.senderUid === currentUser?.uid) {
+          const localEl = [...area.querySelectorAll('.msg-row')].find(el =>
+            el.dataset.localMessage === 'true' &&
+            el.dataset.senderUid === msg.senderUid &&
+            el.dataset.createdAt === msg.createdAt &&
+            el.querySelector('.msg-bubble')?.textContent === (msg.text || '')
+          );
+
+          if (localEl) {
+            localEl.dataset.msgId = msg.id;
+            localEl.dataset.localMessage = 'false';
+            renderedMessages.add(msg.id);
+            return;
+          }
+        }
+
+  // Remove empty-chat placeholder
         const empty = document.getElementById('empty-chat');
         if (empty) empty.remove();
 
@@ -1510,6 +1528,7 @@ window.sendMessage = async function() {
   );
 
   localEl.dataset.senderUid = msgData.senderUid;
+  localEl.dataset.createdAt = createdAt;
   localEl.dataset.localMessage = 'true';
 
   area.appendChild(localEl);
@@ -1525,6 +1544,7 @@ window.sendMessage = async function() {
     // Replace temporary ID with real Firestore ID.
     localEl.dataset.msgId = messageRef.id;
     localEl.dataset.localMessage = 'false';
+    renderedMessages.add(messageRef.id);
 
     const convData = {
       members: [currentUser.uid, otherUid],
