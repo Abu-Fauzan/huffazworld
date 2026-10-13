@@ -1109,6 +1109,89 @@
     videoEl.addEventListener('pause', () => clearTimeout(timer), { once: true });
   }
   // ────────────────────────────────────────────────────────────────
+  
+  // ── VIDEO PLAYBACK CONTROLLER ──────────────────────────────────
+  // Only one feed video can play at a time.
+  // Pause videos when they scroll out of view.
+
+  function pauseOtherFeedVideos(activeVideo) {
+    document.querySelectorAll('video.post-video').forEach(video => {
+      if (video !== activeVideo && !video.paused) {
+        video.pause();
+      }
+    });
+  }
+
+  // The capture phase ensures dynamically rendered feed videos
+  // are handled without adding individual listeners to every post.
+  document.addEventListener('play', event => {
+    const video = event.target;
+
+    if (!(video instanceof HTMLVideoElement)) return;
+    if (!video.matches('video.post-video')) return;
+
+    pauseOtherFeedVideos(video);
+  }, true);
+
+  // Pause a feed video when less than 25% of it is visible.
+  const feedVideoObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting || entry.intersectionRatio < 0.25) {
+        const video = entry.target;
+
+        if (!video.paused) {
+          video.pause();
+        }
+      }
+    });
+  }, {
+    threshold: [0, 0.25]
+  });
+
+  function observeFeedVideos(root = document) {
+    root.querySelectorAll('video.post-video').forEach(video => {
+      if (video.dataset.playbackObserved === 'true') return;
+
+      video.dataset.playbackObserved = 'true';
+      feedVideoObserver.observe(video);
+    });
+  }
+
+  // Observe videos already present in the feed.
+  observeFeedVideos();
+
+  // Also observe videos added later by the live feed or pagination.
+  const feedVideoMutationObserver = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+        if (node.matches?.('video.post-video')) {
+          observeFeedVideos(node.parentElement || document);
+        } else {
+          observeFeedVideos(node);
+        }
+      });
+    });
+  });
+
+  const videoFeed = document.getElementById('feed');
+
+  if (videoFeed) {
+    feedVideoMutationObserver.observe(videoFeed, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Pause feed videos when the user switches tabs or apps.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      pauseOtherFeedVideos(null);
+    }
+  });
+
+  // ── END VIDEO PLAYBACK CONTROLLER ──────────────────────────────
 
   // ── SIDEBAR SUGGESTIONS ─────────────────────────────────────────
   let sidebarFollowStates = {};
